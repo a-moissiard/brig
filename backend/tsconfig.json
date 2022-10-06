@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./build",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

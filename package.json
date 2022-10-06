@@ -1,0 +1,22 @@
+{
+  "name": "brig",
+  "packageManager": "yarn@3.2.4",
+  "scripts": {
+    "build": "yarn workspaces foreach run build",
+    "build:backend": "yarn workspace backend run build",
+    "build:frontend": "yarn workspace frontend run build",
+    "clean": "yarn workspaces foreach run clean",
+    "clean:backend": "yarn workspace backend run clean",
+    "clean:frontend": "yarn workspace frontend run clean",
+    "copy_front_build": "mkdir -p backend/build && cp -r frontend/build backend/build/frontend",
+    "dev": "yarn build:frontend && yarn copy_front_build && yarn workspace backend run dev",
+    "start": "yarn build && yarn copy_front_build && yarn start:backend",
+    "start:backend": "yarn workspace backend run start",
+    "start:frontend": "yarn workspace frontend run start"
+  },
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
