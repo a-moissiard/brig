@@ -11,6 +11,7 @@
     "lint:fix": "yarn lint --fix"
   },
   "dependencies": {
+    "basic-ftp": "^5.0.2",
     "express": "^4.18.1"
   },
   "devDependencies": {

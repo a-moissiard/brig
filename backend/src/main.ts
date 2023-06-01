@@ -1,7 +1,7 @@
 import { BrigApplication } from './lib/bootstrap/BrigApplication';
 
-function main(): void {
+async function main(): Promise<void> {
     return new BrigApplication().startApp();
 }
 
-main();
+void main();

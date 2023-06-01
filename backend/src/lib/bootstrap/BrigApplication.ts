@@ -8,7 +8,7 @@ export class BrigApplication {
         this.brigMicroService = new BrigMicroService({ config });
     }
 
-    public startApp(): void {
-        this.brigMicroService.startMicroService();
+    public async startApp(): Promise<void> {
+        await this.brigMicroService.startMicroService();
     }
 }

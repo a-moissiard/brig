@@ -20,7 +20,7 @@ export class BrigMicroService {
         this.expressApp = express();
     }
     
-    public startMicroService(): void {
+    public async startMicroService(): Promise<void> {
         this.expressApp.use(express.static(path.join(__dirname, '../../../build/frontend')));
 
         const { port } = this.config.express;
