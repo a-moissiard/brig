@@ -1,6 +1,6 @@
 module.exports = {
+    plugins: ['@typescript-eslint', 'simple-import-sort', 'eslint-plugin-import', 'import-newlines'],
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint', 'simple-import-sort', 'eslint-plugin-import'],
     parserOptions: {
         ecmaVersion: 2018,
         sourceType: 'module',
@@ -18,12 +18,6 @@ module.exports = {
         Cypress: true,
     },
     rules: {
-        '@typescript-eslint/no-unused-vars': [
-            1,
-            {
-                argsIgnorePattern: 'res|next|stage|^err|on|config|e|_',
-            },
-        ],
         'arrow-body-style': [2, 'as-needed'],
         'no-param-reassign': [
             2,
@@ -38,13 +32,6 @@ module.exports = {
             },
         ],
         quotes: 'off',
-        '@typescript-eslint/quotes': [
-            2,
-            'single',
-            {
-                avoidEscape: true,
-            },
-        ],
         'no-console': ['warn', { allow: ['warn'] }],
         'spaced-comment': [2, 'always', { exceptions: ['-', '+'], markers: ['/'] }],
         'no-use-before-define': 0,
@@ -62,7 +49,6 @@ module.exports = {
         'import/extensions': 0,
         indent: ['error', 4, { SwitchCase: 1 }],
         semi: [2, 'always'],
-        '@typescript-eslint/explicit-function-return-type': 'off',
         'no-multiple-empty-lines': ['error', { 'max': 1 }],
         'no-duplicate-imports': 'error',
         'simple-import-sort/imports': ['error', {
@@ -73,17 +59,72 @@ module.exports = {
                 ['^\\.'],
                 // Style imports.
                 ['^.+\\.s?css|less$'],
-            ]
+            ],
         }],
+        'no-irregular-whitespace': ['error', {
+            'skipStrings': false,
+            'skipComments': false,
+            'skipRegExps': false,
+            'skipTemplates': false,
+        }],
+        'object-curly-spacing': ['error', 'always'],
+        'comma-spacing': ['error', { 'before': false, 'after': true }],
+        'import-newlines/enforce': ['error', {
+            'max-len': 160,
+            'items': Infinity,
+            'semi': true,
+        }],
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-empty-interface': 'warn',
+        '@typescript-eslint/no-non-null-assertion': 'warn',
+        '@typescript-eslint/no-unused-vars': [
+            1,
+            {
+                argsIgnorePattern: 'res|next|stage|^err|on|config|e|_',
+            },
+        ],
+        '@typescript-eslint/member-delimiter-style': ['error', {
+            'multiline': {
+                'delimiter': 'semi',
+                'requireLast': true,
+            },
+            'singleline': {
+                'delimiter': 'semi',
+                'requireLast': false,
+            },
+        }],
+        '@typescript-eslint/quotes': [
+            2,
+            'single',
+            {
+                avoidEscape: true,
+            },
+        ],
+        'comma-dangle': 'off',
+        '@typescript-eslint/comma-dangle': [
+            'error',
+            {
+                'arrays': 'always-multiline',
+                'objects': 'always-multiline',
+                'imports': 'always-multiline',
+                'exports': 'always-multiline',
+                'functions': 'always-multiline',
+                'enums': 'always-multiline',
+                'generics': 'always-multiline',
+                'tuples': 'always-multiline',
+            },
+        ],
     },
-    'overrides': [
+    overrides: [
         {
-            'files': ['*.ts', '*.tsx'],
-            'rules': {
+            files: ['*.ts', '*.tsx'],
+            rules: {
                 '@typescript-eslint/explicit-function-return-type': ['error', {
                     'allowHigherOrderFunctions': true,
                 }],
+                '@typescript-eslint/no-floating-promises': ['error'],
             },
-        }
+            'parserOptions': { 'project': './tsconfig.json' },
+        },
     ],
 };
