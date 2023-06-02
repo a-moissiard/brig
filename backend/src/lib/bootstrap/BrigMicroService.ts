@@ -1,11 +1,14 @@
 import express, { Express } from 'express';
+import { MongoClient } from 'mongodb';
 import path from 'path';
 
 import { IBrigConfig } from '../config';
+import { logger } from '../logger';
 import { BrigService } from '../service/BrigService';
 
 interface IBrigMicroServiceDependencies {
     config: IBrigConfig;
+    mongoClient: MongoClient;
 }
 
 export class BrigMicroService {
@@ -26,7 +29,7 @@ export class BrigMicroService {
         const { port } = this.config.express;
 
         this.expressApp.listen(port, () => {
-            console.log(`server started at http://localhost:${port}`);
+            logger.info(`server started at http://localhost:${port}`);
         });
     }
 }
