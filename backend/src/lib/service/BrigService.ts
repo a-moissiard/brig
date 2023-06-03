@@ -1,11 +1,18 @@
 import * as ftp from 'basic-ftp';
 import { PassThrough } from 'stream';
 
-interface IBrigServiceDependencies {}
+import { BrigFtpServerDao } from './BrigFtpServerDao';
+
+interface IBrigServiceDependencies {
+    brigFtpServerDao: BrigFtpServerDao;
+}
 
 export class BrigService {
+    private readonly brigFtpServerDao: BrigFtpServerDao;
 
-    constructor(deps: IBrigServiceDependencies) {}
+    constructor(deps: IBrigServiceDependencies) {
+        this.brigFtpServerDao = deps.brigFtpServerDao;
+    }
 
     public async poc(): Promise<void> {
 

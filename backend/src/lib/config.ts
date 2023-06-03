@@ -3,10 +3,13 @@ export interface IBrigConfig {
         port: string;
     };
     mongo: {
-        user: string;
-        pass: string;
-        host: string;
-        port: string;
+        connection: {
+            user: string;
+            pass: string;
+            host: string;
+            port: string;
+        };
+        dbName: string;
     };
 }
 
@@ -15,9 +18,12 @@ export const config: IBrigConfig = {
         port: process.env.PORT || '8080',
     },
     mongo: {
-        user: process.env.MONGO_USER || '',
-        pass: process.env.MONGO_PASS || '',
-        host: process.env.MONGO_HOST || '',
-        port: process.env.MONGO_PORT || '27017',
+        connection:{
+            user: process.env.MONGO_USER || '',
+            pass: process.env.MONGO_PASS || '',
+            host: process.env.MONGO_HOST || '',
+            port: process.env.MONGO_PORT || '27017',
+        },
+        dbName: 'brig',
     },
 };

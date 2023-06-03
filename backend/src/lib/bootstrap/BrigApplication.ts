@@ -10,7 +10,7 @@ export class BrigApplication {
     private readonly brigMicroService: BrigMicroService;
 
     constructor() {
-        const { user, pass, host, port } = config.mongo;
+        const { user, pass, host, port } = config.mongo.connection;
         const mongoUrl = `mongodb://${user}:${pass}@${host}:${port}`;
         this.mongoClient = new MongoClient(mongoUrl);
 
@@ -19,7 +19,7 @@ export class BrigApplication {
 
     public async startApp(): Promise<void> {
         await this.mongoClient.connect();
-        logger.info('connection to mongodb succesful');
+        logger.info('Connection to mongodb succesful');
         await this.brigMicroService.startMicroService();
     }
 }
