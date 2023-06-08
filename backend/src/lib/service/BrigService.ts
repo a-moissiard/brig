@@ -1,7 +1,7 @@
-import * as ftp from 'basic-ftp';
-import { PassThrough } from 'stream';
+import * as uuid from 'uuid';
 
 import { BrigFtpServerDao } from './BrigFtpServerDao';
+import { IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './BrigFtpServerTypes';
 
 interface IBrigServiceDependencies {
     brigFtpServerDao: BrigFtpServerDao;
@@ -14,39 +14,27 @@ export class BrigService {
         this.brigFtpServerDao = deps.brigFtpServerDao;
     }
 
-    public async poc(): Promise<void> {
+    public async listServers(): Promise<IFtpServerModel[]> {
+        return this.brigFtpServerDao.listServers();
+    }
 
-        const ftpClient1 = new ftp.Client();
-        const ftpClient2 = new ftp.Client();
-                
-        try {            
-            await ftpClient1.access({
-                host: 'host1',
-                port: 21,
-                secure: true,
-                secureOptions: {
-                    rejectUnauthorized: false,
-                },
-            });
-            
-            await ftpClient2.access({
-                host: 'host2',
-                port: 21,
-                secure: true,
-                secureOptions: {
-                    rejectUnauthorized: false,
-                },
-            });
+    public async createServer(server: IFtpServerCreateModel): Promise<IFtpServerModel> {
+        const id = uuid.v4();
+        return this.brigFtpServerDao.createServer({
+            id,
+            ...server,
+        });
+    }
 
-            const ptStream = new PassThrough();
+    public async getServer(serverId: string): Promise<IFtpServerModel> {
+        return this.brigFtpServerDao.getServer(serverId);
+    }
 
-            await ftpClient1.downloadTo(ptStream, 'file.txt');
+    public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
+        return this.brigFtpServerDao.updateServer(serverId, server);
+    }
 
-            await ftpClient2.uploadFrom(ptStream, 'file.txt');
-
-        } catch (e) {
-            console.log(e, e);
-        }
-
+    public async deleteServer(serverId: string): Promise<void> {
+        return this.brigFtpServerDao.deleteServer(serverId);
     }
 }
