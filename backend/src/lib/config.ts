@@ -2,15 +2,17 @@ export interface IBrigConfig {
     express: {
         port: string;
     };
-    mongo: {
-        connection: {
-            user: string;
-            pass: string;
-            host: string;
-            port: string;
-        };
-        dbName: string;
+    mongo: IBrigMongoConfig;
+}
+
+export interface IBrigMongoConfig {
+    connection: {
+        user: string;
+        pass: string;
+        host: string;
+        port: string;
     };
+    dbName: string;
 }
 
 export const config: IBrigConfig = {

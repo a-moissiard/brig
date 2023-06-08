@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { BRIG_ERROR_CODE, BrigError } from '../../utils';
+import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 
 export const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunction): void => {
     if (err instanceof BrigError) {

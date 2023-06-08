@@ -1,4 +1,4 @@
-import { logger } from '../logger';
+import { logger } from '../../logger';
 
 export enum BRIG_ERROR_CODE {
     DB_NOT_FOUND = 1000,

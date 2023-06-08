@@ -1,5 +1,4 @@
 import express, { Express } from 'express';
-import { MongoClient } from 'mongodb';
 import path from 'path';
 
 import { BrigApi, BrigFtpServerHandler } from '../api';
@@ -7,10 +6,11 @@ import { errorMiddleware } from '../api/middlewares';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { BrigFtpServerDao, BrigService } from '../service';
+import { BrigMongoConnectionInitializer } from '../utils/mongo';
 
 interface IBrigMicroServiceDependencies {
     config: IBrigConfig;
-    mongoClient: MongoClient;
+    mongoConnectionInitializer: BrigMongoConnectionInitializer;
 }
 
 export class BrigMicroService {
@@ -22,12 +22,10 @@ export class BrigMicroService {
     private readonly brigFtpServerDao: BrigFtpServerDao;
 
     constructor(deps: IBrigMicroServiceDependencies) {
-        const { config, mongoClient } = deps;
+        const { config, mongoConnectionInitializer } = deps;
         this.config = config;
 
-        this.brigFtpServerDao = new BrigFtpServerDao({
-            collection: mongoClient.db(config.mongo.dbName).collection(BrigFtpServerDao.collectionName),
-        });
+        this.brigFtpServerDao = new BrigFtpServerDao({ mongoConnectionInitializer });
         const brigService = new BrigService({ brigFtpServerDao: this.brigFtpServerDao });        
         const brigFtpServerHandler = new BrigFtpServerHandler({ brigService });
         

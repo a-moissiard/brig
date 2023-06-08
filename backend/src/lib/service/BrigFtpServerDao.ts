@@ -1,7 +1,8 @@
 import { Collection, MongoServerError } from 'mongodb';
 
 import { logger } from '../logger';
-import { BRIG_ERROR_CODE, BrigError } from '../utils';
+import { BRIG_ERROR_CODE, BrigError } from '../utils/error';
+import { BrigMongoConnectionInitializer } from '../utils/mongo';
 import { IFtpServerModel, IFtpServerUpdateModel } from './BrigFtpServerTypes';
 
 interface IFtpServerDb {
@@ -12,7 +13,7 @@ interface IFtpServerDb {
 }
 
 interface IBrigFtpServerDaoDependencies {
-    collection: Collection<IFtpServerDb>;
+    mongoConnectionInitializer: BrigMongoConnectionInitializer;
 }
 
 export class BrigFtpServerDao {
@@ -20,7 +21,7 @@ export class BrigFtpServerDao {
     private readonly collection: Collection<IFtpServerDb>;
     
     constructor(deps: IBrigFtpServerDaoDependencies) {
-        this.collection = deps.collection;
+        this.collection = deps.mongoConnectionInitializer.getDb().collection(BrigFtpServerDao.collectionName);
     }
 
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {
