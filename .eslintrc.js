@@ -49,6 +49,7 @@ module.exports = {
         'import/extensions': 0,
         indent: ['error', 4, { SwitchCase: 1 }],
         semi: [2, 'always'],
+        'padded-blocks': ['error', 'never'],
         'no-multiple-empty-lines': ['error', { 'max': 1 }],
         'no-duplicate-imports': 'error',
         'simple-import-sort/imports': ['error', {

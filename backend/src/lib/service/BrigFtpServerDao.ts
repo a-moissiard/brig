@@ -2,7 +2,7 @@ import { Collection, MongoServerError } from 'mongodb';
 
 import { logger } from '../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../utils/error';
-import { BrigMongoConnectionInitializer } from '../utils/mongo';
+import { IBrigMongoConnectionInitializer } from '../utils/mongo';
 import { IFtpServerModel, IFtpServerUpdateModel } from './BrigFtpServerTypes';
 
 interface IFtpServerDb {
@@ -13,7 +13,7 @@ interface IFtpServerDb {
 }
 
 interface IBrigFtpServerDaoDependencies {
-    mongoConnectionInitializer: BrigMongoConnectionInitializer;
+    mongoConnectionInitializer: IBrigMongoConnectionInitializer;
 }
 
 export class BrigFtpServerDao {
@@ -21,7 +21,7 @@ export class BrigFtpServerDao {
     private readonly collection: Collection<IFtpServerDb>;
     
     constructor(deps: IBrigFtpServerDaoDependencies) {
-        this.collection = deps.mongoConnectionInitializer.getDb().collection(BrigFtpServerDao.collectionName);
+        this.collection = deps.mongoConnectionInitializer.db.collection(BrigFtpServerDao.collectionName);
     }
 
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {
@@ -90,13 +90,23 @@ export class BrigFtpServerDao {
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
-        const updatedServer = (await this.collection.findOneAndUpdate({
-            id: serverId,
-        }, {
-            $set: { ...server },
-        }, {
-            returnDocument: 'after',
-        })).value;
+        let updatedServer: IFtpServerDb | null;
+        try {
+            updatedServer = (await this.collection.findOneAndUpdate({
+                id: serverId,
+            }, {
+                $set: { ...server },
+            }, {
+                returnDocument: 'after',
+            })).value;
+        } catch (e) {
+            if (e instanceof MongoServerError && e.code === 11000) {
+                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'A server with the same username@host:port already exists.', {
+                    cause: e.stack,
+                });
+            }
+            throw e;
+        }
         if (!updatedServer) {
             throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `No server found with id=${serverId}`);
         }
