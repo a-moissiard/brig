@@ -6,11 +6,11 @@ import { errorMiddleware } from '../api/middlewares';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { BrigFtpServerDao, BrigService } from '../service';
-import { BrigMongoConnectionInitializer } from '../utils/mongo';
+import { BrigMongoConnectionManager } from '../utils/mongo';
 
 interface IBrigMicroServiceDependencies {
     config: IBrigConfig;
-    mongoConnectionInitializer: BrigMongoConnectionInitializer;
+    mongoConnectionManager: BrigMongoConnectionManager;
 }
 
 export class BrigMicroService {
@@ -22,10 +22,10 @@ export class BrigMicroService {
     private readonly brigFtpServerDao: BrigFtpServerDao;
 
     constructor(deps: IBrigMicroServiceDependencies) {
-        const { config, mongoConnectionInitializer } = deps;
+        const { config, mongoConnectionManager } = deps;
         this.config = config;
 
-        this.brigFtpServerDao = new BrigFtpServerDao({ mongoConnectionInitializer });
+        this.brigFtpServerDao = new BrigFtpServerDao({ mongoConnectionManager });
         const brigService = new BrigService({ brigFtpServerDao: this.brigFtpServerDao });        
         const brigFtpServerHandler = new BrigFtpServerHandler({ brigService });
         

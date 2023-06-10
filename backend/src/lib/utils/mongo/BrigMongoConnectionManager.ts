@@ -1,14 +1,15 @@
 import { Db, MongoClient } from 'mongodb';
 
 import { IBrigMongoConfig } from '../../config';
+import { logger } from '../../logger';
 
-export interface IBrigMongoConnectionInitializer {
+export interface IBrigMongoConnectionManager {
     db: Db;
     init(): Promise<void>;
     close(): Promise<void>;
 }
 
-export class BrigMongoConnectionInitializer implements IBrigMongoConnectionInitializer {
+export class BrigMongoConnectionManager implements IBrigMongoConnectionManager {
     private readonly mongoConfig: IBrigMongoConfig;
     private readonly mongoClient: MongoClient;
     public readonly db: Db;
@@ -23,9 +24,11 @@ export class BrigMongoConnectionInitializer implements IBrigMongoConnectionIniti
 
     public async init(): Promise<void> {
         await this.mongoClient.connect();
+        logger.info('Connection to mongodb successful');
     }
 
     public async close(): Promise<void> {
         await this.mongoClient.close();
+        logger.info('Connection to mongodb closed');
     }
 }

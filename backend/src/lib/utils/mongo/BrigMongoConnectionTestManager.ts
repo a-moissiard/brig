@@ -1,7 +1,7 @@
 import { IBrigMongoConfig } from '../../config';
-import { BrigMongoConnectionInitializer } from './BrigMongoConnectionInitializer';
+import { BrigMongoConnectionManager } from './BrigMongoConnectionManager';
 
-export class BrigMongoConnectionTestInitializer extends BrigMongoConnectionInitializer {
+export class BrigMongoConnectionTestManager extends BrigMongoConnectionManager {
     constructor(mongoConfig: IBrigMongoConfig) {
         super(mongoConfig);
     }

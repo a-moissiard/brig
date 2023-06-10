@@ -4,7 +4,7 @@ import * as chai from 'chai';
 import { logger } from '../../lib/logger';
 import { BrigFtpServerDao, IFtpServerModel, IFtpServerUpdateModel } from '../../lib/service';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
-import { BrigMongoConnectionTestInitializer } from '../../lib/utils/mongo/BrigMongoConnectionTestInitializer';
+import { BrigMongoConnectionTestManager } from '../../lib/utils/mongo/BrigMongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test/TestUtils';
 import { testConfig } from '../testConfig';
 
@@ -13,22 +13,22 @@ const assert = chai.assert;
 logger.silent = true;
 
 describe('BrigFtpServerDao', () => {
-    let mongoConnectionInitializer: BrigMongoConnectionTestInitializer;
+    let mongoConnectionManager: BrigMongoConnectionTestManager;
     let ftpServerDao: BrigFtpServerDao;
 
     before(async () => {
-        mongoConnectionInitializer = new BrigMongoConnectionTestInitializer(testConfig);
-        await mongoConnectionInitializer.init();
-        ftpServerDao = new BrigFtpServerDao({ mongoConnectionInitializer });
+        mongoConnectionManager = new BrigMongoConnectionTestManager(testConfig);
+        await mongoConnectionManager.init();
+        ftpServerDao = new BrigFtpServerDao({ mongoConnectionManager });
         await ftpServerDao.init();
     });
 
     after(async () => {
-        await mongoConnectionInitializer.close();
+        await mongoConnectionManager.close();
     });
 
     afterEach(async ()  => {
-        await mongoConnectionInitializer.cleanDb();
+        await mongoConnectionManager.cleanDb();
     });
 
     describe('FTP servers CRUD', function () {

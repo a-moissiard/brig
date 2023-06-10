@@ -1,8 +1,5 @@
-import { Collection, MongoServerError } from 'mongodb';
-
-import { logger } from '../logger';
-import { BRIG_ERROR_CODE, BrigError } from '../utils/error';
-import { IBrigMongoConnectionInitializer } from '../utils/mongo';
+import { IBrigMongoConnectionManager } from '../utils/mongo';
+import { BrigAbstractDao } from './BrigAbstractDao';
 import { IFtpServerModel, IFtpServerUpdateModel } from './BrigFtpServerTypes';
 
 interface IFtpServerDb {
@@ -13,15 +10,14 @@ interface IFtpServerDb {
 }
 
 interface IBrigFtpServerDaoDependencies {
-    mongoConnectionInitializer: IBrigMongoConnectionInitializer;
+    mongoConnectionManager: IBrigMongoConnectionManager;
 }
 
-export class BrigFtpServerDao {
+export class BrigFtpServerDao extends BrigAbstractDao<IFtpServerDb>{
     public static readonly collectionName = 'ftpServer';
-    private readonly collection: Collection<IFtpServerDb>;
-    
+
     constructor(deps: IBrigFtpServerDaoDependencies) {
-        this.collection = deps.mongoConnectionInitializer.db.collection(BrigFtpServerDao.collectionName);
+        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: BrigFtpServerDao.collectionName });
     }
 
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {
@@ -43,80 +39,31 @@ export class BrigFtpServerDao {
     }
 
     public async init(): Promise<void> {
-        await this.collection.createIndex(
-            {
-                id: 1,
-            }, {
-                unique: true,
-            });
-        await this.collection.createIndex(
+        await this.createIndex(
             {
                 host: 1, port: 1, username: 1,
             }, {
                 unique: true,
             });
-        logger.verbose(`Indexes created for mongo collection ${BrigFtpServerDao.collectionName}`);
-    }
-
-    public async listServers(): Promise<IFtpServerModel[]> {
-        return (await this.collection.find().toArray()).map(BrigFtpServerDao.mapDbToModel);
-    }
-
-    public async createServer(server: IFtpServerModel): Promise<IFtpServerModel> {
-        let createdServer: IFtpServerDb | null;
-        try {
-            const insertionResult = await this.collection.insertOne(BrigFtpServerDao.mapModelToDb(server));
-            createdServer = await this.collection.findOne({ _id: insertionResult.insertedId });
-        } catch (e) {
-            if (e instanceof MongoServerError && e.code === 11000) {
-                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'A server with the same username@host:port already exists.', {
-                    cause: e.stack,
-                });
-            }
-            throw e;
-        }
-        if (!createdServer) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Error while inserting document ${server.id} in collection ${BrigFtpServerDao.collectionName}`);
-        }
-        return BrigFtpServerDao.mapDbToModel(createdServer);
     }
 
     public async getServer(serverId: string): Promise<IFtpServerModel> {
-        const server = await this.collection.findOne({ id: serverId });
-        if (!server) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `No server found with id=${serverId}`);
-        }
-        return BrigFtpServerDao.mapDbToModel(server);
+        return BrigFtpServerDao.mapDbToModel(await this.get({ id: serverId }));
+    }
+
+    public async listServers(): Promise<IFtpServerModel[]> {
+        return (await this.list()).map(BrigFtpServerDao.mapDbToModel);
+    }
+
+    public async createServer(server: IFtpServerModel): Promise<IFtpServerModel> {
+        return BrigFtpServerDao.mapDbToModel(await this.insert(BrigFtpServerDao.mapModelToDb(server)));
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
-        let updatedServer: IFtpServerDb | null;
-        try {
-            updatedServer = (await this.collection.findOneAndUpdate({
-                id: serverId,
-            }, {
-                $set: { ...server },
-            }, {
-                returnDocument: 'after',
-            })).value;
-        } catch (e) {
-            if (e instanceof MongoServerError && e.code === 11000) {
-                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'A server with the same username@host:port already exists.', {
-                    cause: e.stack,
-                });
-            }
-            throw e;
-        }
-        if (!updatedServer) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `No server found with id=${serverId}`);
-        }
-        return BrigFtpServerDao.mapDbToModel(updatedServer);
+        return BrigFtpServerDao.mapDbToModel(await this.update( { id: serverId }, server));
     }
 
     public async deleteServer(serverId: string): Promise<void> {
-        const deletedServer = (await this.collection.findOneAndDelete({ id: serverId })).value;
-        if (!deletedServer) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `No server found with id=${serverId}`);
-        }
+        await this.delete({ id: serverId });
     }
 }
