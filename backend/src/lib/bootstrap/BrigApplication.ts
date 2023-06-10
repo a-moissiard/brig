@@ -10,7 +10,10 @@ export class BrigApplication {
     private readonly brigMicroService: BrigMicroService;
 
     constructor() {
-        this.mongoConnectionInitializer = new BrigMongoConnectionInitializer(config.mongo);
+        process.on('SIGTERM', async () => {
+            logger.info('SIGTERM received');
+            await this.stopApp();
+        });
 
         this.mongoConnectionManager = new BrigMongoConnectionManager(config.mongo);
         this.brigMicroService = new BrigMicroService({ config, mongoConnectionManager: this.mongoConnectionManager });
@@ -19,5 +22,10 @@ export class BrigApplication {
     public async startApp(): Promise<void> {
         await this.mongoConnectionManager.init();
         await this.brigMicroService.startMicroService();
+    }
+
+    public async stopApp(): Promise<void> {
+        this.brigMicroService.stopMicroService();
+        await this.mongoConnectionManager.close();
     }
 }

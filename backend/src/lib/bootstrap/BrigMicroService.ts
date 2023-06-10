@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import * as http from 'http';
 import path from 'path';
 
 import { BrigApi, BrigFtpServerHandler } from '../api';
@@ -16,6 +17,7 @@ interface IBrigMicroServiceDependencies {
 export class BrigMicroService {
     private readonly config: IBrigConfig;
     private readonly expressApp: Express;
+    private server: http.Server | undefined;
 
     private readonly brigApi: BrigApi;
 
@@ -44,8 +46,14 @@ export class BrigMicroService {
         this.expressApp.use(errorMiddleware);
 
         const { port } = this.config.express;
-        this.expressApp.listen(port, () => {
+        this.server = this.expressApp.listen(port, () => {
             logger.info(`Server started at http://localhost:${port}`);
+        });
+    }
+
+    public stopMicroService(): void {
+        this.server?.close(() => {
+            logger.info('Server shut down');
         });
     }
 
