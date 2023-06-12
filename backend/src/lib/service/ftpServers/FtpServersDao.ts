@@ -39,12 +39,16 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     }
 
     public async init(): Promise<void> {
-        await this.createIndex(
+        await this.createIndexes([
+            {
+                id: 1,
+            },
             {
                 host: 1, port: 1, username: 1,
-            }, {
-                unique: true,
-            });
+            },
+        ], {
+            unique: true,
+        });
     }
 
     public async getServer(serverId: string): Promise<IFtpServerModel> {

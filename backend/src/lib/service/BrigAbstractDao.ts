@@ -18,8 +18,8 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         this.collectionName = deps.collectionName;
     }
 
-    protected async createIndex(indexSpec: IndexSpecification, options?: CreateIndexesOptions): Promise<void> {
-        await this.getCollection().createIndex(indexSpec, options);
+    protected async createIndexes(indexSpecs: IndexSpecification[], options?: CreateIndexesOptions): Promise<void> {
+        await Promise.all(indexSpecs.map(async indexSpec => await this.getCollection().createIndex(indexSpec, options)));
         logger.verbose(`[MONGO] Indexes created for collection ${this.collectionName}`);
     }
 
