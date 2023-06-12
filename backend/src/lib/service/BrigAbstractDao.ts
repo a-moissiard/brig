@@ -2,15 +2,15 @@ import { Collection, CreateIndexesOptions, Document, FindOptions, IndexSpecifica
 
 import { logger } from '../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../utils/error';
-import { IBrigMongoConnectionManager } from '../utils/mongo';
+import { IMongoConnectionManager } from '../utils/mongo';
 
 interface IBrigAbstractDaoDependencies {
-    mongoConnectionManager: IBrigMongoConnectionManager;
+    mongoConnectionManager: IMongoConnectionManager;
     collectionName: string;
 }
 
 export abstract class BrigAbstractDao<T extends Document = Document> {
-    private readonly mongoConnectionManager: IBrigMongoConnectionManager;
+    private readonly mongoConnectionManager: IMongoConnectionManager;
     private readonly collectionName: string;
 
     protected constructor(deps: IBrigAbstractDaoDependencies) {

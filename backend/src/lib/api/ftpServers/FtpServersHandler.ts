@@ -1,20 +1,20 @@
 import { Request, Response } from 'express';
 
-import { BrigService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../service';
+import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
 
-interface IBrigFtpServerHandlerDependencies {
-    brigService: BrigService;
+interface IFtpServersHandlerDependencies {
+    ftpServersService: FtpServersService;
 }
 
-export class BrigFtpServerHandler {
-    private readonly brigService: BrigService;
+export class FtpServersHandler {
+    private readonly ftpServersService: FtpServersService;
 
-    constructor(deps: IBrigFtpServerHandlerDependencies) {
-        this.brigService = deps.brigService;
+    constructor(deps: IFtpServersHandlerDependencies) {
+        this.ftpServersService = deps.ftpServersService;
     }
 
     async listServers(req: Request, res: Response): Promise<void> {        
-        const servers = await this.brigService.listServers();
+        const servers = await this.ftpServersService.listServers();
 
         res.send(servers);
     }
@@ -22,7 +22,7 @@ export class BrigFtpServerHandler {
     async createServer(req: Request, res: Response): Promise<void> {
         const body = req.body as IFtpServerCreateModel;
 
-        const server = await this.brigService.createServer(body);
+        const server = await this.ftpServersService.createServer(body);
 
         res.status(201).send(server);
     }
@@ -30,7 +30,7 @@ export class BrigFtpServerHandler {
     async getServer(req: Request, res: Response): Promise<void> {
         const { serverId } = req.params;
 
-        const server = await this.brigService.getServer(serverId);
+        const server = await this.ftpServersService.getServer(serverId);
 
         res.send(server);
     }
@@ -39,7 +39,7 @@ export class BrigFtpServerHandler {
         const { serverId } = req.params;
         const body = req.body as IFtpServerUpdateModel;
 
-        const server = await this.brigService.updateServer(serverId, body);
+        const server = await this.ftpServersService.updateServer(serverId, body);
 
         res.send(server);
     }
@@ -47,7 +47,7 @@ export class BrigFtpServerHandler {
     async deleteServer(req: Request, res: Response): Promise<void> {
         const { serverId } = req.params;
 
-        await this.brigService.deleteServer(serverId);
+        await this.ftpServersService.deleteServer(serverId);
 
         res.send();
     }

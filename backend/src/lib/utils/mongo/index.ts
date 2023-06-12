@@ -1,1 +1,1 @@
-export * from './BrigMongoConnectionManager';
+export * from './MongoConnectionManager';

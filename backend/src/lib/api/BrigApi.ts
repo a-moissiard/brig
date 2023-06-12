@@ -1,23 +1,22 @@
 import express, { Router } from 'express';
 
-import { BrigFtpServerHandler } from './BrigFtpServerHandler';
-import { BrigFtpServerRouter } from './BrigFtpServerRouter';
+import { FtpServersHandler, FtpServersRouter } from './ftpServers';
 
 interface IBrigApiDependencies {
-    brigFtpServerHandler: BrigFtpServerHandler;
+    ftpServersHandler: FtpServersHandler;
 }
 
 export class BrigApi {
     private readonly router: Router;
-    private readonly brigFtpServerRouter: BrigFtpServerRouter;
+    private readonly ftpServersRouter: FtpServersRouter;
 
     constructor(deps: IBrigApiDependencies) {
         this.router = express.Router();
-        this.brigFtpServerRouter = new BrigFtpServerRouter({ brigFtpServerHandler: deps.brigFtpServerHandler });
+        this.ftpServersRouter = new FtpServersRouter({ ftpServersHandler: deps.ftpServersHandler });
     }
 
     public init(): Router {
-        this.router.use('/server', this.brigFtpServerRouter.init());
+        this.router.use('/servers', this.ftpServersRouter.init());
         return this.router;
     }
 }

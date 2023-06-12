@@ -2,25 +2,25 @@ import 'dotenv/config';
 import * as chai from 'chai';
 
 import { logger } from '../../lib/logger';
-import { BrigFtpServerDao, IFtpServerModel, IFtpServerUpdateModel } from '../../lib/service';
+import { FtpServersDao, IFtpServerModel, IFtpServerUpdateModel } from '../../lib/service/ftpServers';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
-import { BrigMongoConnectionTestManager } from '../../lib/utils/mongo/BrigMongoConnectionTestManager';
-import { assertThrowsWithError } from '../../lib/utils/test/TestUtils';
+import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
+import { assertThrowsWithError } from '../../lib/utils/test';
 import { testConfig } from '../testConfig';
 
 const assert = chai.assert;
 
 logger.silent = true;
 
-describe('BrigFtpServerDao', () => {
-    let mongoConnectionManager: BrigMongoConnectionTestManager;
-    let ftpServerDao: BrigFtpServerDao;
+describe('FtpServersDao', () => {
+    let mongoConnectionManager: MongoConnectionTestManager;
+    let ftpServersDao: FtpServersDao;
 
     before(async () => {
-        mongoConnectionManager = new BrigMongoConnectionTestManager(testConfig);
+        mongoConnectionManager = new MongoConnectionTestManager(testConfig);
         await mongoConnectionManager.init();
-        ftpServerDao = new BrigFtpServerDao({ mongoConnectionManager });
-        await ftpServerDao.init();
+        ftpServersDao = new FtpServersDao({ mongoConnectionManager });
+        await ftpServersDao.init();
     });
 
     after(async () => {
@@ -47,7 +47,7 @@ describe('BrigFtpServerDao', () => {
 
         describe('Create FTP server', () => {
             it('should create a server', async () => {
-                const createdServer = await ftpServerDao.createServer(server1);
+                const createdServer = await ftpServersDao.createServer(server1);
                 assert.deepEqual(createdServer, server1);
             });
 
@@ -56,38 +56,38 @@ describe('BrigFtpServerDao', () => {
                     ...server1,
                     hello: '1021',
                 };
-                const createdServer = await ftpServerDao.createServer(sillyServer1);
+                const createdServer = await ftpServersDao.createServer(sillyServer1);
                 assert.deepEqual(createdServer, server1);
             });
 
             it('should throw when creating a duplicate server', async () => {
-                await ftpServerDao.createServer(server1);
-                await assertThrowsWithError(() => ftpServerDao.createServer(server1), BRIG_ERROR_CODE.DB_DUPLICATE);
+                await ftpServersDao.createServer(server1);
+                await assertThrowsWithError(() => ftpServersDao.createServer(server1), BRIG_ERROR_CODE.DB_DUPLICATE);
             });
         });
 
         describe('Get FTP server', () => {
             it('should get a server', async () => {
-                await ftpServerDao.createServer(server1);
-                const server = await ftpServerDao.getServer(server1.id);
+                await ftpServersDao.createServer(server1);
+                const server = await ftpServersDao.getServer(server1.id);
                 assert.deepEqual(server, server1);
             });
 
             it('should throw when getting a server that does not exist', async () => {
-                await assertThrowsWithError(() => ftpServerDao.getServer('id'), BRIG_ERROR_CODE.DB_NOT_FOUND);
+                await assertThrowsWithError(() => ftpServersDao.getServer('id'), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
         });
 
         describe('List FTP servers', () => {
             it('should return empty list if there are no servers', async () => {
-                const list = await ftpServerDao.listServers();
+                const list = await ftpServersDao.listServers();
                 assert.deepEqual(list, []);
             });
 
             it('should return list of servers', async () => {
-                await ftpServerDao.createServer(server1);
-                await ftpServerDao.createServer(server2);
-                const list = await ftpServerDao.listServers();
+                await ftpServersDao.createServer(server1);
+                await ftpServersDao.createServer(server2);
+                const list = await ftpServersDao.listServers();
                 assert.equal(list.length, 2);
                 assert.deepEqual(list[0], server1);
                 assert.deepEqual(list[1], server2);
@@ -96,15 +96,15 @@ describe('BrigFtpServerDao', () => {
 
         describe('Update FTP server', () => {
             it('should throw when updating a server that does not exist', async () => {
-                await assertThrowsWithError(() => ftpServerDao.updateServer(server1.id, {}), BRIG_ERROR_CODE.DB_NOT_FOUND);
+                await assertThrowsWithError(() => ftpServersDao.updateServer(server1.id, {}), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
 
             it('should partially update a server', async () => {
-                await ftpServerDao.createServer(server1);
+                await ftpServersDao.createServer(server1);
                 const server1Update: IFtpServerUpdateModel = {
                     host: 'new_host',
                 };
-                const updatedServer = await ftpServerDao.updateServer(server1.id, server1Update);
+                const updatedServer = await ftpServersDao.updateServer(server1.id, server1Update);
                 assert.deepEqual(updatedServer, {
                     ...server1,
                     ...server1Update,
@@ -112,13 +112,13 @@ describe('BrigFtpServerDao', () => {
             });
 
             it('should update a server', async () => {
-                await ftpServerDao.createServer(server1);
+                await ftpServersDao.createServer(server1);
                 const server1Update: IFtpServerUpdateModel = {
                     host: 'new_host',
                     port: 1021,
                     username: 'new_username',
                 };
-                const updatedServer = await ftpServerDao.updateServer(server1.id, server1Update);
+                const updatedServer = await ftpServersDao.updateServer(server1.id, server1Update);
                 assert.deepEqual(updatedServer, {
                     id: server1.id,
                     ...server1Update,
@@ -126,35 +126,35 @@ describe('BrigFtpServerDao', () => {
             });
 
             it('should filter silly properties when updating a server', async () => {
-                await ftpServerDao.createServer(server1);
+                await ftpServersDao.createServer(server1);
                 const server1Update: any = {
                     hello: '1021',
                 };
-                const updatedServer = await ftpServerDao.updateServer(server1.id, server1Update);
+                const updatedServer = await ftpServersDao.updateServer(server1.id, server1Update);
                 assert.deepEqual(updatedServer, server1);
             });
 
             it('should throw when updating a server with properties that break index unicity', async () => {
-                await ftpServerDao.createServer(server1);
-                await ftpServerDao.createServer(server2);
+                await ftpServersDao.createServer(server1);
+                await ftpServersDao.createServer(server2);
                 const server1Update: IFtpServerUpdateModel = {
                     host: server2.host,
                     port: server2.port,
                     username: server2.username,
                 };
-                await assertThrowsWithError(() => ftpServerDao.updateServer(server1.id, server1Update), BRIG_ERROR_CODE.DB_DUPLICATE);
+                await assertThrowsWithError(() => ftpServersDao.updateServer(server1.id, server1Update), BRIG_ERROR_CODE.DB_DUPLICATE);
             });
         });
 
         describe('Delete FTP server', () => {
             it('should throw when deleting a server that does not exist', async () => {
-                await assertThrowsWithError(() => ftpServerDao.deleteServer(server1.id), BRIG_ERROR_CODE.DB_NOT_FOUND);
+                await assertThrowsWithError(() => ftpServersDao.deleteServer(server1.id), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
 
             it('should delete a server', async () => {
-                await ftpServerDao.createServer(server1);
-                await ftpServerDao.deleteServer(server1.id);
-                await assertThrowsWithError(() => ftpServerDao.getServer(server1.id), BRIG_ERROR_CODE.DB_NOT_FOUND);
+                await ftpServersDao.createServer(server1);
+                await ftpServersDao.deleteServer(server1.id);
+                await assertThrowsWithError(() => ftpServersDao.getServer(server1.id), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
         });
     });

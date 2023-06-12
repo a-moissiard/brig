@@ -10,7 +10,6 @@ export const assertThrowsWithError = async (fn: any, expectedErrorCode: BRIG_ERR
         if (!caughtError) {
             throw new Error('Function did not throw as expected');
         } else if (!(caughtError instanceof BrigError)) {
-            console.log('***** caughtError', JSON.stringify(caughtError, null, 2));
             throw new Error(`Function was expected to throw with instance of ${BrigError.name} but thrown with instance of ${typeof caughtError}`);
         } else if (caughtError.code !== expectedErrorCode) {
             throw new Error(`Function was expected to throw with error ${BRIG_ERROR_CODE[expectedErrorCode

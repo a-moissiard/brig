@@ -2,11 +2,11 @@ import 'dotenv/config';
 
 import { config } from '../config';
 import { logger } from '../logger';
-import { BrigMongoConnectionManager } from '../utils/mongo';
+import { MongoConnectionManager } from '../utils/mongo';
 import { BrigMicroService } from './BrigMicroService';
 
 export class BrigApplication {
-    private readonly mongoConnectionManager: BrigMongoConnectionManager;
+    private readonly mongoConnectionManager: MongoConnectionManager;
     private readonly brigMicroService: BrigMicroService;
 
     constructor() {
@@ -15,7 +15,7 @@ export class BrigApplication {
             await this.stopApp();
         });
 
-        this.mongoConnectionManager = new BrigMongoConnectionManager(config.mongo);
+        this.mongoConnectionManager = new MongoConnectionManager(config.mongo);
         this.brigMicroService = new BrigMicroService({ config, mongoConnectionManager: this.mongoConnectionManager });
     }
 

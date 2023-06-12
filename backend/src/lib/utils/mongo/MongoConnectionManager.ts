@@ -3,13 +3,13 @@ import { Db, MongoClient } from 'mongodb';
 import { IBrigMongoConfig } from '../../config';
 import { logger } from '../../logger';
 
-export interface IBrigMongoConnectionManager {
+export interface IMongoConnectionManager {
     db: Db;
     init(): Promise<void>;
     close(): Promise<void>;
 }
 
-export class BrigMongoConnectionManager implements IBrigMongoConnectionManager {
+export class MongoConnectionManager implements IMongoConnectionManager {
     private readonly mongoConfig: IBrigMongoConfig;
     private readonly mongoClient: MongoClient;
     public readonly db: Db;

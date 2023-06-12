@@ -1,6 +1,6 @@
-import { IBrigMongoConnectionManager } from '../utils/mongo';
-import { BrigAbstractDao } from './BrigAbstractDao';
-import { IFtpServerModel, IFtpServerUpdateModel } from './BrigFtpServerTypes';
+import { IMongoConnectionManager } from '../../utils/mongo';
+import { BrigAbstractDao } from '../BrigAbstractDao';
+import { IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
 
 interface IFtpServerDb {
     id: string;
@@ -9,15 +9,15 @@ interface IFtpServerDb {
     username: string;
 }
 
-interface IBrigFtpServerDaoDependencies {
-    mongoConnectionManager: IBrigMongoConnectionManager;
+interface IFtpServersDaoDependencies {
+    mongoConnectionManager: IMongoConnectionManager;
 }
 
-export class BrigFtpServerDao extends BrigAbstractDao<IFtpServerDb>{
-    public static readonly collectionName = 'ftpServer';
+export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
+    public static readonly collectionName = 'ftpServers';
 
-    constructor(deps: IBrigFtpServerDaoDependencies) {
-        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: BrigFtpServerDao.collectionName });
+    constructor(deps: IFtpServersDaoDependencies) {
+        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: FtpServersDao.collectionName });
     }
 
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {
@@ -48,19 +48,19 @@ export class BrigFtpServerDao extends BrigAbstractDao<IFtpServerDb>{
     }
 
     public async getServer(serverId: string): Promise<IFtpServerModel> {
-        return BrigFtpServerDao.mapDbToModel(await this.get({ id: serverId }));
+        return FtpServersDao.mapDbToModel(await this.get({ id: serverId }));
     }
 
     public async listServers(): Promise<IFtpServerModel[]> {
-        return (await this.list()).map(BrigFtpServerDao.mapDbToModel);
+        return (await this.list()).map(FtpServersDao.mapDbToModel);
     }
 
     public async createServer(server: IFtpServerModel): Promise<IFtpServerModel> {
-        return BrigFtpServerDao.mapDbToModel(await this.insert(BrigFtpServerDao.mapModelToDb(server)));
+        return FtpServersDao.mapDbToModel(await this.insert(FtpServersDao.mapModelToDb(server)));
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
-        return BrigFtpServerDao.mapDbToModel(await this.update( { id: serverId }, server));
+        return FtpServersDao.mapDbToModel(await this.update( { id: serverId }, server));
     }
 
     public async deleteServer(serverId: string): Promise<void> {

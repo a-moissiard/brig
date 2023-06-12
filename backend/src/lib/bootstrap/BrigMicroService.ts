@@ -2,16 +2,17 @@ import express, { Express } from 'express';
 import * as http from 'http';
 import path from 'path';
 
-import { BrigApi, BrigFtpServerHandler } from '../api';
+import { BrigApi } from '../api';
+import { FtpServersHandler } from '../api/ftpServers';
 import { errorMiddleware } from '../api/middlewares';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
-import { BrigFtpServerDao, BrigService } from '../service';
-import { BrigMongoConnectionManager } from '../utils/mongo';
+import { FtpServersDao, FtpServersService } from '../service/ftpServers';
+import { MongoConnectionManager } from '../utils/mongo';
 
 interface IBrigMicroServiceDependencies {
     config: IBrigConfig;
-    mongoConnectionManager: BrigMongoConnectionManager;
+    mongoConnectionManager: MongoConnectionManager;
 }
 
 export class BrigMicroService {
@@ -21,17 +22,17 @@ export class BrigMicroService {
 
     private readonly brigApi: BrigApi;
 
-    private readonly brigFtpServerDao: BrigFtpServerDao;
+    private readonly ftpServersDao: FtpServersDao;
 
     constructor(deps: IBrigMicroServiceDependencies) {
         const { config, mongoConnectionManager } = deps;
         this.config = config;
 
-        this.brigFtpServerDao = new BrigFtpServerDao({ mongoConnectionManager });
-        const brigService = new BrigService({ brigFtpServerDao: this.brigFtpServerDao });        
-        const brigFtpServerHandler = new BrigFtpServerHandler({ brigService });
+        this.ftpServersDao = new FtpServersDao({ mongoConnectionManager });
+        const ftpServersService = new FtpServersService({ ftpServersDao: this.ftpServersDao });
+        const ftpServersHandler = new FtpServersHandler({ ftpServersService });
         
-        this.brigApi = new BrigApi({ brigFtpServerHandler });
+        this.brigApi = new BrigApi({ ftpServersHandler });
 
         this.expressApp = express();
     }
@@ -58,6 +59,6 @@ export class BrigMicroService {
     }
 
     private async initDAOs(): Promise<void> {
-        await this.brigFtpServerDao.init();
+        await this.ftpServersDao.init();
     }
 }
