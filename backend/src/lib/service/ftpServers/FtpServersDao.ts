@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import { IMongoConnectionManager } from '../../utils/mongo';
 import { BrigAbstractDao } from '../BrigAbstractDao';
 import { IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
@@ -64,7 +66,15 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
-        return FtpServersDao.mapDbToModel(await this.update( { id: serverId }, server));
+        return FtpServersDao.mapDbToModel(await this.update( { id: serverId }, {
+            $set: _.omitBy({
+                host: server.host,
+                port: server.port,
+                username: server.username,
+            }, _.isUndefined),
+        }, {
+            returnDocument: 'after',
+        }));
     }
 
     public async deleteServer(serverId: string): Promise<void> {

@@ -1,4 +1,15 @@
-import { Collection, CreateIndexesOptions, Document, FindOptions, IndexSpecification, InsertOneResult, MongoServerError, WithId } from 'mongodb';
+import {
+    Collection,
+    CreateIndexesOptions,
+    Document,
+    FindOneAndUpdateOptions,
+    FindOptions,
+    IndexSpecification,
+    InsertOneResult,
+    MongoServerError,
+    UpdateFilter,
+    WithId,
+} from 'mongodb';
 
 import { logger } from '../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../utils/error';
@@ -51,14 +62,10 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         return data;
     }
 
-    protected async update(filter: object, data: Partial<T>): Promise<WithId<T>> {
+    protected async update(filter: object, update: UpdateFilter<T>, options?: FindOneAndUpdateOptions): Promise<WithId<T>> {
         let updatedDocument: WithId<T> | null;
         try {
-            updatedDocument = (await this.getCollection().findOneAndUpdate(filter, {
-                $set: { ...data },
-            }, {
-                returnDocument: 'after',
-            })).value;
+            updatedDocument = (await this.getCollection().findOneAndUpdate(filter, update, options)).value;
         } catch (e) {
             if (e instanceof MongoServerError && e.code === 11000) {
                 throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'Update failed because duplicate element exists', {
