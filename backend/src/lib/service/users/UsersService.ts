@@ -18,7 +18,7 @@ export class UsersService {
         return this.usersDao.listUsersLight();
     }
 
-    public async createUser(user: IUserCreateModel): Promise<IUserLightModel> {
+    public async createUser(user: IUserCreateModel): Promise<IUserModel> {
         const id = uuid.v4();
         return this.usersDao.createUser({
             id,

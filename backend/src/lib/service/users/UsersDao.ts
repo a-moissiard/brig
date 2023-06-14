@@ -67,8 +67,8 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         return (await this.list()).map(UsersDao.mapDbToModelLight);
     }
 
-    public async createUser(user: IUserModel): Promise<IUserLightModel> {
-        return UsersDao.mapDbToModelLight(await this.insert(UsersDao.mapModelToDb(user)));
+    public async createUser(user: IUserModel): Promise<IUserModel> {
+        return UsersDao.mapDbToModel(await this.insert(UsersDao.mapModelToDb(user)));
     }
 
     public async updateUser(userId: string, user: IUserUpdateModel): Promise<IUserModel> {
