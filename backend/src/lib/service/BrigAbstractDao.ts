@@ -2,6 +2,7 @@ import {
     Collection,
     CreateIndexesOptions,
     Document,
+    Filter,
     FindOneAndUpdateOptions,
     FindOptions,
     IndexSpecification,
@@ -34,7 +35,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         logger.verbose(`[MONGO] Indexes created for collection ${this.collectionName}`);
     }
 
-    protected async get(filter: object, findOptions?: FindOptions): Promise<T> {
+    protected async get(filter: Filter<T>, findOptions?: FindOptions): Promise<T> {
         const document = await this.getCollection().findOne(filter, findOptions);
         if (!document) {
             throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Element not found with filter=${JSON.stringify(filter)}`);
@@ -62,7 +63,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         return data;
     }
 
-    protected async update(filter: object, update: UpdateFilter<T>, options?: FindOneAndUpdateOptions): Promise<WithId<T>> {
+    protected async update(filter: Filter<T>, update: UpdateFilter<T>, options?: FindOneAndUpdateOptions): Promise<WithId<T>> {
         let updatedDocument: WithId<T> | null;
         try {
             updatedDocument = (await this.getCollection().findOneAndUpdate(filter, update, options)).value;
@@ -80,7 +81,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         return updatedDocument;
     }
 
-    protected async delete(filter: object): Promise<void> {
+    protected async delete(filter: Filter<T>): Promise<void> {
         const deletedDocument = (await this.getCollection().findOneAndDelete(filter)).value;
         if (!deletedDocument) {
             throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Element not found with filter=${JSON.stringify(filter)}`);

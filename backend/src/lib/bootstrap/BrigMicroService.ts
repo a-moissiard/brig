@@ -5,9 +5,11 @@ import path from 'path';
 import { BrigApi } from '../api';
 import { FtpServersHandler } from '../api/ftpServers';
 import { errorMiddleware } from '../api/middlewares';
+import { UsersHandler } from '../api/users';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { FtpServersDao, FtpServersService } from '../service/ftpServers';
+import { UsersDao, UsersService } from '../service/users';
 import { MongoConnectionManager } from '../utils/mongo';
 
 interface IBrigMicroServiceDependencies {
@@ -23,6 +25,7 @@ export class BrigMicroService {
     private readonly brigApi: BrigApi;
 
     private readonly ftpServersDao: FtpServersDao;
+    private readonly usersDao: UsersDao;
 
     constructor(deps: IBrigMicroServiceDependencies) {
         const { config, mongoConnectionManager } = deps;
@@ -31,8 +34,12 @@ export class BrigMicroService {
         this.ftpServersDao = new FtpServersDao({ mongoConnectionManager });
         const ftpServersService = new FtpServersService({ ftpServersDao: this.ftpServersDao });
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
+
+        this.usersDao = new UsersDao({ mongoConnectionManager });
+        const usersService = new UsersService({ usersDao: this.usersDao });
+        const usersHandler = new UsersHandler({ usersService });
         
-        this.brigApi = new BrigApi({ ftpServersHandler });
+        this.brigApi = new BrigApi({ ftpServersHandler, usersHandler });
 
         this.expressApp = express();
     }
