@@ -1,14 +1,11 @@
-import * as _ from 'lodash';
-
 import { IMongoConnectionManager } from '../../utils/mongo';
 import { BrigAbstractDao } from '../BrigAbstractDao';
-import { IUserLightModel, IUserModel, IUserUpdateModel } from './UsersTypes';
+import { IUserLightModel, IUserModel } from './UsersTypes';
 
 interface IUserDb {
     id: string;
     username: string;
     hash: string;
-    salt: string;
 }
 
 interface IUsersDaoDependencies {
@@ -33,7 +30,6 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         return {
             ...UsersDao.mapDbToModelLight(db),
             hash: db.hash,
-            salt: db.salt,
         };
     }
 
@@ -42,7 +38,6 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
             id: model.id,
             username: model.username,
             hash: model.hash,
-            salt: model.salt,
         };
     }
 
@@ -69,18 +64,6 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
 
     public async createUser(user: IUserModel): Promise<IUserModel> {
         return UsersDao.mapDbToModel(await this.insert(UsersDao.mapModelToDb(user)));
-    }
-
-    public async updateUser(userId: string, user: IUserUpdateModel): Promise<IUserModel> {
-        return UsersDao.mapDbToModel(await this.update({ id: userId }, {
-            $set: _.omitBy({
-                username: user.username,
-                hash: user.hash,
-                salt: user.salt,
-            }, _.isUndefined),
-        }, {
-            returnDocument: 'after',
-        }));
     }
 
     public async deleteUser(userId: string): Promise<void> {

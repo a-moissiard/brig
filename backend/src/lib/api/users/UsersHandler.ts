@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { IUserUpdateModel, UsersService } from '../../service/users';
+import { UsersService } from '../../service/users';
 
 interface IUsersHandlerDependencies {
     usersService: UsersService;
@@ -17,15 +17,6 @@ export class UsersHandler {
         const users = await this.usersService.listLightUsers();
 
         res.send(users);
-    }
-
-    async updateUser(req: Request, res: Response): Promise<void> {
-        const { userId } = req.params;
-        const body = req.body as IUserUpdateModel;
-
-        const server = await this.usersService.updateUser(userId, body);
-
-        res.send(server);
     }
 
     async deleteUser(req: Request, res: Response): Promise<void> {

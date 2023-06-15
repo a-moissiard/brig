@@ -3,8 +3,7 @@ import * as chai from 'chai';
 import * as _ from 'lodash';
 
 import { logger } from '../../lib/logger';
-import { IFtpServerUpdateModel } from '../../lib/service/ftpServers';
-import { IUserModel, IUserUpdateModel, UsersDao } from '../../lib/service/users';
+import { IUserModel, UsersDao } from '../../lib/service/users';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test';
@@ -38,13 +37,11 @@ describe('UsersDao', () => {
             id: 'id_1',
             username: 'username_1',
             hash: 'hash_1',
-            salt: 'salt_1',
         };
         const user2: IUserModel = {
             id: 'id_2',
             username: 'username_2',
             hash: 'hash_2',
-            salt: 'salt_2',
         };
         describe('Create user', () => {
             it('should create a user', async () => {
@@ -92,57 +89,6 @@ describe('UsersDao', () => {
                 assert.equal(list.length, 2);
                 assert.deepEqual(list[0], _.pick(user1, ['id', 'username']));
                 assert.deepEqual(list[1], _.pick(user2, ['id', 'username']));
-            });
-        });
-
-        describe('Update user', () => {
-            it('should throw when updating a user that does not exist', async () => {
-                await assertThrowsWithError(() => usersDao.updateUser(user1.id, {}), BRIG_ERROR_CODE.DB_NOT_FOUND);
-            });
-
-            it('should partially update a user', async () => {
-                await usersDao.createUser(user1);
-                const user1Update: IUserUpdateModel = {
-                    hash: 'new_hash',
-                    salt: 'new_salt',
-                };
-                const updatedUser = await usersDao.updateUser(user1.id, user1Update);
-                assert.deepEqual(updatedUser, {
-                    ...user1,
-                    ...user1Update,
-                });
-            });
-
-            it('should update a user', async () => {
-                await usersDao.createUser(user1);
-                const user1Update: IUserUpdateModel = {
-                    username: 'new_username',
-                    hash: 'new_hash',
-                    salt: 'new_salt',
-                };
-                const updatedUser = await usersDao.updateUser(user1.id, user1Update);
-                assert.deepEqual(updatedUser, {
-                    id: user1.id,
-                    ...user1Update,
-                });
-            });
-
-            it('should filter silly properties when updating a user', async () => {
-                await usersDao.createUser(user1);
-                const user1Update: any = {
-                    hello: '1021',
-                };
-                const updatedUser = await usersDao.updateUser(user1.id, user1Update);
-                assert.deepEqual(updatedUser, user1);
-            });
-
-            it('should throw when updating a server with properties that break index unicity', async () => {
-                await usersDao.createUser(user1);
-                await usersDao.createUser(user2);
-                const user1Update: IFtpServerUpdateModel = {
-                    username: user2.username,
-                };
-                await assertThrowsWithError(() => usersDao.updateUser(user1.id, user1Update), BRIG_ERROR_CODE.DB_DUPLICATE);
             });
         });
 

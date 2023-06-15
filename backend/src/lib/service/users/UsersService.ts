@@ -1,7 +1,7 @@
 import * as uuid from 'uuid';
 
 import { UsersDao } from './UsersDao';
-import { IUserCreateModel, IUserLightModel, IUserModel, IUserUpdateModel } from './UsersTypes';
+import { IUserCreateModel, IUserLightModel, IUserModel } from './UsersTypes';
 
 interface IUsersServiceDependencies {
     usersDao: UsersDao;
@@ -28,10 +28,6 @@ export class UsersService {
 
     public async getUserByUsername(username: string): Promise<IUserModel> {
         return this.usersDao.getUserByUsername(username);
-    }
-
-    public async updateUser(userId: string, user: IUserUpdateModel): Promise<IUserModel> {
-        return this.usersDao.updateUser(userId, user);
     }
 
     public async deleteUser(userId: string): Promise<void> {
