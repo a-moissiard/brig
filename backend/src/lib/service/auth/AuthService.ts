@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import * as schedule from 'node-schedule';
 import * as uuid from 'uuid';
 
 import { IBrigAuthConfig } from '../../config';
@@ -21,6 +22,14 @@ export class AuthService {
         this.usersService = deps.usersService;
 
         this.invalidatedJwtIds = new Map();
+    }
+
+    public init(): void {
+        schedule.scheduleJob('0 * * * *', this.cleanInvalidatedJwt.bind(this));
+    }
+
+    public async shutdown(): Promise<void> {
+        return schedule.gracefulShutdown();
     }
 
     public async register(username: string, password: string): Promise<IUserModel> {
@@ -51,5 +60,13 @@ export class AuthService {
 
     public isJwtInvalidated(jwtId: string): boolean {
         return this.invalidatedJwtIds.has(jwtId);
+    }
+
+    public cleanInvalidatedJwt(): void {
+        this.invalidatedJwtIds.forEach((exp, jwtId) => {
+            if (exp < (Date.now() / 1000)) {
+                this.invalidatedJwtIds.delete(jwtId);
+            }
+        });
     }
 }

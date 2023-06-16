@@ -27,6 +27,7 @@ export class BrigMicroService {
 
     private readonly brigApi: BrigApi;
     private readonly authMiddleware: AuthMiddleware;
+    private readonly authService: AuthService;
 
     private readonly ftpServersDao: FtpServersDao;
     private readonly usersDao: UsersDao;
@@ -43,10 +44,10 @@ export class BrigMicroService {
         const usersService = new UsersService({ usersDao: this.usersDao });
         const usersHandler = new UsersHandler({ usersService });
 
-        const authService = new AuthService({ authConfig: config.auth, usersService });
-        const authHandler = new AuthHandler({ authService });
+        this.authService = new AuthService({ authConfig: config.auth, usersService });
+        const authHandler = new AuthHandler({ authService: this.authService });
 
-        this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService });
+        this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService: this.authService });
 
         this.brigApi = new BrigApi({ authHandler, usersHandler, ftpServersHandler });
 
@@ -58,8 +59,10 @@ export class BrigMicroService {
 
         this.expressApp.use(express.static(path.join(__dirname, '../../../build/frontend')));
 
-        this.expressApp.use(express.json());
+        this.authService.init();
         this.authMiddleware.init();
+
+        this.expressApp.use(express.json());
         this.expressApp.use('/api', this.brigApi.init());
         this.expressApp.use(errorMiddleware);
 
@@ -69,7 +72,8 @@ export class BrigMicroService {
         });
     }
 
-    public stopMicroService(): void {
+    public async stopMicroService(): Promise<void> {
+        await this.authService.shutdown();
         this.server?.close(() => {
             logger.info('Server shut down');
         });

@@ -25,7 +25,7 @@ export class BrigApplication {
     }
 
     public async stopApp(): Promise<void> {
-        this.brigMicroService.stopMicroService();
+        await this.brigMicroService.stopMicroService();
         await this.mongoConnectionManager.close();
     }
 }
