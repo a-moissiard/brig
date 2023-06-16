@@ -27,6 +27,7 @@ export class BrigApi {
         this.router.use('/auth', this.authRouter.init());
         this.router.use('/servers', this.ftpServersRouter.init());
         this.router.use('/users', this.usersRouter.init());
+        this.router.use('*', (req, res) => res.status(404).end());
         return this.router;
     }
 }

@@ -14,6 +14,9 @@ export const errorMiddleware = (err: Error, req: Request, res: Response, next: N
             case BRIG_ERROR_CODE.DB_OPERATION_ERROR:
                 res.status(500);
                 break;
+            case BRIG_ERROR_CODE.AUTH_INVALID_CREDENTIALS:
+                res.status(401);
+                break;
             default:
                 res.status(400);
                 break;

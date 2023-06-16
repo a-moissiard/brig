@@ -4,6 +4,8 @@ export enum BRIG_ERROR_CODE {
     DB_OPERATION_ERROR = 1000,
     DB_NOT_FOUND = 1001,
     DB_DUPLICATE = 1002,
+
+    AUTH_INVALID_CREDENTIALS = 2000,
 }
 
 export class BrigError extends Error{

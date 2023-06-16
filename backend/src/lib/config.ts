@@ -3,6 +3,7 @@ export interface IBrigConfig {
         port: string;
     };
     mongo: IBrigMongoConfig;
+    auth: IBrigAuthConfig;
 }
 
 export interface IBrigMongoConfig {
@@ -13,6 +14,11 @@ export interface IBrigMongoConfig {
         port: string;
     };
     dbName: string;
+}
+
+export interface IBrigAuthConfig {
+    jwtSigningSecret: string;
+    jwtValidityPeriod: string;
 }
 
 export const config: IBrigConfig = {
@@ -27,5 +33,9 @@ export const config: IBrigConfig = {
             port: process.env.MONGO_PORT || '27017',
         },
         dbName: 'brig',
+    },
+    auth: {
+        jwtSigningSecret: process.env.JWT_SECRET || '',
+        jwtValidityPeriod: '1h',
     },
 };

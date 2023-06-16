@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import { AuthService } from '../../service/auth';
 
@@ -15,5 +15,25 @@ export class AuthHandler {
 
     async register(req: Request, res: Response): Promise<void> {
         res.status(201).json({ message: 'User successfully registered', user: req.user });
+    }
+
+    async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const { user } = req;
+
+        if (!user) {
+            return next();
+        }
+
+        req.login(
+            user,
+            { session: false },
+            async (error) => {
+                if (error) {
+                    return next(error);
+                }
+                const token = await this.authService.createJwt(user);
+                return res.json({ token });
+            },
+        );
     }
 }

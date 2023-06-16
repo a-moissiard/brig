@@ -19,15 +19,18 @@ import { IMongoConnectionManager } from '../utils/mongo';
 interface IBrigAbstractDaoDependencies {
     mongoConnectionManager: IMongoConnectionManager;
     collectionName: string;
+    elementName: string;
 }
 
 export abstract class BrigAbstractDao<T extends Document = Document> {
     private readonly mongoConnectionManager: IMongoConnectionManager;
     private readonly collectionName: string;
+    private readonly elementName: string;
 
     protected constructor(deps: IBrigAbstractDaoDependencies) {
         this.mongoConnectionManager = deps.mongoConnectionManager;
         this.collectionName = deps.collectionName;
+        this.elementName = deps.elementName;
     }
 
     protected async createIndexes(indexSpecs: IndexSpecification[], options?: CreateIndexesOptions): Promise<void> {
@@ -38,7 +41,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
     protected async get(filter: Filter<T>, findOptions?: FindOptions): Promise<T> {
         const document = await this.getCollection().findOne(filter, findOptions);
         if (!document) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Element not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
         }
         return document;
     }
@@ -51,14 +54,14 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
             insertionResult = await this.getCollection().insertOne(data as any);
         } catch (e) {
             if (e instanceof MongoServerError && e.code === 11000) {
-                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'Insertion failed because duplicate element exists', {
+                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, `${this.elementName} insertion failed because duplicate element exists`, {
                     cause: e.stack,
                 });
             }
             throw e;
         }
         if (!insertionResult.acknowledged) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_OPERATION_ERROR, 'Insertion failed');
+            throw new BrigError(BRIG_ERROR_CODE.DB_OPERATION_ERROR, `${this.elementName} insertion failed`);
         }
         return data;
     }
@@ -69,14 +72,14 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
             updatedDocument = (await this.getCollection().findOneAndUpdate(filter, update, options)).value;
         } catch (e) {
             if (e instanceof MongoServerError && e.code === 11000) {
-                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, 'Update failed because duplicate element exists', {
+                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, `${this.elementName} update failed because duplicate element exists`, {
                     cause: e.stack,
                 });
             }
             throw e;
         }
         if (!updatedDocument) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Element not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
         }
         return updatedDocument;
     }
@@ -84,7 +87,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
     protected async delete(filter: Filter<T>): Promise<void> {
         const deletedDocument = (await this.getCollection().findOneAndDelete(filter)).value;
         if (!deletedDocument) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `Element not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
         }
     }
 

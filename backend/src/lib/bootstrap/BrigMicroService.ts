@@ -43,10 +43,10 @@ export class BrigMicroService {
         const usersService = new UsersService({ usersDao: this.usersDao });
         const usersHandler = new UsersHandler({ usersService });
 
-        const authService = new AuthService({ usersService });
+        const authService = new AuthService({ authConfig: config.auth, usersService });
         const authHandler = new AuthHandler({ authService });
 
-        this.authMiddleware = new AuthMiddleware({ authService });
+        this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService });
 
         this.brigApi = new BrigApi({ authHandler, usersHandler, ftpServersHandler });
 

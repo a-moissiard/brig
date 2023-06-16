@@ -17,9 +17,10 @@ interface IFtpServersDaoDependencies {
 
 export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     public static readonly collectionName = 'ftpServers';
+    public static readonly elementName = 'FTP Server';
 
     constructor(deps: IFtpServersDaoDependencies) {
-        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: FtpServersDao.collectionName });
+        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: FtpServersDao.collectionName, elementName: FtpServersDao.elementName });
     }
 
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {

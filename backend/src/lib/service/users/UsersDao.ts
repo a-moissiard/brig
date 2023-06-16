@@ -13,10 +13,11 @@ interface IUsersDaoDependencies {
 }
 
 export class UsersDao extends BrigAbstractDao<IUserDb> {
-    public static readonly collectionName = 'users';
+    private static readonly collectionName = 'users';
+    private static readonly elementName = 'User';
 
     constructor(deps: IUsersDaoDependencies) {
-        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: UsersDao.collectionName });
+        super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: UsersDao.collectionName, elementName: UsersDao.elementName });
     }
 
     private static mapDbToModelLight(db: IUserDb): IUserLightModel {
