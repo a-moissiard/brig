@@ -15,6 +15,7 @@ export const errorMiddleware = (err: Error, req: Request, res: Response, next: N
                 res.status(500);
                 break;
             case BRIG_ERROR_CODE.AUTH_INVALID_CREDENTIALS:
+            case BRIG_ERROR_CODE.AUTH_TOKEN_REVOKED:
                 res.status(401);
                 break;
             default:

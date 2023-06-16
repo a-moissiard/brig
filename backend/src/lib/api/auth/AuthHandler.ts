@@ -36,4 +36,8 @@ export class AuthHandler {
             },
         );
     }
+
+    async logout(req: Request, res: Response): Promise<void> {
+        res.sendStatus(204);
+    }
 }

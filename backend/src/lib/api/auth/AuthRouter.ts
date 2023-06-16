@@ -20,6 +20,7 @@ export class AuthRouter {
     public init(): Router {
         this.router.post('/register', passport.authenticate('register', { session: false }), asyncHandler(this.authHandler.register.bind(this.authHandler)));
         this.router.post('/login', passport.authenticate('login', { session: false }), asyncHandler(this.authHandler.login.bind(this.authHandler)));
+        this.router.post('/logout', passport.authenticate('logout', { session: false }), asyncHandler(this.authHandler.logout.bind(this.authHandler)));
         return this.router;
     }
 }

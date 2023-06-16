@@ -14,9 +14,13 @@ export class AuthService {
     private readonly authConfig: IBrigAuthConfig;
     private readonly usersService: UsersService;
 
+    private readonly invalidatedJwtIds: Map<string, number>;
+
     constructor(deps: IAuthServiceDependencies) {
         this.authConfig = deps.authConfig;
         this.usersService = deps.usersService;
+
+        this.invalidatedJwtIds = new Map();
     }
 
     public async register(username: string, password: string): Promise<IUserModel> {
@@ -39,5 +43,13 @@ export class AuthService {
             expiresIn: jwtValidityPeriod,
             jwtid: uuid.v4(),
         });
+    }
+
+    public invalidateJwt(jwtId: string, exp: number): void {
+        this.invalidatedJwtIds.set(jwtId, exp);
+    }
+
+    public isJwtInvalidated(jwtId: string): boolean {
+        return this.invalidatedJwtIds.has(jwtId);
     }
 }

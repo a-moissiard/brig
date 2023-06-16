@@ -6,6 +6,7 @@ export enum BRIG_ERROR_CODE {
     DB_DUPLICATE = 1002,
 
     AUTH_INVALID_CREDENTIALS = 2000,
+    AUTH_TOKEN_REVOKED = 2001,
 }
 
 export class BrigError extends Error{
