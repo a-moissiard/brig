@@ -9,4 +9,4 @@ interface IJwtTokenInfo {
     exp: number;
 }
 
-export type IJwtModel = IJwtUserInfo & IJwtTokenInfo;
+export type IJwt = IJwtUserInfo & IJwtTokenInfo;

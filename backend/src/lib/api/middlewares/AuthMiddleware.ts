@@ -3,13 +3,15 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
 import { IBrigAuthConfig } from '../../config';
-import { AuthService, IJwtModel } from '../../service/auth';
+import { AuthService, IJwt } from '../../service/auth';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 
 interface IAuthMiddlewareDependencies {
     authConfig: IBrigAuthConfig;
     authService: AuthService;
 }
+
+export const useAuthMiddleware = (strategyName: string): any => passport.authenticate(strategyName, { session: false });
 
 export class AuthMiddleware {
     private readonly authConfig: IBrigAuthConfig;
@@ -50,7 +52,7 @@ export class AuthMiddleware {
         passport.use('isLoggedIn', new JwtStrategy({
             secretOrKey: this.authConfig.jwtSigningSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        }, async (token: IJwtModel, done) => {
+        }, async (token: IJwt, done) => {
             const isTokenInvalidated = this.authService.isJwtInvalidated(token.jti);
             if (isTokenInvalidated) {
                 return done(new BrigError(BRIG_ERROR_CODE.AUTH_TOKEN_REVOKED, 'Token expired, you need to authenticate'));
@@ -65,7 +67,7 @@ export class AuthMiddleware {
         passport.use('logout', new JwtStrategy({
             secretOrKey: this.authConfig.jwtSigningSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        }, async (token: IJwtModel, done) => {
+        }, async (token: IJwt, done) => {
             this.authService.invalidateJwt(token.jti, token.exp);
             try {
                 return done(null, {});

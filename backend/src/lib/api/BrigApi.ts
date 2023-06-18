@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 
 import { AuthHandler, AuthRouter } from './auth';
 import { FtpServersHandler, FtpServersRouter } from './ftpServers';
+import { useAuthMiddleware } from './middlewares';
 import { UsersHandler, UsersRouter } from './users';
 
 interface IBrigApiDependencies {
@@ -25,8 +26,8 @@ export class BrigApi {
 
     public init(): Router {
         this.router.use('/auth', this.authRouter.init());
-        this.router.use('/servers', this.ftpServersRouter.init());
-        this.router.use('/users', this.usersRouter.init());
+        this.router.use('/servers', useAuthMiddleware('isLoggedIn'), this.ftpServersRouter.init());
+        this.router.use('/users', useAuthMiddleware('isLoggedIn'), this.usersRouter.init());
         this.router.use('*', (req, res) => res.status(404).end());
         return this.router;
     }

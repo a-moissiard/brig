@@ -62,7 +62,7 @@ export class AuthService {
         return this.invalidatedJwtIds.has(jwtId);
     }
 
-    public cleanInvalidatedJwt(): void {
+    private cleanInvalidatedJwt(): void {
         this.invalidatedJwtIds.forEach((exp, jwtId) => {
             if (exp < (Date.now() / 1000)) {
                 this.invalidatedJwtIds.delete(jwtId);
