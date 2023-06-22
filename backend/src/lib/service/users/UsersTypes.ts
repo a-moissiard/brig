@@ -1,10 +1,10 @@
 interface IUserBaseLightModel {
     username: string;
-    admin?: boolean;
 }
 
 interface IUserBaseModel extends IUserBaseLightModel {
     hash: string;
+    admin: boolean;
 }
 
 export type IUserCreateModel = IUserBaseModel;

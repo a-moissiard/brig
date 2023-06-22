@@ -37,11 +37,13 @@ describe('UsersDao', () => {
             id: 'id_1',
             username: 'username_1',
             hash: 'hash_1',
+            admin: true,
         };
         const user2: IUserModel = {
             id: 'id_2',
             username: 'username_2',
             hash: 'hash_2',
+            admin: false,
         };
         describe('Create user', () => {
             it('should create a user', async () => {

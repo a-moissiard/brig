@@ -6,7 +6,7 @@ interface IUserDb {
     id: string;
     username: string;
     hash: string;
-    admin?: boolean;
+    admin: boolean;
 }
 
 interface IUsersDaoDependencies {
@@ -25,7 +25,6 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         return {
             id: db.id,
             username: db.username,
-            admin: db.admin,
         };
     }
 
@@ -33,6 +32,7 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         return {
             ...UsersDao.mapDbToModelLight(db),
             hash: db.hash,
+            admin: db.admin,
         };
     }
 
@@ -41,8 +41,7 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
             id: model.id,
             username: model.username,
             hash: model.hash,
-            // We do not map 'admin' on purpose, as we never want to set an admin value from the code
-            // To change admin value, manipulate your db
+            admin: model.admin,
         };
     }
 

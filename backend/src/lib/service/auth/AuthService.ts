@@ -38,6 +38,7 @@ export class AuthService {
         return this.usersService.createUser({
             username,
             hash,
+            admin: false,
         });
     }
 
