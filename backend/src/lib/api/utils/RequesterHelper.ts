@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { IRequester } from '../../service/authorizations';
+import { BYPASS_REQUESTER, IRequester } from '../../service/authorizations';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 
 export const buildRequester = (req: Request): IRequester => {
@@ -12,3 +12,8 @@ export const buildRequester = (req: Request): IRequester => {
         username: req.user.username,
     };
 };
+
+export const buildBypassRequester = (): IRequester => ({
+    id: BYPASS_REQUESTER,
+    username: BYPASS_REQUESTER,
+});
