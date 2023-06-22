@@ -55,7 +55,7 @@ export class AuthMiddleware {
         }, async (token: IJwt, done) => {
             const isTokenInvalidated = this.authService.isJwtInvalidated(token.jti);
             if (isTokenInvalidated) {
-                return done(new BrigError(BRIG_ERROR_CODE.AUTH_TOKEN_REVOKED, 'Token expired, you need to authenticate'));
+                return done(new BrigError(BRIG_ERROR_CODE.AUTH_TOKEN_REVOKED, 'User logged out, authentication required'));
             }
             try {
                 return done(null, { id: token.id, username: token.username });
@@ -70,7 +70,7 @@ export class AuthMiddleware {
         }, async (token: IJwt, done) => {
             this.authService.invalidateJwt(token.jti, token.exp);
             try {
-                return done(null, {});
+                return done(null, { id: token.id, username: token.username });
             } catch (e) {
                 return done(e);
             }
