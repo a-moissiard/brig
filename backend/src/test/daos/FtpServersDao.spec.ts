@@ -6,7 +6,7 @@ import { FtpServersDao, IFtpServerModel, IFtpServerUpdateModel } from '../../lib
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test';
-import { testConfig } from '../testConfig';
+import { testMongoConfig } from '../testConfig';
 
 const assert = chai.assert;
 
@@ -17,7 +17,7 @@ describe('FtpServersDao', () => {
     let ftpServersDao: FtpServersDao;
 
     before(async () => {
-        mongoConnectionManager = new MongoConnectionTestManager(testConfig);
+        mongoConnectionManager = new MongoConnectionTestManager(testMongoConfig);
         await mongoConnectionManager.init();
         ftpServersDao = new FtpServersDao({ mongoConnectionManager });
         await ftpServersDao.init();

@@ -7,7 +7,7 @@ import { IUserModel, UsersDao } from '../../lib/service/users';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test';
-import { testConfig } from '../testConfig';
+import { testMongoConfig } from '../testConfig';
 
 const assert = chai.assert;
 
@@ -18,7 +18,7 @@ describe('UsersDao', () => {
     let usersDao: UsersDao;
 
     before(async () => {
-        mongoConnectionManager = new MongoConnectionTestManager(testConfig);
+        mongoConnectionManager = new MongoConnectionTestManager(testMongoConfig);
         await mongoConnectionManager.init();
         usersDao = new UsersDao({ mongoConnectionManager });
         await usersDao.init();

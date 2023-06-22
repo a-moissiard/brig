@@ -1,11 +1,8 @@
-import { IBrigMongoConfig } from '../lib/config';
+import { config, IBrigAuthConfig, IBrigMongoConfig } from '../lib/config';
 
-export const testConfig: IBrigMongoConfig = {
-    connection:{
-        user: process.env.MONGO_USER || '',
-        pass: process.env.MONGO_PASS || '',
-        host: process.env.MONGO_HOST || '',
-        port: process.env.MONGO_PORT || '27017',
-    },
+export const testMongoConfig: IBrigMongoConfig = {
+    ...config.mongo,
     dbName: 'brig-test',
 };
+
+export const testAuthConfig: IBrigAuthConfig = config.auth;
