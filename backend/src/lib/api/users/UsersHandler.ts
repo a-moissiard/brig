@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import { UsersService } from '../../service/users';
+import { buildRequester } from '../utils';
 
 interface IUsersHandlerDependencies {
     usersService: UsersService;
@@ -14,15 +15,17 @@ export class UsersHandler {
     }
 
     async listLightUsers(req: Request, res: Response): Promise<void> {
-        const users = await this.usersService.listLightUsers();
+        const requester = buildRequester(req);
+        const users = await this.usersService.listLightUsers(requester);
 
         res.send(users);
     }
 
     async deleteUser(req: Request, res: Response): Promise<void> {
         const { userId } = req.params;
+        const requester = buildRequester(req);
 
-        await this.usersService.deleteUser(userId);
+        await this.usersService.deleteUser(requester, userId);
 
         res.send();
     }

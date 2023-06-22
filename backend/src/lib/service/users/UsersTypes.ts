@@ -1,5 +1,6 @@
 interface IUserBaseLightModel {
     username: string;
+    admin?: boolean;
 }
 
 interface IUserBaseModel extends IUserBaseLightModel {

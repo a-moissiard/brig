@@ -5,12 +5,12 @@ import path from 'path';
 import { BrigApi } from '../api';
 import { AuthHandler } from '../api/auth';
 import { FtpServersHandler } from '../api/ftpServers';
-import { errorMiddleware } from '../api/middlewares';
-import { AuthMiddleware } from '../api/middlewares/AuthMiddleware';
+import { AuthMiddleware, errorMiddleware } from '../api/middlewares';
 import { UsersHandler } from '../api/users';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { AuthService } from '../service/auth';
+import { AuthorizationsEnforcer } from '../service/authorizations';
 import { FtpServersDao, FtpServersService } from '../service/ftpServers';
 import { UsersDao, UsersService } from '../service/users';
 import { MongoConnectionManager } from '../utils/mongo';
@@ -36,13 +36,16 @@ export class BrigMicroService {
         const { config, mongoConnectionManager } = deps;
         this.config = config;
 
+        this.usersDao = new UsersDao({ mongoConnectionManager });
         this.ftpServersDao = new FtpServersDao({ mongoConnectionManager });
+
+        const authorizationsEnforcer = new AuthorizationsEnforcer({ usersDao: this.usersDao });
+
+        const usersService = new UsersService({ authorizationsEnforcer, usersDao: this.usersDao });
+        const usersHandler = new UsersHandler({ usersService });
+
         const ftpServersService = new FtpServersService({ ftpServersDao: this.ftpServersDao });
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
-
-        this.usersDao = new UsersDao({ mongoConnectionManager });
-        const usersService = new UsersService({ usersDao: this.usersDao });
-        const usersHandler = new UsersHandler({ usersService });
 
         this.authService = new AuthService({ authConfig: config.auth, usersService });
         const authHandler = new AuthHandler({ authService: this.authService });

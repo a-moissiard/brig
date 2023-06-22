@@ -6,6 +6,7 @@ interface IUserDb {
     id: string;
     username: string;
     hash: string;
+    admin?: boolean;
 }
 
 interface IUsersDaoDependencies {
@@ -24,6 +25,7 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         return {
             id: db.id,
             username: db.username,
+            admin: db.admin,
         };
     }
 
@@ -39,6 +41,8 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
             id: model.id,
             username: model.username,
             hash: model.hash,
+            // We do not map 'admin' on purpose, as we never want to set an admin value from the code
+            // To change admin value, manipulate your db
         };
     }
 
@@ -53,6 +57,10 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         ], {
             unique: true,
         });
+    }
+
+    public async getUser(userId: string): Promise<IUserModel> {
+        return UsersDao.mapDbToModel(await this.get({ id: userId }));
     }
 
     public async getUserByUsername(username: string): Promise<IUserModel> {
