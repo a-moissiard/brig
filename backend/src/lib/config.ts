@@ -17,8 +17,12 @@ export interface IBrigMongoConfig {
 }
 
 export interface IBrigAuthConfig {
-    jwtSigningSecret: string;
-    jwtValidityPeriod: string;
+    openToUserRegistration: string;
+    jwt: {
+        jwtSigningSecret: string;
+        jwtValidityPeriod: string;
+
+    };
 }
 
 export const config: IBrigConfig = {
@@ -35,7 +39,10 @@ export const config: IBrigConfig = {
         dbName: 'brig',
     },
     auth: {
-        jwtSigningSecret: process.env.JWT_SECRET || '',
-        jwtValidityPeriod: '1h',
+        openToUserRegistration: process.env.OPEN_TO_USER_REGISTRATION || 'false',
+        jwt: {
+            jwtSigningSecret: process.env.JWT_SECRET || '',
+            jwtValidityPeriod: '1h',
+        },
     },
 };

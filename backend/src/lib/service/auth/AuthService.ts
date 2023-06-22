@@ -47,7 +47,7 @@ export class AuthService {
     }
 
     public async createJwt(payload: string | Buffer | object): Promise<string> {
-        const { jwtSigningSecret, jwtValidityPeriod } = this.authConfig;
+        const { jwtSigningSecret, jwtValidityPeriod } = this.authConfig.jwt;
         return jwt.sign(payload, jwtSigningSecret, {
             expiresIn: jwtValidityPeriod,
             jwtid: uuid.v4(),

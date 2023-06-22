@@ -26,6 +26,9 @@ export class AuthMiddleware {
             usernameField: 'username',
             passwordField: 'password',
         }, async (username, password, done) => {
+            if (this.authConfig.openToUserRegistration !== 'true') {
+                return done(new BrigError(BRIG_ERROR_CODE.AUTH_REGISTRATION_CLOSED, 'Registrations are not opened'));
+            }
             try {
                 const user = await this.authService.register(username, password);
                 return done(null, { id: user.id, username });
@@ -50,7 +53,7 @@ export class AuthMiddleware {
         }));
 
         passport.use('isLoggedIn', new JwtStrategy({
-            secretOrKey: this.authConfig.jwtSigningSecret,
+            secretOrKey: this.authConfig.jwt.jwtSigningSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         }, async (token: IJwt, done) => {
             const isTokenInvalidated = this.authService.isJwtInvalidated(token.jti);
@@ -65,7 +68,7 @@ export class AuthMiddleware {
         }));
 
         passport.use('logout', new JwtStrategy({
-            secretOrKey: this.authConfig.jwtSigningSecret,
+            secretOrKey: this.authConfig.jwt.jwtSigningSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         }, async (token: IJwt, done) => {
             this.authService.invalidateJwt(token.jti, token.exp);
