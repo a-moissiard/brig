@@ -10,9 +10,8 @@ import { UsersHandler } from '../api/users';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { AuthService } from '../service/auth';
-import { AuthorizationsEnforcer } from '../service/authorizations';
-import { FtpServersDao, FtpServersService } from '../service/ftpServers';
-import { UsersDao, UsersService } from '../service/users';
+import { FtpServersAuthorizationsEnforcer, FtpServersDao, FtpServersService } from '../service/ftpServers';
+import { UsersAuthorizationsEnforcer, UsersDao, UsersService } from '../service/users';
 import { MongoConnectionManager } from '../utils/mongo';
 
 interface IBrigMicroServiceDependencies {
@@ -39,12 +38,12 @@ export class BrigMicroService {
         this.usersDao = new UsersDao({ mongoConnectionManager });
         this.ftpServersDao = new FtpServersDao({ mongoConnectionManager });
 
-        const authorizationsEnforcer = new AuthorizationsEnforcer({ usersDao: this.usersDao });
-
-        const usersService = new UsersService({ authorizationsEnforcer, usersDao: this.usersDao });
+        const usersAuthorizationsEnforcer = new UsersAuthorizationsEnforcer({ usersDao: this.usersDao });
+        const usersService = new UsersService({ usersAuthorizationsEnforcer, usersDao: this.usersDao });
         const usersHandler = new UsersHandler({ usersService });
 
-        const ftpServersService = new FtpServersService({ ftpServersDao: this.ftpServersDao });
+        const ftpServersAuthorizationsEnforcer = new FtpServersAuthorizationsEnforcer({ usersDao: this.usersDao, ftpServersDao: this.ftpServersDao });
+        const ftpServersService = new FtpServersService({ ftpServersAuthorizationsEnforcer, ftpServersDao: this.ftpServersDao });
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
 
         this.authService = new AuthService({ authConfig: config.auth, usersService });

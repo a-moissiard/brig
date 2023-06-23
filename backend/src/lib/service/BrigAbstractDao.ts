@@ -41,13 +41,17 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
     protected async get(filter: Filter<T>, findOptions?: FindOptions): Promise<T> {
         const document = await this.getCollection().findOne(filter, findOptions);
         if (!document) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`, {
+                publicMessage: `${this.elementName} not found`,
+            });
         }
         return document;
     }
-    protected async list(): Promise<WithId<T>[]> {
-        return this.getCollection().find().toArray();
+    
+    protected async list(filter: Filter<T>, findOptions?: FindOptions): Promise<WithId<T>[]> {
+        return this.getCollection().find(filter, findOptions).toArray();
     }
+
     protected async insert(data: T): Promise<T> {
         let insertionResult: InsertOneResult<T> | null;
         try {
@@ -79,7 +83,9 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
             throw e;
         }
         if (!updatedDocument) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`, {
+                publicMessage: `${this.elementName} not found`,
+            });
         }
         return updatedDocument;
     }
@@ -87,7 +93,9 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
     protected async delete(filter: Filter<T>): Promise<void> {
         const deletedDocument = (await this.getCollection().findOneAndDelete(filter)).value;
         if (!deletedDocument) {
-            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`);
+            throw new BrigError(BRIG_ERROR_CODE.DB_NOT_FOUND, `${this.elementName} not found with filter=${JSON.stringify(filter)}`, {
+                publicMessage: `${this.elementName} not found`,
+            });
         }
     }
 

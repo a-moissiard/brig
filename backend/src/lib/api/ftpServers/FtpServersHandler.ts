@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
+import { buildRequester } from '../utils';
 
 interface IFtpServersHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -13,41 +14,53 @@ export class FtpServersHandler {
         this.ftpServersService = deps.ftpServersService;
     }
 
-    async listServers(req: Request, res: Response): Promise<void> {        
-        const servers = await this.ftpServersService.listServers();
+    async listUserServers(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const servers = await this.ftpServersService.listUserServers(requester);
 
         res.send(servers);
     }
 
     async createServer(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
         const body = req.body as IFtpServerCreateModel;
 
-        const server = await this.ftpServersService.createServer(body);
+        const server = await this.ftpServersService.createServer(requester, body);
 
         res.status(201).send(server);
     }
 
+    async listAllServers(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const servers = await this.ftpServersService.listAllServers(requester);
+
+        res.send(servers);
+    }
+
     async getServer(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
         const { serverId } = req.params;
 
-        const server = await this.ftpServersService.getServer(serverId);
+        const server = await this.ftpServersService.getServer(requester, serverId);
 
         res.send(server);
     }
 
     async updateServer(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
         const { serverId } = req.params;
         const body = req.body as IFtpServerUpdateModel;
 
-        const server = await this.ftpServersService.updateServer(serverId, body);
+        const server = await this.ftpServersService.updateServer(requester, serverId, body);
 
         res.send(server);
     }
 
     async deleteServer(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
         const { serverId } = req.params;
 
-        await this.ftpServersService.deleteServer(serverId);
+        await this.ftpServersService.deleteServer(requester, serverId);
 
         res.send();
     }

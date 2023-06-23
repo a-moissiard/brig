@@ -5,8 +5,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import { logger } from '../../lib/logger';
 import { AuthService } from '../../lib/service/auth';
-import { AuthorizationsEnforcer } from '../../lib/service/authorizations';
-import { UsersDao, UsersService } from '../../lib/service/users';
+import { UsersAuthorizationsEnforcer, UsersDao, UsersService } from '../../lib/service/users';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test';
@@ -19,7 +18,7 @@ logger.silent = true;
 describe('AuthService', () => {
     let mongoConnectionManager: MongoConnectionTestManager;
     let usersDao: UsersDao;
-    let authorizationsEnforcer: AuthorizationsEnforcer;
+    let usersAuthorizationsEnforcer: UsersAuthorizationsEnforcer;
     let usersService: UsersService;
     let authService: AuthService;
 
@@ -32,8 +31,8 @@ describe('AuthService', () => {
         mongoConnectionManager = new MongoConnectionTestManager(testMongoConfig);
         await mongoConnectionManager.init();
         usersDao = new UsersDao({ mongoConnectionManager });
-        authorizationsEnforcer = new AuthorizationsEnforcer({ usersDao });
-        usersService = new UsersService({ authorizationsEnforcer, usersDao });
+        usersAuthorizationsEnforcer = new UsersAuthorizationsEnforcer({ usersDao });
+        usersService = new UsersService({ usersAuthorizationsEnforcer, usersDao });
         authService = new AuthService({ authConfig: testAuthConfig, usersService });
         await usersDao.init();
     });

@@ -1,21 +1,22 @@
 import * as uuid from 'uuid';
 
-import { AuthorizationsEnforcer, IRequester } from '../authorizations';
+import { IRequester } from '../authorizations';
+import { UsersAuthorizationsEnforcer } from './UsersAuthorizationsEnforcer';
 import { UsersDao } from './UsersDao';
 import { IUserCreateModel, IUserLightModel, IUserModel } from './UsersTypes';
 
 interface IUsersServiceDependencies {
     usersDao: UsersDao;
-    authorizationsEnforcer: AuthorizationsEnforcer;
+    usersAuthorizationsEnforcer: UsersAuthorizationsEnforcer;
 }
 
 export class UsersService {
     private readonly usersDao: UsersDao;
-    private readonly authorizationsEnforcer: AuthorizationsEnforcer;
+    private readonly usersAuthorizationsEnforcer: UsersAuthorizationsEnforcer;
 
     constructor(deps: IUsersServiceDependencies) {
         this.usersDao = deps.usersDao;
-        this.authorizationsEnforcer = deps.authorizationsEnforcer;
+        this.usersAuthorizationsEnforcer = deps.usersAuthorizationsEnforcer;
     }
 
     // Internal usages, no need for requester
@@ -33,12 +34,12 @@ export class UsersService {
 
     // API usages, requester required for authorizations
     public async listLightUsers(requester: IRequester): Promise<IUserLightModel[]> {
-        await this.authorizationsEnforcer.assertIsAdmin(requester);
+        await this.usersAuthorizationsEnforcer.assertIsAdmin(requester);
         return this.usersDao.listUsersLight();
     }
 
     public async deleteUser(requester: IRequester, userId: string): Promise<void> {
-        await this.authorizationsEnforcer.assertIsAdmin(requester);
+        await this.usersAuthorizationsEnforcer.assertIsAdmin(requester);
         return this.usersDao.deleteUser(userId);
     }
 }

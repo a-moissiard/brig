@@ -9,4 +9,5 @@ export type IFtpServerUpdateModel = Partial<IFtpServerBaseModel>;
 
 export interface IFtpServerModel extends IFtpServerBaseModel {
     id: string;
+    ownerId: string;
 }

@@ -1,2 +1,2 @@
 export * from './RequesterTypes';
-export * from './AuthorizationsEnforcer';
+export * from './BrigAbstractAuthorizationsEnforcer';

@@ -32,17 +32,21 @@ describe('FtpServersDao', () => {
     });
 
     describe('FTP servers CRUD', function () {
+        const ownerId1 = 'owner_1';
+        const ownerId2 = 'owner_2';
         const server1: IFtpServerModel = {
             id: 'id_1',
             host: 'host_1',
             port: 21,
             username: 'username_1',
+            ownerId: ownerId1,
         };
         const server2: IFtpServerModel = {
             id: 'id_2',
             host: 'host_2',
             port: 21,
             username: 'username_2',
+            ownerId: ownerId2,
         };
 
         describe('Create FTP server', () => {
@@ -78,19 +82,54 @@ describe('FtpServersDao', () => {
             });
         });
 
-        describe('List FTP servers', () => {
-            it('should return empty list if there are no servers', async () => {
-                const list = await ftpServersDao.listServers();
-                assert.deepEqual(list, []);
+        describe('Get FTP server ownerId', () => {
+            it('should get the owner ID of a server', async () => {
+                await ftpServersDao.createServer(server1);
+                const ownerId = await ftpServersDao.getServerOwnerId(server1.id);
+                assert.deepEqual(ownerId, server1.ownerId);
             });
 
-            it('should return list of servers', async () => {
-                await ftpServersDao.createServer(server1);
-                await ftpServersDao.createServer(server2);
-                const list = await ftpServersDao.listServers();
-                assert.equal(list.length, 2);
-                assert.deepEqual(list[0], server1);
-                assert.deepEqual(list[1], server2);
+            it('should throw when getting the owner ID of a server that does not exist', async () => {
+                await assertThrowsWithError(() => ftpServersDao.getServerOwnerId('id'), BRIG_ERROR_CODE.DB_NOT_FOUND);
+            });
+        });
+
+        describe('List FTP servers', () => {
+            describe('List users servers', () => {
+                it('should return empty list if there are no servers', async () => {
+                    const list = await ftpServersDao.listUserServers(ownerId1);
+                    assert.deepEqual(list, []);
+                });
+
+                it('should return empty list if no servers belong to user', async () => {
+                    await ftpServersDao.createServer(server1);
+                    const list = await ftpServersDao.listUserServers(ownerId2);
+                    assert.deepEqual(list, []);
+                });
+
+                it('should return list of servers that belong to user', async () => {
+                    await ftpServersDao.createServer(server1);
+                    await ftpServersDao.createServer(server2);
+                    const list = await ftpServersDao.listUserServers(ownerId1);
+                    assert.equal(list.length, 1);
+                    assert.deepEqual(list[0], server1);
+                });
+            });
+
+            describe('List all servers', () => {
+                it('should return empty list if there are no servers', async () => {
+                    const list = await ftpServersDao.listAllServers();
+                    assert.deepEqual(list, []);
+                });
+
+                it('should return list of all existing servers, regardless of ownership', async () => {
+                    await ftpServersDao.createServer(server1);
+                    await ftpServersDao.createServer(server2);
+                    const list = await ftpServersDao.listAllServers();
+                    assert.equal(list.length, 2);
+                    assert.deepEqual(list[0], server1);
+                    assert.deepEqual(list[1], server2);
+                });
             });
         });
 
@@ -117,10 +156,12 @@ describe('FtpServersDao', () => {
                     host: 'new_host',
                     port: 1021,
                     username: 'new_username',
+
                 };
                 const updatedServer = await ftpServersDao.updateServer(server1.id, server1Update);
                 assert.deepEqual(updatedServer, {
                     id: server1.id,
+                    ownerId: server1.ownerId,
                     ...server1Update,
                 });
             });
@@ -135,12 +176,19 @@ describe('FtpServersDao', () => {
             });
 
             it('should throw when updating a server with properties that break index unicity', async () => {
+                const server3: IFtpServerModel = {
+                    id: 'id_3',
+                    host: 'host_3',
+                    port: 21,
+                    username: 'username_3',
+                    ownerId: ownerId1,
+                };
                 await ftpServersDao.createServer(server1);
-                await ftpServersDao.createServer(server2);
+                await ftpServersDao.createServer(server3);
                 const server1Update: IFtpServerUpdateModel = {
-                    host: server2.host,
-                    port: server2.port,
-                    username: server2.username,
+                    host: server3.host,
+                    port: server3.port,
+                    username: server3.username,
                 };
                 await assertThrowsWithError(() => ftpServersDao.updateServer(server1.id, server1Update), BRIG_ERROR_CODE.DB_DUPLICATE);
             });

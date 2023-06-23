@@ -17,8 +17,9 @@ export class FtpServersRouter {
     }
 
     public init(): Router {
-        this.router.get('/', asyncHandler(this.ftpServersHandler.listServers.bind(this.ftpServersHandler)));
+        this.router.get('/', asyncHandler(this.ftpServersHandler.listUserServers.bind(this.ftpServersHandler)));
         this.router.post('/', asyncHandler(this.ftpServersHandler.createServer.bind(this.ftpServersHandler)));
+        this.router.get('/all', asyncHandler(this.ftpServersHandler.listAllServers.bind(this.ftpServersHandler)));
         this.router.get('/:serverId', asyncHandler(this.ftpServersHandler.getServer.bind(this.ftpServersHandler)));
         this.router.put('/:serverId', asyncHandler(this.ftpServersHandler.updateServer.bind(this.ftpServersHandler)));
         this.router.delete('/:serverId', asyncHandler(this.ftpServersHandler.deleteServer.bind(this.ftpServersHandler)));

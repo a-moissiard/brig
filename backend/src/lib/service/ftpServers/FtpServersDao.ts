@@ -9,6 +9,7 @@ interface IFtpServerDb {
     host: string;
     port: number;
     username: string;
+    ownerId: string;
 }
 
 interface IFtpServersDaoDependencies {
@@ -29,6 +30,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             host: db.host,
             port: db.port,
             username: db.username,
+            ownerId: db.ownerId,
         };
     }
     
@@ -38,6 +40,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             host: model.host,
             port: model.port,
             username: model.username,
+            ownerId: model.ownerId,
         };
     }
 
@@ -47,23 +50,36 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
                 id: 1,
             },
             {
-                host: 1, port: 1, username: 1,
+                host: 1, port: 1, username: 1, ownerId: 1,
             },
         ], {
             unique: true,
         });
+        await this.createIndexes([
+            {
+                ownerId: 1,
+            },
+        ]);
+    }
+
+    public async createServer(server: IFtpServerModel): Promise<IFtpServerModel> {
+        return FtpServersDao.mapDbToModel(await this.insert(FtpServersDao.mapModelToDb(server)));
     }
 
     public async getServer(serverId: string): Promise<IFtpServerModel> {
         return FtpServersDao.mapDbToModel(await this.get({ id: serverId }));
     }
 
-    public async listServers(): Promise<IFtpServerModel[]> {
-        return (await this.list()).map(FtpServersDao.mapDbToModel);
+    public async getServerOwnerId(serverId: string): Promise<string> {
+        return (await this.get({ id: serverId })).ownerId;
     }
 
-    public async createServer(server: IFtpServerModel): Promise<IFtpServerModel> {
-        return FtpServersDao.mapDbToModel(await this.insert(FtpServersDao.mapModelToDb(server)));
+    public async listUserServers(userId: string): Promise<IFtpServerModel[]> {
+        return (await this.list({ ownerId: userId })).map(FtpServersDao.mapDbToModel);
+    }
+
+    public async listAllServers(): Promise<IFtpServerModel[]> {
+        return (await this.list({})).map(FtpServersDao.mapDbToModel);
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {

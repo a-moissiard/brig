@@ -22,8 +22,8 @@ export class UsersHandler {
     }
 
     async deleteUser(req: Request, res: Response): Promise<void> {
-        const { userId } = req.params;
         const requester = buildRequester(req);
+        const { userId } = req.params;
 
         await this.usersService.deleteUser(requester, userId);
 

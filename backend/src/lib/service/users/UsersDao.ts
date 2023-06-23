@@ -58,6 +58,10 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         });
     }
 
+    public async createUser(user: IUserModel): Promise<IUserModel> {
+        return UsersDao.mapDbToModel(await this.insert(UsersDao.mapModelToDb(user)));
+    }
+
     public async getUser(userId: string): Promise<IUserModel> {
         return UsersDao.mapDbToModel(await this.get({ id: userId }));
     }
@@ -67,11 +71,7 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
     }
 
     public async listUsersLight(): Promise<IUserLightModel[]> {
-        return (await this.list()).map(UsersDao.mapDbToModelLight);
-    }
-
-    public async createUser(user: IUserModel): Promise<IUserModel> {
-        return UsersDao.mapDbToModel(await this.insert(UsersDao.mapModelToDb(user)));
+        return (await this.list({})).map(UsersDao.mapDbToModelLight);
     }
 
     public async deleteUser(userId: string): Promise<void> {
