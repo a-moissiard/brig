@@ -1,13 +1,14 @@
 import express, { Router } from 'express';
 
 import { AuthHandler, AuthRouter } from './auth';
-import { FtpServersHandler, FtpServersRouter } from './ftpServers';
+import { FtpServersActionsHandler, FtpServersHandler, FtpServersRouter } from './ftpServers';
 import { useAuthMiddleware } from './middlewares';
 import { UsersHandler, UsersRouter } from './users';
 
 interface IBrigApiDependencies {
     authHandler: AuthHandler;
     ftpServersHandler: FtpServersHandler;
+    ftpServersActionsHandler: FtpServersActionsHandler;
     usersHandler: UsersHandler;
 }
 
@@ -20,7 +21,10 @@ export class BrigApi {
     constructor(deps: IBrigApiDependencies) {
         this.router = express.Router();
         this.authRouter = new AuthRouter({ authHandler: deps.authHandler });
-        this.ftpServersRouter = new FtpServersRouter({ ftpServersHandler: deps.ftpServersHandler });
+        this.ftpServersRouter = new FtpServersRouter({
+            ftpServersHandler: deps.ftpServersHandler,
+            ftpServersActionsHandler: deps.ftpServersActionsHandler,
+        });
         this.usersRouter = new UsersRouter({ usersHandler: deps.usersHandler });
     }
 

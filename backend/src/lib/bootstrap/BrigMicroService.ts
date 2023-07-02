@@ -4,7 +4,7 @@ import path from 'path';
 
 import { BrigApi } from '../api';
 import { AuthHandler } from '../api/auth';
-import { FtpServersHandler } from '../api/ftpServers';
+import { FtpServersActionsHandler, FtpServersHandler } from '../api/ftpServers';
 import { AuthMiddleware, errorMiddleware } from '../api/middlewares';
 import { UsersHandler } from '../api/users';
 import { IBrigConfig } from '../config';
@@ -45,13 +45,14 @@ export class BrigMicroService {
         const ftpServersAuthorizationsEnforcer = new FtpServersAuthorizationsEnforcer({ usersDao: this.usersDao, ftpServersDao: this.ftpServersDao });
         const ftpServersService = new FtpServersService({ ftpServersAuthorizationsEnforcer, ftpServersDao: this.ftpServersDao });
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
+        const ftpServersActionsHandler = new FtpServersActionsHandler({ ftpServersService });
 
         this.authService = new AuthService({ authConfig: config.auth, usersService });
         const authHandler = new AuthHandler({ authService: this.authService });
 
         this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService: this.authService });
 
-        this.brigApi = new BrigApi({ authHandler, usersHandler, ftpServersHandler });
+        this.brigApi = new BrigApi({ authHandler, usersHandler, ftpServersHandler, ftpServersActionsHandler });
 
         this.expressApp = express();
     }

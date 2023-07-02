@@ -1,6 +1,8 @@
 import * as uuid from 'uuid';
 
+import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IRequester } from '../authorizations';
+import { FtpClient, IFileInfo } from '../ftpUtils';
 import { FtpServersAuthorizationsEnforcer } from './FtpServersAuthorizationsEnforcer';
 import { FtpServersDao } from './FtpServersDao';
 import { IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
@@ -14,10 +16,16 @@ export class FtpServersService {
     private readonly ftpServersDao: FtpServersDao;
     private readonly ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
 
+    private readonly usersClients: Map<string, FtpClient>;
+
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
         this.ftpServersAuthorizationsEnforcer = deps.ftpServersAuthorizationsEnforcer;
+
+        this.usersClients = new Map();
     }
+
+    // CRUD
 
     public async createServer(requester: IRequester, server: IFtpServerCreateModel): Promise<IFtpServerModel> {
         const id = uuid.v4();
@@ -51,5 +59,45 @@ export class FtpServersService {
     public async deleteServer(requester: IRequester, serverId: string): Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
         return this.ftpServersDao.deleteServer(serverId);
+    }
+
+    // Actions
+
+    public async connect(requester: IRequester, serverId: string, password: string): Promise<void> {
+        const server = await this.ftpServersDao.getServer(serverId);
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServer(requester, server);
+        const client = new FtpClient({ ftpServer: server });
+        this.usersClients.set(requester.id, client);
+        await client.connect(password);
+    }
+
+    public async disconnect(requester: IRequester, serverId: string): Promise<void> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester);
+        this.usersClients.delete(requester.id);
+        return client.disconnect();
+    }
+
+    public async list(requester: IRequester, serverId: string, path: string): Promise<IFileInfo[]> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester);
+        await client.cd(path);
+        return client.list();
+    }
+
+    public async pwd(requester: IRequester, serverId: string): Promise<string> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester);
+        return client.pwd();
+    }
+
+    private getClient(requester: IRequester): FtpClient {
+        const client = this.usersClients.get(requester.id);
+        if (client) {
+            return client;
+        }
+        throw new BrigError(BRIG_ERROR_CODE.FTP_NOT_LOGGED_IN, `Client not registered for user=${requester.id}`, {
+            publicMessage: 'You need to reconnect to the ftp server',
+        });
     }
 }
