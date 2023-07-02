@@ -17,11 +17,11 @@ export class FtpServersActionsHandler {
     async connect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { password } = req.body as { password: string };
+        const { password, first } = req.body as { password: string; first: boolean };
 
-        await this.ftpServersService.connect(requester, serverId, password);
-        const workingDir = await this.ftpServersService.pwd(requester, serverId);
-        const list = await this.ftpServersService.list(requester, serverId, workingDir);
+        await this.ftpServersService.connect(requester, serverId, first, password);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
+        const list = await this.ftpServersService.list(requester, serverId, first, workingDir);
 
         res.send({
             workingDir,
@@ -32,8 +32,9 @@ export class FtpServersActionsHandler {
     async disconnect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
+        const { first } = req.body as { first: boolean };
 
-        await this.ftpServersService.disconnect(requester, serverId);
+        await this.ftpServersService.disconnect(requester, serverId, first);
 
         res.send();
     }
@@ -41,10 +42,10 @@ export class FtpServersActionsHandler {
     async list(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { path } = req.body as { path: string };
+        const { path, first } = req.body as { path: string; first: boolean };
 
-        const list = await this.ftpServersService.list(requester, serverId, path);
-        const workingDir = await this.ftpServersService.pwd(requester, serverId);
+        const list = await this.ftpServersService.list(requester, serverId, first, path);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
 
         res.send({
             workingDir,
@@ -55,8 +56,9 @@ export class FtpServersActionsHandler {
     async pwd(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
+        const { first } = req.body as { first: boolean };
 
-        const workingDir = await this.ftpServersService.pwd(requester, serverId);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
 
         res.send({
             workingDir,
