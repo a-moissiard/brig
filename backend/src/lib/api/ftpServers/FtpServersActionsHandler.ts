@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { FtpServersService } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
 import { buildRequester } from '../utils';
-import { IConnectBody, ICreateDirBody, IDisconnectBody, IListBody, IPwdBody } from './FtpServersActionsValidationSchemas';
+import { IConnectBody, ICreateDirBody, IListBody } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -19,11 +19,11 @@ export class FtpServersActionsHandler {
     async connect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { password, first } = extractValidatedData<IConnectBody>(req, { locations: ['body'] });
+        const { password } = extractValidatedData<IConnectBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.connect(requester, serverId, first, password);
-        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
-        const list = await this.ftpServersService.list(requester, serverId, first, workingDir);
+        await this.ftpServersService.connect(requester, serverId, password);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId);
+        const list = await this.ftpServersService.list(requester, serverId, workingDir);
 
         res.send({
             workingDir,
@@ -34,9 +34,8 @@ export class FtpServersActionsHandler {
     async disconnect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { first } = extractValidatedData<IDisconnectBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.disconnect(requester, serverId, first);
+        await this.ftpServersService.disconnect(requester, serverId);
 
         res.send();
     }
@@ -44,10 +43,10 @@ export class FtpServersActionsHandler {
     async list(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { path, first } = extractValidatedData<IListBody>(req, { locations: ['body'] });
+        const { path } = extractValidatedData<IListBody>(req, { locations: ['body'] });
 
-        const list = await this.ftpServersService.list(requester, serverId, first, path);
-        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
+        const list = await this.ftpServersService.list(requester, serverId, path);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId);
 
         res.send({
             workingDir,
@@ -58,9 +57,8 @@ export class FtpServersActionsHandler {
     async pwd(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { first } = extractValidatedData<IPwdBody>(req, { locations: ['body'] });
 
-        const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId);
 
         res.send({
             workingDir,
@@ -70,9 +68,9 @@ export class FtpServersActionsHandler {
     async createDir(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { first, path } = extractValidatedData<ICreateDirBody>(req, { locations: ['body'] });
+        const { path } = extractValidatedData<ICreateDirBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.createDir(requester, serverId, first, path);
+        await this.ftpServersService.createDir(requester, serverId, path);
 
         res.sendStatus(201);
     }

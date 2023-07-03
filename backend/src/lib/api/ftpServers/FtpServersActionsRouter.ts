@@ -4,7 +4,7 @@ import { checkSchema } from 'express-validator';
 
 import { validate } from '../middlewares';
 import { FtpServersActionsHandler } from './FtpServersActionsHandler';
-import { connectBodySchema, createDirBodySchema, disconnectBodySchema, listBodySchema, pwdBodySchema } from './FtpServersActionsValidationSchemas';
+import { connectBodySchema, createDirBodySchema, listBodySchema } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsRouterDependencies {
     ftpServersActionsHandler: FtpServersActionsHandler;
@@ -20,11 +20,23 @@ export class FtpServersActionsRouter {
     }
 
     public init(): Router {
-        this.router.post('/connect', checkSchema(connectBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.connect.bind(this.ftpServersActionsHandler)));
-        this.router.post('/disconnect', checkSchema(disconnectBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.disconnect.bind(this.ftpServersActionsHandler)));
-        this.router.post('/list', checkSchema(listBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.list.bind(this.ftpServersActionsHandler)));
-        this.router.post('/pwd', checkSchema(pwdBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.pwd.bind(this.ftpServersActionsHandler)));
-        this.router.post('/createDir', checkSchema(createDirBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.createDir.bind(this.ftpServersActionsHandler)));
+        this.router.post('/connect',
+            checkSchema(connectBodySchema),
+            validate,
+            asyncHandler(this.ftpServersActionsHandler.connect.bind(this.ftpServersActionsHandler)),
+        );
+        this.router.post('/disconnect', asyncHandler(this.ftpServersActionsHandler.disconnect.bind(this.ftpServersActionsHandler)));
+        this.router.post('/list',
+            checkSchema(listBodySchema),
+            validate,
+            asyncHandler(this.ftpServersActionsHandler.list.bind(this.ftpServersActionsHandler)),
+        );
+        this.router.post('/pwd', asyncHandler(this.ftpServersActionsHandler.pwd.bind(this.ftpServersActionsHandler)));
+        this.router.post('/createDir',
+            checkSchema(createDirBodySchema),
+            validate,
+            asyncHandler(this.ftpServersActionsHandler.createDir.bind(this.ftpServersActionsHandler)),
+        );
         return this.router;
     }
 }

@@ -1,32 +1,16 @@
 import { Schema } from 'express-validator';
 
-interface IFtpServersActionsBaseBody {
-    first: boolean;
-}
-
-export interface IConnectBody extends IFtpServersActionsBaseBody{
+export interface IConnectBody {
     password: string;
 }
 
-export type IDisconnectBody = IFtpServersActionsBaseBody;
-export type IPwdBody = IFtpServersActionsBaseBody;
-
-export interface IListBody extends IFtpServersActionsBaseBody{
+export interface IListBody {
     path: string;
 }
 
 export type ICreateDirBody = IListBody;
 
-const ftpServersActionsBaseBodySchema: Schema = {
-    first: {
-        in: 'body',
-        isBoolean: true,
-        errorMessage: 'body is expected to contain `first` parameter which must be a boolean',
-    },
-};
-
 export const connectBodySchema: Schema = {
-    ...ftpServersActionsBaseBodySchema,
     password: {
         in: 'body',
         isString: true,
@@ -34,11 +18,7 @@ export const connectBodySchema: Schema = {
     },
 };
 
-export const disconnectBodySchema = ftpServersActionsBaseBodySchema;
-export const pwdBodySchema = ftpServersActionsBaseBodySchema;
-
 export const listBodySchema: Schema = {
-    ...ftpServersActionsBaseBodySchema,
     path: {
         in: 'body',
         isString: true,
