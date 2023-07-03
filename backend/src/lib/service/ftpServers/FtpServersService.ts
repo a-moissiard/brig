@@ -96,6 +96,13 @@ export class FtpServersService {
         return client.pwd();
     }
 
+    public async createDir(requester: IRequester, serverId: string, first: boolean, path: string): Promise<void> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester, first);
+        await client.createDir(path);
+        await client.cd('..');
+    }
+
     private setClient(requester: IRequester, first: boolean, client: FtpClient): void {
         const userClients = this.usersClients.get(requester.id) || {};
         if (first) {

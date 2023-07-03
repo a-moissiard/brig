@@ -68,6 +68,10 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.cd(path));
     }
 
+    public async createDir(path: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.ensureDir(path));
+    }
+
     private async wrapFtpClientCall<T>(fn: () => T | Promise<T>): Promise<T> {
         try {
             return await fn();

@@ -9,12 +9,13 @@ export interface IConnectBody extends IFtpServersActionsBaseBody{
 }
 
 export type IDisconnectBody = IFtpServersActionsBaseBody;
+export type IPwdBody = IFtpServersActionsBaseBody;
 
 export interface IListBody extends IFtpServersActionsBaseBody{
     path: string;
 }
 
-export type IPwdBody = IFtpServersActionsBaseBody;
+export type ICreateDirBody = IListBody;
 
 const ftpServersActionsBaseBodySchema: Schema = {
     first: {
@@ -34,6 +35,7 @@ export const connectBodySchema: Schema = {
 };
 
 export const disconnectBodySchema = ftpServersActionsBaseBodySchema;
+export const pwdBodySchema = ftpServersActionsBaseBodySchema;
 
 export const listBodySchema: Schema = {
     ...ftpServersActionsBaseBodySchema,
@@ -44,4 +46,4 @@ export const listBodySchema: Schema = {
     },
 };
 
-export const pwdBodySchema = ftpServersActionsBaseBodySchema;
+export const createDirBodySchema = listBodySchema;
