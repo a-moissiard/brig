@@ -1,7 +1,10 @@
 import express, { Router } from 'express';
 import asyncHandler from 'express-async-handler';
+import { checkSchema } from 'express-validator';
 
+import { validate } from '../middlewares';
 import { FtpServersActionsHandler } from './FtpServersActionsHandler';
+import { connectBodySchema, disconnectBodySchema, listBodySchema, pwdBodySchema } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsRouterDependencies {
     ftpServersActionsHandler: FtpServersActionsHandler;
@@ -17,10 +20,10 @@ export class FtpServersActionsRouter {
     }
 
     public init(): Router {
-        this.router.post('/connect', asyncHandler(this.ftpServersActionsHandler.connect.bind(this.ftpServersActionsHandler)));
-        this.router.post('/disconnect', asyncHandler(this.ftpServersActionsHandler.disconnect.bind(this.ftpServersActionsHandler)));
-        this.router.post('/list', asyncHandler(this.ftpServersActionsHandler.list.bind(this.ftpServersActionsHandler)));
-        this.router.post('/pwd', asyncHandler(this.ftpServersActionsHandler.pwd.bind(this.ftpServersActionsHandler)));
+        this.router.post('/connect', checkSchema(connectBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.connect.bind(this.ftpServersActionsHandler)));
+        this.router.post('/disconnect', checkSchema(disconnectBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.disconnect.bind(this.ftpServersActionsHandler)));
+        this.router.post('/list', checkSchema(listBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.list.bind(this.ftpServersActionsHandler)));
+        this.router.post('/pwd', checkSchema(pwdBodySchema), validate, asyncHandler(this.ftpServersActionsHandler.pwd.bind(this.ftpServersActionsHandler)));
         return this.router;
     }
 }

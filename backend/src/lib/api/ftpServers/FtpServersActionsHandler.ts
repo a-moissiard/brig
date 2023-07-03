@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 
 import { FtpServersService } from '../../service/ftpServers';
+import { extractValidatedData } from '../middlewares';
 import { buildRequester } from '../utils';
+import { IConnectBody, IDisconnectBody, IListBody, IPwdBody } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -17,7 +19,7 @@ export class FtpServersActionsHandler {
     async connect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { password, first } = req.body as { password: string; first: boolean };
+        const { password, first } = extractValidatedData<IConnectBody>(req, { locations: ['body'] });
 
         await this.ftpServersService.connect(requester, serverId, first, password);
         const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
@@ -32,7 +34,7 @@ export class FtpServersActionsHandler {
     async disconnect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { first } = req.body as { first: boolean };
+        const { first } = extractValidatedData<IDisconnectBody>(req, { locations: ['body'] });
 
         await this.ftpServersService.disconnect(requester, serverId, first);
 
@@ -42,7 +44,7 @@ export class FtpServersActionsHandler {
     async list(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { path, first } = req.body as { path: string; first: boolean };
+        const { path, first } = extractValidatedData<IListBody>(req, { locations: ['body'] });
 
         const list = await this.ftpServersService.list(requester, serverId, first, path);
         const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
@@ -56,7 +58,7 @@ export class FtpServersActionsHandler {
     async pwd(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { first } = req.body as { first: boolean };
+        const { first } = extractValidatedData<IPwdBody>(req, { locations: ['body'] });
 
         const workingDir = await this.ftpServersService.pwd(requester, serverId, first);
 

@@ -4,7 +4,9 @@ import { BrigError, ERROR_CODES_TO_HTTP_STATUS_CODES } from '../../utils/error';
 
 export const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunction): void => {
     if (err instanceof BrigError) {
-        res.status(ERROR_CODES_TO_HTTP_STATUS_CODES[err.code]).send({ error: err.publicMessage ?? err.message });
+        const rawErrorMessage = err.options?.publicMessage ?? err.message;
+        const errorMessage = err.options?.parseMessage ? JSON.parse(rawErrorMessage) : rawErrorMessage;
+        res.status(ERROR_CODES_TO_HTTP_STATUS_CODES[err.code]).send({ error: errorMessage });
     } else {
         next(err);
     }

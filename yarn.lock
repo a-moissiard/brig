@@ -2880,6 +2880,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/express-validator@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@types/express-validator@npm:3.0.0"
+  dependencies:
+    express-validator: "*"
+  checksum: bd6081a9cf752087cfb561c4df1fc5bf736385cc7e45b3f5ef440475c3d1abe9ff536d0ed5947b2b3c1d72c575340f7305f1d924700d7ab71631fa42b8974470
+  languageName: node
+  linkType: hard
+
 "@types/express@npm:*, @types/express@npm:^4.17.13, @types/express@npm:^4.17.14":
   version: 4.17.17
   resolution: "@types/express@npm:4.17.17"
@@ -4289,6 +4298,7 @@ __metadata:
     "@types/bcrypt": ^5.0.0
     "@types/chai": ^4.3.5
     "@types/express": ^4.17.14
+    "@types/express-validator": ^3.0.0
     "@types/jsonwebtoken": ^9.0.2
     "@types/lodash": ^4.14.195
     "@types/mocha": ^10.0.1
@@ -4310,6 +4320,7 @@ __metadata:
     eslint-plugin-simple-import-sort: ^8.0.0
     express: ^4.18.1
     express-async-handler: ^1.2.0
+    express-validator: ^7.0.1
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
     mocha: ^10.2.0
@@ -6554,6 +6565,16 @@ __metadata:
   version: 1.2.0
   resolution: "express-async-handler@npm:1.2.0"
   checksum: ab9ebba8b8366954cb06ab87cf91fc974428993a97940c499114134ce33144f5d1ffad380e60a53a1569c3cd9501cb209e1fb57b1845a4fc8ff449937598f2f1
+  languageName: node
+  linkType: hard
+
+"express-validator@npm:*, express-validator@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "express-validator@npm:7.0.1"
+  dependencies:
+    lodash: ^4.17.21
+    validator: ^13.9.0
+  checksum: 34431c106533e761c7875fea023940fb35b426509c5f3b21e30a4bd2f82833494ad047d4c0cc2626788964a720dd049b38156b13a1a9906243c66c68d32819a2
   languageName: node
   linkType: hard
 
@@ -13587,6 +13608,13 @@ __metadata:
     convert-source-map: ^1.6.0
     source-map: ^0.7.3
   checksum: 54ce92bec2727879626f623d02c8d193f0c7e919941fa373ec135189a8382265117f5316ea317a1e12a5f9c13d84d8449052a731fe3306fa4beaafbfa4cab229
+  languageName: node
+  linkType: hard
+
+"validator@npm:^13.9.0":
+  version: 13.9.0
+  resolution: "validator@npm:13.9.0"
+  checksum: e2c936f041f61faa42bafd17c6faddf939498666cd82e88d733621c286893730b008959f4cb12ab3e236148a4f3805c30b85e3dcf5e0efd8b0cbcd36c02bfc0c
   languageName: node
   linkType: hard
 
