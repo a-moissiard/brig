@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
+import { extractValidatedData } from '../middlewares';
 import { buildRequester } from '../utils';
 
 interface IFtpServersHandlerDependencies {
@@ -23,7 +24,7 @@ export class FtpServersHandler {
 
     async createServer(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
-        const body = req.body as IFtpServerCreateModel;
+        const body = extractValidatedData<IFtpServerCreateModel>(req, { locations: ['body'] });
 
         const server = await this.ftpServersService.createServer(requester, body);
 
@@ -49,7 +50,7 @@ export class FtpServersHandler {
     async updateServer(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const body = req.body as IFtpServerUpdateModel;
+        const body = extractValidatedData<IFtpServerUpdateModel>(req, { locations: ['body'] });
 
         const server = await this.ftpServersService.updateServer(requester, serverId, body);
 

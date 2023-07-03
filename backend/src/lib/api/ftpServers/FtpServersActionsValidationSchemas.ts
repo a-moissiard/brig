@@ -20,7 +20,7 @@ const ftpServersActionsBaseBodySchema: Schema = {
     first: {
         in: 'body',
         isBoolean: true,
-        errorMessage: 'body is expected to contain `first` parameter which must be a boolean value',
+        errorMessage: 'body is expected to contain `first` parameter which must be a boolean',
     },
 };
 
@@ -29,7 +29,7 @@ export const connectBodySchema: Schema = {
     password: {
         in: 'body',
         isString: true,
-        errorMessage: 'body is expected to contain `password` parameter which must be a string value',
+        errorMessage: 'body is expected to contain `password` parameter which must be a string',
     },
 };
 
@@ -40,7 +40,7 @@ export const listBodySchema: Schema = {
     path: {
         in: 'body',
         isString: true,
-        errorMessage: 'body is expected to contain `path` parameter which must be a string value',
+        errorMessage: 'body is expected to contain `path` parameter which must be a string',
     },
 };
 
