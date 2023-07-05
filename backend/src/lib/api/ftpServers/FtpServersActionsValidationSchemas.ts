@@ -1,5 +1,7 @@
 import { Schema } from 'express-validator';
 
+import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
+
 export interface IConnectBody {
     password: string;
 }
@@ -9,6 +11,7 @@ export interface IListBody {
 }
 
 export type ICreateDirBody = IListBody;
+export type ITransferBody = IListBody;
 
 export const connectBodySchema: Schema = {
     password: {
@@ -27,3 +30,17 @@ export const listBodySchema: Schema = {
 };
 
 export const createDirBodySchema = listBodySchema;
+export const transferBodySchema: Schema = {
+    path: {
+        in: 'body',
+        isString: true,
+        custom: {
+            options: (input: string) => {
+                if (input.includes('/')) {
+                    throw new BrigError(BRIG_ERROR_CODE.VALIDATION_ERROR, '\'path\' parameter must not contain \'/\' character');
+                }
+            },
+        },
+        errorMessage: 'body is expected to contain `path` parameter which must be a string',
+    },
+};

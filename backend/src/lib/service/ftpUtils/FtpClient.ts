@@ -1,5 +1,6 @@
 import * as ftp from 'basic-ftp';
 import { FileInfo, FTPError } from 'basic-ftp';
+import { PassThrough } from 'stream';
 
 import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
@@ -70,6 +71,14 @@ export class FtpClient {
 
     public async createDir(path: string): Promise<void> {
         await this.wrapFtpClientCall(() => this.basicFtpClient.ensureDir(path));
+    }
+
+    public async download(ptStream: PassThrough, path: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, path));
+    }
+
+    public async upload(ptStream: PassThrough, path: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, path));
     }
 
     private async wrapFtpClientCall<T>(fn: () => T | Promise<T>): Promise<T> {

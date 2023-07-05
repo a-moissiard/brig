@@ -4,7 +4,7 @@ import { checkSchema } from 'express-validator';
 
 import { validate } from '../middlewares';
 import { FtpServersActionsHandler } from './FtpServersActionsHandler';
-import { connectBodySchema, createDirBodySchema, listBodySchema } from './FtpServersActionsValidationSchemas';
+import { connectBodySchema, createDirBodySchema, listBodySchema, transferBodySchema } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsRouterDependencies {
     ftpServersActionsHandler: FtpServersActionsHandler;
@@ -36,6 +36,11 @@ export class FtpServersActionsRouter {
             checkSchema(createDirBodySchema),
             validate,
             asyncHandler(this.ftpServersActionsHandler.createDir.bind(this.ftpServersActionsHandler)),
+        );
+        this.router.post('/transfer/:destinationServerId',
+            checkSchema(transferBodySchema),
+            validate,
+            asyncHandler(this.ftpServersActionsHandler.transfer.bind(this.ftpServersActionsHandler)),
         );
         return this.router;
     }
