@@ -2991,6 +2991,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lru-cache@npm:^7.10.10":
+  version: 7.10.10
+  resolution: "@types/lru-cache@npm:7.10.10"
+  dependencies:
+    lru-cache: "*"
+  checksum: bf0c9a99b3b954adfd1a63621aeea2c7f9412340ac43fad82f2b1ec257df09efa454e6cc7943518659e112b9d650de0e64c5252de9e449576eeb28449e068a1e
+  languageName: node
+  linkType: hard
+
 "@types/mime@npm:*":
   version: 3.0.1
   resolution: "@types/mime@npm:3.0.1"
@@ -4301,6 +4310,7 @@ __metadata:
     "@types/express-validator": ^3.0.0
     "@types/jsonwebtoken": ^9.0.2
     "@types/lodash": ^4.14.195
+    "@types/lru-cache": ^7.10.10
     "@types/mocha": ^10.0.1
     "@types/node": ^18.8.3
     "@types/node-schedule": ^2.1.0
@@ -4323,6 +4333,7 @@ __metadata:
     express-validator: ^7.0.1
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
+    lru-cache: ^10.0.0
     mocha: ^10.2.0
     mongodb: ^5.6.0
     node-schedule: ^2.1.1
@@ -9221,6 +9232,13 @@ __metadata:
   dependencies:
     tslib: ^2.0.3
   checksum: 83a0a5f159ad7614bee8bf976b96275f3954335a84fad2696927f609ddae902802c4f3312d86668722e668bef41400254807e1d3a7f2e8c3eede79691aa1f010
+  languageName: node
+  linkType: hard
+
+"lru-cache@npm:*, lru-cache@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "lru-cache@npm:10.0.0"
+  checksum: 18f101675fe283bc09cda0ef1e3cc83781aeb8373b439f086f758d1d91b28730950db785999cd060d3c825a8571c03073e8c14512b6655af2188d623031baf50
   languageName: node
   linkType: hard
 

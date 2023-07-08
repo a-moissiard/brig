@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { FtpServersService } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
-import { buildRequester } from '../utils';
+import { buildRequester, sendEventFactory } from '../utils';
 import { IConnectBody, ICreateDirBody, IListBody, ITransferBody } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsHandlerDependencies {
@@ -73,6 +73,25 @@ export class FtpServersActionsHandler {
         await this.ftpServersService.createDir(requester, serverId, path);
 
         res.sendStatus(201);
+    }
+
+    async trackProgress(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const { serverId } = req.params;
+
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        const sendEvent = sendEventFactory(res);
+
+        await this.ftpServersService.trackProgress(requester, serverId, sendEvent);
+
+        res.on('close', () => {
+            res.end();
+        });
     }
 
     async transfer(req: Request, res: Response): Promise<void> {

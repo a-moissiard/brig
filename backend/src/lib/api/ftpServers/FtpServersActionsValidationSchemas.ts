@@ -39,6 +39,7 @@ export const transferBodySchema: Schema = {
                 if (input.includes('/')) {
                     throw new BrigError(BRIG_ERROR_CODE.VALIDATION_ERROR, '\'path\' parameter must not contain \'/\' character');
                 }
+                return true;
             },
         },
         errorMessage: 'body is expected to contain `path` parameter which must be a string',

@@ -100,6 +100,14 @@ export class FtpServersService {
         await client.cd('..');
     }
 
+    public async trackProgress(requester: IRequester, serverId: string, sendEvent: (data: Object) => void): Promise<void> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+
+        const client = this.getClient(requester, serverId);
+
+        await client.trackProgress(sendEvent);
+    }
+
     public async transfer(requester: IRequester, sourceServerId: string, destinationServerId: string, path: string) : Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, sourceServerId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, destinationServerId);
@@ -108,22 +116,24 @@ export class FtpServersService {
         const destinationClient = this.getClient(requester, destinationServerId);
 
         const list = await sourceClient.list();
-        const file = list.find(v => v.name === path);
-        if (!file) {
+        const fileInfo = list.find(f => f.name === path);
+        if (!fileInfo) {
             throw new BrigError(BRIG_ERROR_CODE.FTP_PATH_DOES_NOT_EXIST, `No file or directory exist at path='${path}'`);
         }
         
-        if (file.type === FileType.File) {
-            await this.transferFile(sourceClient, destinationClient, path);
+        if (fileInfo.type === FileType.File) {
+            await this.transferFile(sourceClient, destinationClient, fileInfo);
         } else {
-            throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_TRANSFER_FILE_TYPE, `Transfer not supported for file type='${file.type}'`);
+            throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_TRANSFER_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
         }
     }
 
-    private async transferFile(sourceClient: FtpClient, destinationClient: FtpClient, path: string): Promise<void> {
+    private async transferFile(sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
         const ptStream = new PassThrough();
-        await sourceClient.download(ptStream, path);
-        await destinationClient.upload(ptStream, path);
+        void Promise.all([
+            sourceClient.download(ptStream, fileInfo),
+            destinationClient.upload(ptStream, fileInfo),
+        ]);
     }
 
     private setClient(requester: IRequester, serverId: string, client: FtpClient): void {

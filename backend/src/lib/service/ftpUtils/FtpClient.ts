@@ -1,5 +1,8 @@
 import * as ftp from 'basic-ftp';
 import { FileInfo, FTPError } from 'basic-ftp';
+import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
+import _ from 'lodash';
+import { LRUCache } from 'lru-cache';
 import { PassThrough } from 'stream';
 
 import { logger } from '../../logger';
@@ -14,10 +17,12 @@ interface IFtpClientDependencies {
 export class FtpClient {
     private readonly ftpServer: IFtpServerModel;
     private readonly basicFtpClient: ftp.Client;
+    private readonly fileInfoCache: LRUCache<string, IFileInfo>;
 
     constructor(deps: IFtpClientDependencies) {
         this.ftpServer = deps.ftpServer;
         this.basicFtpClient = new ftp.Client();
+        this.fileInfoCache = new LRUCache<string, IFileInfo>({ max: 32 });
     }
 
     private static mapFtpFileInfoToFileInfo(ftpFileInfo: FileInfo): IFileInfo {
@@ -73,12 +78,31 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.ensureDir(path));
     }
 
-    public async download(ptStream: PassThrough, path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, path));
+    public async download(ptStream: PassThrough, fileInfo: IFileInfo): Promise<void> {
+        this.fileInfoCache.set(fileInfo.name, fileInfo);
+        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, fileInfo.name));
     }
 
-    public async upload(ptStream: PassThrough, path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, path));
+    public async upload(ptStream: PassThrough, fileInfo: IFileInfo): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, fileInfo.name));
+    }
+    
+    public async trackProgress(sendEvent: (data: Object) => void): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.trackProgress((info: ProgressInfo) => {
+            if (info.type === 'download') {
+                let progress: number | undefined;
+                const file = this.fileInfoCache.get(info.name);
+                if (file) {
+                    progress = (info.bytes / file.size) * 100;
+                }
+                sendEvent(_.omitBy({
+                    name: info.name,
+                    type: info.type,
+                    bytes: info.bytes,
+                    progress,
+                }, _.isUndefined));
+            }
+        }));
     }
 
     private async wrapFtpClientCall<T>(fn: () => T | Promise<T>): Promise<T> {
