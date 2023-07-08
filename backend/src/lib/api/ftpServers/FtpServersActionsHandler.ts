@@ -23,7 +23,7 @@ export class FtpServersActionsHandler {
 
         await this.ftpServersService.connect(requester, serverId, password);
         const workingDir = await this.ftpServersService.pwd(requester, serverId);
-        const list = await this.ftpServersService.list(requester, serverId, workingDir);
+        const list = await this.ftpServersService.list(requester, serverId);
 
         res.send({
             workingDir,
@@ -45,7 +45,8 @@ export class FtpServersActionsHandler {
         const { serverId } = req.params;
         const { path } = extractValidatedData<IListBody>(req, { locations: ['body'] });
 
-        const list = await this.ftpServersService.list(requester, serverId, path);
+        await this.ftpServersService.cd(requester, serverId, path);
+        const list = await this.ftpServersService.list(requester, serverId);
         const workingDir = await this.ftpServersService.pwd(requester, serverId);
 
         res.send({
@@ -99,7 +100,7 @@ export class FtpServersActionsHandler {
         const { serverId, destinationServerId } = req.params;
         const { path } = extractValidatedData<ITransferBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.transfer(requester, serverId, destinationServerId, path);
+        void this.ftpServersService.transfer(requester, serverId, destinationServerId, path);
 
         res.sendStatus(200);
     }

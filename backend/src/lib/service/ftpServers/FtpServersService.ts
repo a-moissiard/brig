@@ -80,10 +80,15 @@ export class FtpServersService {
         this.unsetClient(requester, serverId);
     }
 
-    public async list(requester: IRequester, serverId: string, path: string): Promise<IFileInfo[]> {
+    public async cd(requester: IRequester, serverId: string, path: string): Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
         const client = this.getClient(requester, serverId);
         await client.cd(path);
+    }
+
+    public async list(requester: IRequester, serverId: string): Promise<IFileInfo[]> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester, serverId);
         return client.list();
     }
 
@@ -96,8 +101,9 @@ export class FtpServersService {
     public async createDir(requester: IRequester, serverId: string, path: string): Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
         const client = this.getClient(requester, serverId);
-        await client.createDir(path);
-        await client.cd('..');
+        const originalDir = await client.pwd();
+        await client.ensureDirAndMoveIn(path);
+        await client.cd(originalDir);
     }
 
     public async trackProgress(requester: IRequester, serverId: string, sendEvent: (data: Object) => void): Promise<void> {
@@ -123,6 +129,8 @@ export class FtpServersService {
         
         if (fileInfo.type === FileType.File) {
             await this.transferFile(sourceClient, destinationClient, fileInfo);
+        } else if (fileInfo.type === FileType.Directory) {
+            await this.transferDirectory(sourceClient, destinationClient, fileInfo);
         } else {
             throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_TRANSFER_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
         }
@@ -130,10 +138,31 @@ export class FtpServersService {
 
     private async transferFile(sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
         const ptStream = new PassThrough();
-        void Promise.all([
+        await Promise.all([
             sourceClient.download(ptStream, fileInfo),
             destinationClient.upload(ptStream, fileInfo),
         ]);
+    }
+
+    private async transferDirectory(sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
+        await destinationClient.ensureDirAndMoveIn(fileInfo.name);
+        const savedDestinationWorkingDir = await destinationClient.pwd();
+
+        await sourceClient.cd(fileInfo.name);
+        const savedSourceWorkingDir = await sourceClient.pwd();
+
+        const files = await sourceClient.list();
+
+        for (const file of files) {
+            await destinationClient.cd(savedDestinationWorkingDir);
+            await sourceClient.cd(savedSourceWorkingDir);
+
+            if (file.type === FileType.File) {
+                await this.transferFile(sourceClient, destinationClient, file);
+            } else if (file.type === FileType.Directory) {
+                await this.transferDirectory(sourceClient, destinationClient, file);
+            }
+        }
     }
 
     private setClient(requester: IRequester, serverId: string, client: FtpClient): void {
