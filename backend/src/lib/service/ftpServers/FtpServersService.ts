@@ -2,6 +2,7 @@ import { FileType } from 'basic-ftp';
 import { PassThrough } from 'stream';
 import * as uuid from 'uuid';
 
+import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IRequester } from '../authorizations';
 import { FtpClient, IFileInfo } from '../ftpUtils';
@@ -19,12 +20,14 @@ export class FtpServersService {
     private readonly ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
 
     private readonly usersClients: Map<string, Record<string, FtpClient>>;
+    private readonly usersStreams: Map<string, PassThrough>;
 
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
         this.ftpServersAuthorizationsEnforcer = deps.ftpServersAuthorizationsEnforcer;
 
         this.usersClients = new Map();
+        this.usersStreams = new Map();
     }
 
     // CRUD
@@ -128,23 +131,45 @@ export class FtpServersService {
         }
         
         if (fileInfo.type === FileType.File) {
-            await this.transferFile(sourceClient, destinationClient, fileInfo);
+            await this.transferFile(requester, sourceClient, destinationClient, fileInfo);
         } else if (fileInfo.type === FileType.Directory) {
-            await this.transferDirectory(sourceClient, destinationClient, fileInfo);
+            await this.transferDirectory(requester, sourceClient, destinationClient, fileInfo);
         } else {
             throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_TRANSFER_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
         }
     }
 
-    private async transferFile(sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
-        const ptStream = new PassThrough();
-        await Promise.all([
-            sourceClient.download(ptStream, fileInfo),
-            destinationClient.upload(ptStream, fileInfo),
-        ]);
+    public async cancelTransfer(requester: IRequester, serverId: string): Promise<void> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const ptStream = this.usersStreams.get(requester.id);
+        if (ptStream) {
+            ptStream.destroy();
+        }
     }
 
-    private async transferDirectory(sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
+    private async transferFile(requester: IRequester, sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
+        const ptStream = new PassThrough();
+        ptStream.on('error', (err: Error) => {
+            this.usersStreams.delete(requester.id);
+            throw new BrigError(BRIG_ERROR_CODE.STREAM_CLOSED_WITH_ERROR, err.message);
+        });
+        ptStream.on('close', () => {
+            this.usersStreams.delete(requester.id);
+            logger.info('Stream closed');
+        });
+        this.usersStreams.set(requester.id, ptStream);
+        try {
+            await Promise.all([
+                sourceClient.download(ptStream, fileInfo),
+                destinationClient.upload(ptStream, fileInfo),
+            ]);
+        } catch (e) {
+            logger.warn(`Error caught on file transfer: ${(e as any)?.code}`);
+        }
+        ptStream.end();
+    }
+
+    private async transferDirectory(requester: IRequester, sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
         await destinationClient.ensureDirAndMoveIn(fileInfo.name);
         const savedDestinationWorkingDir = await destinationClient.pwd();
 
@@ -158,9 +183,9 @@ export class FtpServersService {
             await sourceClient.cd(savedSourceWorkingDir);
 
             if (file.type === FileType.File) {
-                await this.transferFile(sourceClient, destinationClient, file);
+                await this.transferFile(requester, sourceClient, destinationClient, file);
             } else if (file.type === FileType.Directory) {
-                await this.transferDirectory(sourceClient, destinationClient, file);
+                await this.transferDirectory(requester, sourceClient, destinationClient, file);
             }
         }
     }

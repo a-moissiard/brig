@@ -38,6 +38,7 @@ export class FtpServersActionsRouter {
             asyncHandler(this.ftpServersActionsHandler.createDir.bind(this.ftpServersActionsHandler)),
         );
         this.router.post('/trackProgress', asyncHandler(this.ftpServersActionsHandler.trackProgress.bind(this.ftpServersActionsHandler)));
+        this.router.post('/cancelTransfer', asyncHandler(this.ftpServersActionsHandler.cancelTransfer.bind(this.ftpServersActionsHandler)));
         this.router.post('/transfer/:destinationServerId',
             checkSchema(transferBodySchema),
             validate,

@@ -104,4 +104,13 @@ export class FtpServersActionsHandler {
 
         res.sendStatus(200);
     }
+
+    async cancelTransfer(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const { serverId } = req.params;
+
+        void this.ftpServersService.cancelTransfer(requester, serverId);
+
+        res.sendStatus(200);
+    }
 }
