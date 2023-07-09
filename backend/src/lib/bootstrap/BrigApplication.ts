@@ -20,8 +20,13 @@ export class BrigApplication {
     }
 
     public async startApp(): Promise<void> {
-        await this.mongoConnectionManager.init();
-        await this.brigMicroService.startMicroService();
+        try {
+            await this.mongoConnectionManager.init();
+            await this.brigMicroService.startMicroService();
+        } catch (e) {
+            logger.error(`Application exited due to error ${(e as any)?.code} ${(e as any)?.stack}`);
+            process.exit(1);
+        }
     }
 
     public async stopApp(): Promise<void> {
