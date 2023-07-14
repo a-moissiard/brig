@@ -21,13 +21,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "clean": "rm -rf ./build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "clean": "rm -rf ./build",
+    "lint": "eslint . --ignore-path ../.gitignore --ext .ts,.tsx,.js",
+    "lint:fix": "yarn lint --fix"
   },
   "browserslist": {
     "production": [
@@ -40,5 +36,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint": "^8.44.0"
   }
 }

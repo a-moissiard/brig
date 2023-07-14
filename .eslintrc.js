@@ -1,5 +1,12 @@
 module.exports = {
-    plugins: ['@typescript-eslint', 'simple-import-sort', 'eslint-plugin-import', 'import-newlines'],
+    plugins: [
+        '@typescript-eslint',
+        'simple-import-sort',
+        'eslint-plugin-import',
+        'import-newlines',
+        'eslint-plugin-react',
+        'react-hooks',
+    ],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         ecmaVersion: 2018,
