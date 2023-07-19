@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import * as http from 'http';
 import path from 'path';
 
@@ -60,14 +60,17 @@ export class BrigMicroService {
     public async startMicroService(): Promise<void> {
         await this.initDAOs();
 
-        this.expressApp.use(express.static(path.join(__dirname, '../../../build/frontend')));
-
         this.authService.init();
         this.authMiddleware.init();
 
         this.expressApp.use(express.json());
         this.expressApp.use('/api', this.brigApi.init());
         this.expressApp.use(errorMiddleware);
+
+        this.expressApp.use(express.static(path.join(__dirname, '../../../build/frontend')));
+        this.expressApp.get('/*', (req: Request, res: Response) => {
+            res.sendFile(path.join(__dirname, '../../../build/frontend', 'index.html'));
+        });
 
         const { port } = this.config.express;
         this.server = this.expressApp.listen(port, () => {
