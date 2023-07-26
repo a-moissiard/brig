@@ -48,6 +48,11 @@ export class AuthMiddleware {
                 }
                 return done(new BrigError(BRIG_ERROR_CODE.AUTH_INVALID_CREDENTIALS, 'Invalid credentials'));
             } catch (e) {
+                if (e instanceof BrigError) {
+                    return done(new BrigError(BRIG_ERROR_CODE.AUTH_INVALID_CREDENTIALS, 'Invalid credentials', {
+                        cause: e.message,
+                    }));
+                }
                 return done(e);
             }
         }));
