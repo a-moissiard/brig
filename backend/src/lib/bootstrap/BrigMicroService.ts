@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
 import * as http from 'http';
 import path from 'path';
@@ -63,6 +64,12 @@ export class BrigMicroService {
         this.authService.init();
         this.authMiddleware.init();
 
+        this.expressApp.use(cors({
+            origin: 'http://localhost:3000',
+            allowedHeaders: ['Content-Type', 'Cache-Control', 'Connection', 'Authorization'],
+            credentials: true,
+
+        }));
         this.expressApp.use(express.json());
         this.expressApp.use('/api', this.brigApi.init());
         this.expressApp.use(errorMiddleware);

@@ -32,7 +32,8 @@ export class AuthHandler {
                     return next(error);
                 }
                 const token = await this.authService.createJwt(user);
-                return res.json({ token });
+                res.cookie('jwt', token, { sameSite: 'none', secure: true });
+                return res.send();
             },
         );
     }
