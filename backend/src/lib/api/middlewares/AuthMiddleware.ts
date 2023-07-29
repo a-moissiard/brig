@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
 import { IBrigAuthConfig } from '../../config';
-import { AuthService, IJwt } from '../../service/auth';
+import { AuthService, IAccessToken, IRefreshToken } from '../../service/auth';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 
 interface IAuthMiddlewareDependencies {
@@ -58,13 +58,9 @@ export class AuthMiddleware {
         }));
 
         passport.use('isLoggedIn', new JwtStrategy({
-            secretOrKey: this.authConfig.jwt.jwtSigningSecret,
+            secretOrKey: this.authConfig.tokens.accessToken.signingSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        }, async (token: IJwt, done) => {
-            const isTokenInvalidated = this.authService.isJwtInvalidated(token.jti);
-            if (isTokenInvalidated) {
-                return done(new BrigError(BRIG_ERROR_CODE.AUTH_TOKEN_REVOKED, 'User logged out, authentication required'));
-            }
+        }, async (token: IAccessToken, done) => {
             try {
                 return done(null, { id: token.id, username: token.username });
             } catch (e) {
@@ -72,12 +68,25 @@ export class AuthMiddleware {
             }
         }));
 
-        passport.use('logout', new JwtStrategy({
-            secretOrKey: this.authConfig.jwt.jwtSigningSecret,
+        passport.use('refresh', new JwtStrategy({
+            secretOrKey: this.authConfig.tokens.refreshToken.signingSecret,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        }, async (token: IJwt, done) => {
-            this.authService.invalidateJwt(token.jti, token.exp);
+        }, async (token: IRefreshToken, done) => {
             try {
+                await this.authService.assertRefreshTokenIsActive(token.id, token.jti);
+                await this.authService.revokeRefreshToken(token.id, token.jti);
+                return done(null, { id: token.id, username: 'N/A' });
+            } catch (e) {
+                return done(e);
+            }
+        }));
+
+        passport.use('logout', new JwtStrategy({
+            secretOrKey: this.authConfig.tokens.refreshToken.signingSecret,
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        }, async (token: IAccessToken, done) => {
+            try {
+                await this.authService.revokeRefreshToken(token.id, token.jti);
                 return done(null, { id: token.id, username: token.username });
             } catch (e) {
                 return done(e);

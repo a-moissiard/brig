@@ -1,2 +1,2 @@
 export * from './AuthService';
-export * from './JwtTypes';
+export * from './AuthTokensTypes';

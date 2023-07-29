@@ -31,11 +31,27 @@ export class AuthHandler {
                 if (error) {
                     return next(error);
                 }
-                const token = await this.authService.createJwt(user);
-                res.cookie('jwt', token, { sameSite: 'none', secure: true });
-                return res.send();
+                const { accessToken, refreshToken } = await this.authService.generateTokens(user.id, user.username);
+                return res.send({
+                    accessToken,
+                    refreshToken,
+                });
             },
         );
+    }
+
+    async refresh(req: Request, res:Response, next: NextFunction): Promise<void> {
+        const { user } = req;
+
+        if (!user) {
+            return next();
+        }
+
+        const { accessToken, refreshToken } = await this.authService.generateTokens(user.id);
+        res.send({
+            accessToken,
+            refreshToken,
+        });
     }
 
     async logout(req: Request, res: Response): Promise<void> {

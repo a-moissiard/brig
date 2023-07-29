@@ -5,6 +5,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import { logger } from '../../lib/logger';
 import { AuthService } from '../../lib/service/auth';
+import { UserAuthTokensDao } from '../../lib/service/auth/UserAuthTokensDao';
 import { UsersAuthorizationsEnforcer, UsersDao, UsersService } from '../../lib/service/users';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
@@ -18,6 +19,7 @@ logger.silent = true;
 describe('AuthService', () => {
     let mongoConnectionManager: MongoConnectionTestManager;
     let usersDao: UsersDao;
+    let userAuthTokensDao: UserAuthTokensDao;
     let usersAuthorizationsEnforcer: UsersAuthorizationsEnforcer;
     let usersService: UsersService;
     let authService: AuthService;
@@ -31,10 +33,12 @@ describe('AuthService', () => {
         mongoConnectionManager = new MongoConnectionTestManager(testMongoConfig);
         await mongoConnectionManager.init();
         usersDao = new UsersDao({ mongoConnectionManager });
+        userAuthTokensDao = new UserAuthTokensDao({ mongoConnectionManager });
         usersAuthorizationsEnforcer = new UsersAuthorizationsEnforcer({ usersDao });
         usersService = new UsersService({ usersAuthorizationsEnforcer, usersDao });
-        authService = new AuthService({ authConfig: testAuthConfig, usersService });
+        authService = new AuthService({ authConfig: testAuthConfig, usersService, userAuthTokensDao });
         await usersDao.init();
+        await userAuthTokensDao.init();
     });
 
     after(async () => {
@@ -86,24 +90,56 @@ describe('AuthService', () => {
         });
     });
 
-    describe('Create JWT',  () => {
-        it('should return a valid JWT', async () => {
-            const token = await authService.createJwt({ id: 'id', username: username1 });
-            const payload = jwt.verify(token, testAuthConfig.jwt.jwtSigningSecret);
-            assert.equal(typeof payload, 'object');
-            assert.equal((payload as JwtPayload).id, 'id');
-            assert.equal((payload as JwtPayload).username, 'username1');
-            assert.isDefined((payload as JwtPayload).jti);
+    describe('Generate tokens',  () => {
+        it('should return two valid tokens, an accessToken and a refreshToken', async () => {
+            const { accessToken, refreshToken } = await authService.generateTokens('id', username1);
+
+            const accessTokenPayload = jwt.verify(accessToken, testAuthConfig.tokens.accessToken.signingSecret);
+            assert.equal(typeof accessTokenPayload, 'object');
+            assert.equal((accessTokenPayload as JwtPayload).id, 'id');
+            assert.equal((accessTokenPayload as JwtPayload).username, 'username1');
+            assert.isDefined((accessTokenPayload as JwtPayload).jti);
+
+            const refreshTokenPayload = jwt.verify(refreshToken, testAuthConfig.tokens.refreshToken.signingSecret);
+            assert.equal(typeof refreshTokenPayload, 'object');
+            assert.equal((refreshTokenPayload as JwtPayload).id, 'id');
+            assert.isDefined((refreshTokenPayload as JwtPayload).jti);
         });
     });
 
-    describe('Invalidate JWT', () => {
-        it('should invalidate a JWT', async () => {
-            const token = await authService.createJwt({ id: 'id', username: username1 });
-            const payload = jwt.verify(token, testAuthConfig.jwt.jwtSigningSecret) as JwtPayload;
-            authService.invalidateJwt(payload.jti!, payload.exp!);
-            const isJwtInvalidated = authService.isJwtInvalidated(payload.jti!);
-            assert.equal(isJwtInvalidated, true);
+    describe('Check refresh token is active', () => {
+        it('should throw if no tokens are stored for this user', async () => {
+            await assertThrowsWithError(() => authService.assertRefreshTokenIsActive('id', 'whatever'), BRIG_ERROR_CODE.DB_NOT_FOUND);
+        });
+
+        it('should not throw if refresh token is active', async () => {
+            const { refreshToken } = await authService.generateTokens('id', username1);
+            const refreshTokenPayload = jwt.verify(refreshToken, testAuthConfig.tokens.refreshToken.signingSecret);
+            await authService.assertRefreshTokenIsActive('id', (refreshTokenPayload as JwtPayload).jti!);
+        });
+
+        it('should throw if refresh token is revoked', async () => {
+            const { refreshToken } = await authService.generateTokens('id', username1);
+            const refreshTokenPayload = jwt.verify(refreshToken, testAuthConfig.tokens.refreshToken.signingSecret);
+            await authService.revokeRefreshToken('id', (refreshTokenPayload as JwtPayload).jti!);
+            await assertThrowsWithError(() => authService.assertRefreshTokenIsActive('id', (refreshTokenPayload as JwtPayload).jti!), BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_ALREADY_REVOKED);
+        });
+
+        it('should revoke all active refresh tokens if refresh token reuse is detected', async () => {
+            const { refreshToken: refreshToken1 } = await authService.generateTokens('id', username1);
+            const refreshToken1Payload = jwt.verify(refreshToken1, testAuthConfig.tokens.refreshToken.signingSecret);
+            const { refreshToken: refreshToken2 } = await authService.generateTokens('id', username1);
+            const refreshToken2Payload = jwt.verify(refreshToken2, testAuthConfig.tokens.refreshToken.signingSecret);
+            const { refreshToken: refreshToken3 } = await authService.generateTokens('id', username1);
+            const refreshToken3Payload = jwt.verify(refreshToken3, testAuthConfig.tokens.refreshToken.signingSecret);
+
+            await authService.revokeRefreshToken('id', (refreshToken1Payload as JwtPayload).jti!);
+            // The below check trigger token reuse detection mechanism, hence all tokens are revoked
+            await assertThrowsWithError(() => authService.assertRefreshTokenIsActive('id', (refreshToken1Payload as JwtPayload).jti!), BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_ALREADY_REVOKED);
+
+            // The following check will throw because all tokens have been revoked
+            await assertThrowsWithError(() => authService.assertRefreshTokenIsActive('id', (refreshToken2Payload as JwtPayload).jti!), BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_ALREADY_REVOKED);
+            await assertThrowsWithError(() => authService.assertRefreshTokenIsActive('id', (refreshToken3Payload as JwtPayload).jti!), BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_ALREADY_REVOKED);
         });
     });
 });

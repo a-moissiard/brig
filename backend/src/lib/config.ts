@@ -18,10 +18,15 @@ export interface IBrigMongoConfig {
 
 export interface IBrigAuthConfig {
     openToUserRegistration: string;
-    jwt: {
-        jwtSigningSecret: string;
-        jwtValidityPeriod: string;
-
+    tokens: {
+        accessToken: {
+            signingSecret: string;
+            validityPeriod: string;
+        };
+        refreshToken: {
+            signingSecret: string;
+            validityPeriod: string;
+        };
     };
 }
 
@@ -40,9 +45,15 @@ export const config: IBrigConfig = {
     },
     auth: {
         openToUserRegistration: process.env.OPEN_TO_USER_REGISTRATION || 'false',
-        jwt: {
-            jwtSigningSecret: process.env.JWT_SECRET || '',
-            jwtValidityPeriod: '1h',
+        tokens: {
+            accessToken: {
+                signingSecret: process.env.ACCESS_TOKEN_SIGNING_SECRET || '',
+                validityPeriod: '5m',
+            },
+            refreshToken: {
+                signingSecret: process.env.REFRESH_TOKEN_SIGNING_SECRET || '',
+                validityPeriod: '1h',
+            },
         },
     },
 };

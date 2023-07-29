@@ -28,6 +28,10 @@ export class UsersService {
         });
     }
 
+    public async getUser(userId: string): Promise<IUserModel> {
+        return this.usersDao.getUser(userId);
+    }
+
     public async getUserByUsername(username: string): Promise<IUserModel> {
         return this.usersDao.getUserByUsername(username);
     }

@@ -11,6 +11,7 @@ import { UsersHandler } from '../api/users';
 import { IBrigConfig } from '../config';
 import { logger } from '../logger';
 import { AuthService } from '../service/auth';
+import { UserAuthTokensDao } from '../service/auth/UserAuthTokensDao';
 import { FtpServersAuthorizationsEnforcer, FtpServersDao, FtpServersService } from '../service/ftpServers';
 import { UsersAuthorizationsEnforcer, UsersDao, UsersService } from '../service/users';
 import { MongoConnectionManager } from '../utils/mongo';
@@ -29,6 +30,7 @@ export class BrigMicroService {
     private readonly authMiddleware: AuthMiddleware;
     private readonly authService: AuthService;
 
+    private readonly userAuthTokensDao: UserAuthTokensDao;
     private readonly ftpServersDao: FtpServersDao;
     private readonly usersDao: UsersDao;
 
@@ -36,6 +38,7 @@ export class BrigMicroService {
         const { config, mongoConnectionManager } = deps;
         this.config = config;
 
+        this.userAuthTokensDao = new UserAuthTokensDao({ mongoConnectionManager });
         this.usersDao = new UsersDao({ mongoConnectionManager });
         this.ftpServersDao = new FtpServersDao({ mongoConnectionManager });
 
@@ -48,7 +51,7 @@ export class BrigMicroService {
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
         const ftpServersActionsHandler = new FtpServersActionsHandler({ ftpServersService });
 
-        this.authService = new AuthService({ authConfig: config.auth, usersService });
+        this.authService = new AuthService({ authConfig: config.auth, usersService, userAuthTokensDao: this.userAuthTokensDao });
         const authHandler = new AuthHandler({ authService: this.authService });
 
         this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService: this.authService });
@@ -61,7 +64,6 @@ export class BrigMicroService {
     public async startMicroService(): Promise<void> {
         await this.initDAOs();
 
-        this.authService.init();
         this.authMiddleware.init();
 
         this.expressApp.use(cors({
@@ -93,6 +95,7 @@ export class BrigMicroService {
     }
 
     private async initDAOs(): Promise<void> {
+        await this.userAuthTokensDao.init();
         await this.ftpServersDao.init();
         await this.usersDao.init();
     }

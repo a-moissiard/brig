@@ -20,6 +20,7 @@ export class AuthRouter {
     public init(): Router {
         this.router.post('/register', useAuthMiddleware('register'), asyncHandler(this.authHandler.register.bind(this.authHandler)));
         this.router.post('/login', useAuthMiddleware('login'), asyncHandler(this.authHandler.login.bind(this.authHandler)));
+        this.router.get('/refresh', useAuthMiddleware('refresh'), asyncHandler(this.authHandler.refresh.bind(this.authHandler)));
         this.router.post('/logout', useAuthMiddleware('logout'), asyncHandler(this.authHandler.logout.bind(this.authHandler)));
         return this.router;
     }

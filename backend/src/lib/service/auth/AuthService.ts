@@ -1,31 +1,31 @@
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import ms from 'ms';
 import * as schedule from 'node-schedule';
 import * as uuid from 'uuid';
 
 import { IBrigAuthConfig } from '../../config';
+import { logger } from '../../logger';
+import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IUserModel, UsersService } from '../users';
+import { IEncodedAuthTokens } from './AuthTokensTypes';
+import { UserAuthTokensDao } from './UserAuthTokensDao';
 
 interface IAuthServiceDependencies {
     authConfig: IBrigAuthConfig;
     usersService: UsersService;
+    userAuthTokensDao: UserAuthTokensDao;
 }
 
 export class AuthService {
     private readonly authConfig: IBrigAuthConfig;
     private readonly usersService: UsersService;
-
-    private readonly invalidatedJwtIds: Map<string, number>;
+    private readonly userAuthTokensDao: UserAuthTokensDao;
 
     constructor(deps: IAuthServiceDependencies) {
         this.authConfig = deps.authConfig;
         this.usersService = deps.usersService;
-
-        this.invalidatedJwtIds = new Map();
-    }
-
-    public init(): void {
-        schedule.scheduleJob('0 * * * *', this.cleanInvalidatedJwt.bind(this));
+        this.userAuthTokensDao = deps.userAuthTokensDao;
     }
 
     public async shutdown(): Promise<void> {
@@ -47,27 +47,59 @@ export class AuthService {
         return (await bcrypt.compare(password, user.hash)) ? user : undefined;
     }
 
-    public async createJwt(payload: string | Buffer | object): Promise<string> {
-        const { jwtSigningSecret, jwtValidityPeriod } = this.authConfig.jwt;
-        return jwt.sign(payload, jwtSigningSecret, {
-            expiresIn: jwtValidityPeriod,
-            jwtid: uuid.v4(),
+    public async generateTokens(userId: string, _username?: string): Promise<IEncodedAuthTokens> {
+        let username = _username;
+        if (!username) {
+            username = (await this.usersService.getUser(userId)).username;
+        }
+
+        const { accessToken: accessTokenConfig, refreshToken: refreshTokenConfig } = this.authConfig.tokens;
+
+        const accessTokenId = uuid.v4();
+        const accessToken = await this.generateJwt({ id: userId, username }, accessTokenId, accessTokenConfig.signingSecret, accessTokenConfig.validityPeriod);
+
+        const refreshTokenId = uuid.v4();
+        const refreshToken = await this.generateJwt({ id: userId }, refreshTokenId, refreshTokenConfig.signingSecret, refreshTokenConfig.validityPeriod);
+        await this.userAuthTokensDao.storeRefreshTokenInfo(userId, {
+            tokenId: refreshTokenId,
+            expirationDate: Date.now() + ms(refreshTokenConfig.validityPeriod),
+        });
+
+        return {
+            accessToken,
+            refreshToken,
+        };
+    }
+    
+    public async assertRefreshTokenIsActive(userId: string, tokenId: string): Promise<void> {
+        const userAuthTokens = await this.userAuthTokensDao.getUserAuthTokensDocument(userId);
+        if (userAuthTokens.revokedRefreshTokenInfos.find(tokenInfo => tokenInfo.tokenId === tokenId)) {
+            // Refresh token reuse detected
+            await this.invalidateAllRefreshTokensOfUser(userId);
+            throw new BrigError(BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_ALREADY_REVOKED, 'Refresh token already revoked');
+        } else if (!userAuthTokens.activeRefreshTokenInfos.find(tokenInfo => tokenInfo.tokenId === tokenId)) {
+            // Refresh token probably expired and cleaned by periodical clean
+            throw new BrigError(BRIG_ERROR_CODE.AUTH_REFRESH_TOKEN_NOT_ACTIVE, 'Refresh token not active');
+        }
+    }
+
+    public async revokeRefreshToken(userId: string, tokenId: string): Promise<void> {
+        await this.userAuthTokensDao.revokeRefreshToken(userId, tokenId);
+    }
+
+    private async generateJwt(payload: string | Buffer | object, tokenId: string, signingSecret: string, validityPeriod: string): Promise<string> {
+        return jwt.sign(payload, signingSecret, {
+            expiresIn: validityPeriod,
+            jwtid: tokenId,
         });
     }
 
-    public invalidateJwt(jwtId: string, exp: number): void {
-        this.invalidatedJwtIds.set(jwtId, exp);
-    }
-
-    public isJwtInvalidated(jwtId: string): boolean {
-        return this.invalidatedJwtIds.has(jwtId);
-    }
-
-    private cleanInvalidatedJwt(): void {
-        this.invalidatedJwtIds.forEach((exp, jwtId) => {
-            if (exp < (Date.now() / 1000)) {
-                this.invalidatedJwtIds.delete(jwtId);
-            }
-        });
+    private async invalidateAllRefreshTokensOfUser(userId: string): Promise<void> {
+        logger.warn(`Refresh token reuse detected, revoking all refresh tokens of user ${userId}`);
+        const userAuthTokens = await this.userAuthTokensDao.getUserAuthTokensDocument(userId);
+        for (const activeRefreshToken of userAuthTokens.activeRefreshTokenInfos) {
+            await this.userAuthTokensDao.revokeRefreshToken(userId, activeRefreshToken.tokenId);
+            logger.info(`Token ${activeRefreshToken} of user ${userId} revoked`);
+        }
     }
 }
