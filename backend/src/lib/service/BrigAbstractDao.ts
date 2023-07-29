@@ -9,6 +9,8 @@ import {
     InsertOneResult,
     MongoServerError,
     UpdateFilter,
+    UpdateOptions,
+    UpdateResult,
     WithId,
 } from 'mongodb';
 
@@ -88,6 +90,23 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
             });
         }
         return updatedDocument;
+    }
+
+    protected async updateMany(filter: Filter<T>, update: UpdateFilter<T>, options?: UpdateOptions): Promise<void> {
+        let updateResult: UpdateResult<T>;
+        try {
+            updateResult = await this.getCollection().updateMany(filter, update, options);
+        } catch (e) {
+            if (e instanceof MongoServerError && e.code === 11000) {
+                throw new BrigError(BRIG_ERROR_CODE.DB_DUPLICATE, `${this.elementName} update many failed because duplicate element exists`, {
+                    cause: e.stack,
+                });
+            }
+            throw e;
+        }
+        if (!updateResult.acknowledged) {
+            throw new BrigError(BRIG_ERROR_CODE.DB_UPDATE_ERROR, 'Update many operation did not succeed');
+        }
     }
 
     protected async delete(filter: Filter<T>): Promise<void> {

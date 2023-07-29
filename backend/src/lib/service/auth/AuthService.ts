@@ -28,6 +28,10 @@ export class AuthService {
         this.userAuthTokensDao = deps.userAuthTokensDao;
     }
 
+    public init(): void {
+        schedule.scheduleJob('* * * * *', this.cleanExpiredTokens.bind(this));
+    }
+
     public async shutdown(): Promise<void> {
         return schedule.gracefulShutdown();
     }
@@ -100,6 +104,14 @@ export class AuthService {
         for (const activeRefreshToken of userAuthTokens.activeRefreshTokenInfos) {
             await this.userAuthTokensDao.revokeRefreshToken(userId, activeRefreshToken.tokenId);
             logger.info(`Token ${activeRefreshToken} of user ${userId} revoked`);
+        }
+    }
+
+    private async cleanExpiredTokens(): Promise<void> {
+        try {
+            await this.userAuthTokensDao.cleanExpiredTokens();
+        } catch (e) {
+            logger.warn('Error while cleaning expired refresh tokens: ' + (e as Error).stack);
         }
     }
 }

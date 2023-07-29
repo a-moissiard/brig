@@ -102,6 +102,14 @@ export class UserAuthTokensDao extends BrigAbstractDao<IUserAuthTokensDb>{
         }));
     }
 
+    public async cleanExpiredTokens(): Promise<void> {
+        await this.updateMany({},
+            {
+                $pull: { activeRefreshTokenInfos: { expirationDate: { $lt: Date.now() } }, revokedRefreshTokenInfos: { expirationDate: { $lt: Date.now() } }  },
+            },
+        );
+    }
+
     private async createUserAuthTokensDocument(entry: IUserAuthTokensModel): Promise<IUserAuthTokensModel> {
         return UserAuthTokensDao.mapDbToModel(await this.insert(UserAuthTokensDao.mapModelToDb(entry)));
     }

@@ -65,6 +65,7 @@ export class BrigMicroService {
         await this.initDAOs();
 
         this.authMiddleware.init();
+        this.authService.init();
 
         this.expressApp.use(cors({
             origin: 'http://localhost:3000',
