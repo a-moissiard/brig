@@ -40,6 +40,10 @@ export class AuthHandler {
         );
     }
 
+    async isLoggedIn(req: Request, res: Response): Promise<void> {
+        res.sendStatus(200);
+    }
+
     async refresh(req: Request, res:Response, next: NextFunction): Promise<void> {
         const { user } = req;
 
