@@ -1,17 +1,20 @@
 import React, { FunctionComponent } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
-import Dashboard from './components/dashboard/Dashboard';
-import NotFound from './components/notFound/NotFound';
-import SignIn from './components/signIn/SignIn';
+import AuthRequired from './components/lib/authRequired/AuthRequired';
+import DashboardPage from './components/pages/dashboard/DashboardPage';
+import ErrorPage from './components/pages/error/ErrorPage';
+import NotFoundPage from './components/pages/notFound/NotFoundPage';
+import SignInPage from './components/pages/signIn/SignInPage';
 
 interface IAppProps {
 }
 
 const App: FunctionComponent<IAppProps> = ({}) => <Routes>
-    <Route path="/" element={<Dashboard />} />
-    <Route path="/auth" element={<SignIn />} />
-    <Route path="/*" element={<NotFound />} />
+    <Route path="/" element={<AuthRequired children={<DashboardPage />}/>} />
+    <Route path="/auth" element={<SignInPage />} />
+    <Route path="/error" element={<ErrorPage />} />
+    <Route path="/*" element={<NotFoundPage />} />
 </Routes>;
 
 export default App;

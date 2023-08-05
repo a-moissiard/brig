@@ -2,35 +2,45 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Grid from '@mui/material/Grid';
-import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import * as React from 'react';
+import { FormEvent, FunctionComponent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// TODO remove, this demo shouldn't need to reset the theme.
-const defaultTheme = createTheme();
+import { AuthApi } from '../../../api/auth';
+import { BrigFrontError } from '../../../utils/error/BrigFrontError';
 
-interface ISignInProps {
+interface ISignInPageProps {
 }
 
-const SignIn: React.FunctionComponent<ISignInProps> = () => {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+const SignInPage: FunctionComponent<ISignInPageProps> = () => {
+    const [error, setError] = useState<string>();
+    const navigate = useNavigate();
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+        const username = data.get('username');
+        const password = data.get('password');
+        if (typeof username === 'string' && typeof password === 'string') {
+            try {
+                setError(undefined);
+                await AuthApi.login(username, password);
+                navigate('/');
+            } catch (e) {
+                if (e instanceof BrigFrontError) {
+                    setError(e.message);
+                } else {
+                    setError(`Unknown error: ${JSON.stringify(e, null, 2)}`);
+                }
+            }
+        }
     };
 
     return (
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={createTheme()}>
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
@@ -52,11 +62,12 @@ const SignIn: React.FunctionComponent<ISignInProps> = () => {
                             margin="normal"
                             required
                             fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
+                            id="username"
+                            label="Username"
+                            name="username"
+                            autoComplete="username"
                             autoFocus
+                            error={error !== undefined}
                         />
                         <TextField
                             margin="normal"
@@ -67,11 +78,9 @@ const SignIn: React.FunctionComponent<ISignInProps> = () => {
                             type="password"
                             id="password"
                             autoComplete="current-password"
+                            error={error !== undefined}
                         />
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
-                            label="Remember me"
-                        />
+                        {error && (<Typography component='h6' color='red'>{error}</Typography>)}
                         <Button
                             type="submit"
                             fullWidth
@@ -80,18 +89,6 @@ const SignIn: React.FunctionComponent<ISignInProps> = () => {
                         >
                             Sign In
                         </Button>
-                        <Grid container>
-                            <Grid item xs>
-                                <Link href="#" variant="body2">
-                                    Forgot password?
-                                </Link>
-                            </Grid>
-                            <Grid item>
-                                <Link href="#" variant="body2">
-                                    {"Don't have an account? Sign Up"}
-                                </Link>
-                            </Grid>
-                        </Grid>
                     </Box>
                 </Box>
             </Container>
@@ -99,4 +96,4 @@ const SignIn: React.FunctionComponent<ISignInProps> = () => {
     );
 };
 
-export default SignIn;
+export default SignInPage;
