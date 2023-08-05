@@ -1,6 +1,11 @@
-import { ApiClient } from '../ApiClient';
+import { config } from '../config';
+import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
 import { IFtpServer } from './FtpServersTypes';
 
-const authApiUrl = ApiClient.apiUrl + 'servers/';
+export class FtpServersApi {
+    private static authApiUrl = config.apiUrl + 'servers/';
 
-export const getFtpServers = async (): Promise<IFtpServer[]> => ApiClient.get<IFtpServer[]>(authApiUrl);
+    public static async getFtpServers(): Promise<IFtpServer[]> {
+        return AuthenticatedApiClient.get<IFtpServer[]>(this.authApiUrl);
+    }
+}

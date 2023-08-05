@@ -1,10 +1,32 @@
-import { ApiClient } from '../ApiClient';
+import { AuthFacade } from '../../utils/auth/AuthFacade';
+import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../utils/error/BrigFrontError';
+import { config } from '../config';
+import { IRequestOptions } from '../utils/ApiClientTypes';
+import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
+import { UnauthenticatedApiClient } from '../utils/UnauthenticatedApiClient';
+import { IAuthTokens } from './AuthTokensTypes';
 
-const authApiUrl = ApiClient.apiUrl + 'auth/';
+export class AuthApi {
+    private static authApiUrl = config.apiUrl + 'auth/';
 
-export const sendLoginRequest = async (username: string, password: string): Promise<void> => {
-    await ApiClient.unauthenticatedPost<void, {username: string; password: string}>(authApiUrl + 'login', {
-        username,
-        password,
-    });
-};
+    public static async login(username: string, password: string): Promise<void> {
+        const { accessToken, refreshToken } = await UnauthenticatedApiClient.post<IAuthTokens, {username: string; password: string}>(this.authApiUrl + 'login', {
+            username,
+            password,
+        });
+        AuthFacade.setToken('accessToken', accessToken);
+        AuthFacade.setToken('refreshToken', refreshToken);
+    };
+
+    public static async isLoggedIn(options?: IRequestOptions): Promise<boolean> {
+        try {
+            await AuthenticatedApiClient.get(this.authApiUrl + 'isLoggedIn', options);
+            return true;
+        } catch (e) {
+            if (e instanceof BrigFrontError && e.code === BRIG_FRONT_ERROR_CODE.REQUEST_401) {
+                return false;
+            }
+            throw e;
+        }
+    };
+}
