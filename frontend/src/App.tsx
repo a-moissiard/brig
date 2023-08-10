@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AuthRequired from './components/lib/authRequired/AuthRequired';
 import DashboardPage from './components/pages/dashboard/DashboardPage';
 import ErrorPage from './components/pages/error/ErrorPage';
+import ManageServersPage from './components/pages/manageServers/ManageServersPage';
 import NotFoundPage from './components/pages/notFound/NotFoundPage';
 import SignInPage from './components/pages/signIn/SignInPage';
 import { themeOptions } from './utils/theme/ThemeOptions';
@@ -18,6 +19,7 @@ const App: FunctionComponent<IAppProps> = ({}) =>
         <Routes>
             <Route path="/" element={<Navigate to='/dashboard' />} />
             <Route path="/dashboard" element={<AuthRequired children={<DashboardPage />}/>} />
+            <Route path="/servers" element={<AuthRequired children={<ManageServersPage />}/>} />
             <Route path="/auth" element={<SignInPage />} />
             <Route path="/error" element={<ErrorPage />} />
             <Route path="/*" element={<NotFoundPage />} />

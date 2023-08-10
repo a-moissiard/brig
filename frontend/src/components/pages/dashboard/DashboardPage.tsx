@@ -1,16 +1,12 @@
-import { AppBar, Button, Typography } from '@mui/material';
 import { FunctionComponent } from 'react';
 
-import './dashboard.scss';
+import TopBar from '../../lib/topBar/TopBar';
 
 interface IDashboardPageProps {}
 
-const DashboardPage: FunctionComponent<IDashboardPageProps> = () =>
-    (<>
-        <AppBar position='sticky' className='appBar'>
-            <Typography variant='h6'>BRIG</Typography>
-            <Button variant='outlined' color='info'>Logout</Button>
-        </AppBar>
-    </>);
+const DashboardPage: FunctionComponent<IDashboardPageProps> = () => <>
+    <TopBar />
+    Dashboard
+</>;
 
 export default DashboardPage;
