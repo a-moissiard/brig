@@ -26,7 +26,7 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
             try {
                 setError(undefined);
                 await AuthApi.login(username, password);
-                navigate('/');
+                navigate('/dashboard');
             } catch (e) {
                 if (e instanceof BrigFrontError) {
                     setError(e.message);

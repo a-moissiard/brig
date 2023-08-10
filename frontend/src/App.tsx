@@ -1,6 +1,6 @@
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import React, { FunctionComponent } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import AuthRequired from './components/lib/authRequired/AuthRequired';
 import DashboardPage from './components/pages/dashboard/DashboardPage';
@@ -16,7 +16,8 @@ const App: FunctionComponent<IAppProps> = ({}) =>
     <ThemeProvider theme={createTheme(themeOptions)}>
         <CssBaseline />
         <Routes>
-            <Route path="/" element={<AuthRequired children={<DashboardPage />}/>} />
+            <Route path="/" element={<Navigate to='/dashboard' />} />
+            <Route path="/dashboard" element={<AuthRequired children={<DashboardPage />}/>} />
             <Route path="/auth" element={<SignInPage />} />
             <Route path="/error" element={<ErrorPage />} />
             <Route path="/*" element={<NotFoundPage />} />
