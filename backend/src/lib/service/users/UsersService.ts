@@ -3,7 +3,7 @@ import * as uuid from 'uuid';
 import { IRequester } from '../authorizations';
 import { UsersAuthorizationsEnforcer } from './UsersAuthorizationsEnforcer';
 import { UsersDao } from './UsersDao';
-import { IUserCreateModel, IUserLightModel, IUserModel } from './UsersTypes';
+import { IUserCreateModel, IUserModel, IUserWithHashModel } from './UsersTypes';
 
 interface IUsersServiceDependencies {
     usersDao: UsersDao;
@@ -19,8 +19,7 @@ export class UsersService {
         this.usersAuthorizationsEnforcer = deps.usersAuthorizationsEnforcer;
     }
 
-    // Internal usages, no need for requester
-    public async createUser(user: IUserCreateModel): Promise<IUserModel> {
+    public async createUser(user: IUserCreateModel): Promise<IUserWithHashModel> {
         const id = uuid.v4();
         return this.usersDao.createUser({
             id,
@@ -32,14 +31,8 @@ export class UsersService {
         return this.usersDao.getUser(userId);
     }
 
-    public async getUserByUsername(username: string): Promise<IUserModel> {
-        return this.usersDao.getUserByUsername(username);
-    }
-
-    // API usages, requester required for authorizations
-    public async listLightUsers(requester: IRequester): Promise<IUserLightModel[]> {
-        await this.usersAuthorizationsEnforcer.assertIsAdmin(requester);
-        return this.usersDao.listUsersLight();
+    public async getUserWithHashByUsername(username: string): Promise<IUserWithHashModel> {
+        return this.usersDao.getUserWithHashByUsername(username);
     }
 
     public async deleteUser(requester: IRequester, userId: string): Promise<void> {

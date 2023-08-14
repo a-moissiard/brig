@@ -14,13 +14,6 @@ export class UsersHandler {
         this.usersService = deps.usersService;
     }
 
-    async listLightUsers(req: Request, res: Response): Promise<void> {
-        const requester = buildRequester(req);
-        const users = await this.usersService.listLightUsers(requester);
-
-        res.send(users);
-    }
-
     async deleteUser(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { userId } = req.params;

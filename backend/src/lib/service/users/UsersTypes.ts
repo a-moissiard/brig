@@ -1,18 +1,16 @@
-interface IUserBaseLightModel {
+interface IUserBaseModel {
     username: string;
-}
-
-interface IUserBaseModel extends IUserBaseLightModel {
-    hash: string;
     admin: boolean;
 }
 
-export type IUserCreateModel = IUserBaseModel;
-
-export interface IUserLightModel extends IUserBaseLightModel {
-    id: string;
+interface IUserBaseWithHashModel extends IUserBaseModel {
+    hash: string;
 }
+
+export type IUserCreateModel = IUserBaseWithHashModel;
 
 export interface IUserModel extends IUserBaseModel {
     id: string;
 }
+
+export type IUserWithHashModel = IUserBaseWithHashModel & IUserModel;

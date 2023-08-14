@@ -1,9 +1,8 @@
 import 'dotenv/config';
 import * as chai from 'chai';
-import * as _ from 'lodash';
 
 import { logger } from '../../lib/logger';
-import { IUserModel, UsersDao } from '../../lib/service/users';
+import { IUserModel, IUserWithHashModel, UsersDao } from '../../lib/service/users';
 import { BRIG_ERROR_CODE } from '../../lib/utils/error';
 import { MongoConnectionTestManager } from '../../lib/utils/mongo/MongoConnectionTestManager';
 import { assertThrowsWithError } from '../../lib/utils/test';
@@ -33,13 +32,13 @@ describe('UsersDao', () => {
     });
 
     describe('Users CRUD', function () {
-        const user1: IUserModel = {
+        const user1: IUserWithHashModel = {
             id: 'id_1',
             username: 'username_1',
             hash: 'hash_1',
             admin: true,
         };
-        const user2: IUserModel = {
+        const user2: IUserWithHashModel = {
             id: 'id_2',
             username: 'username_2',
             hash: 'hash_2',
@@ -67,30 +66,31 @@ describe('UsersDao', () => {
         });
 
         describe('Get user', () => {
+            it('should get a user', async () => {
+                await usersDao.createUser(user1);
+                const user = await usersDao.getUser(user1.id);
+                const expected: IUserModel = {
+                    id: user1.id,
+                    username: user1.username,
+                    admin: user1.admin,
+                };
+                assert.deepEqual(user, expected);
+            });
+
+            it('should throw when getting a user that does not exist', async () => {
+                await assertThrowsWithError(() => usersDao.getUserWithHashByUsername('id'), BRIG_ERROR_CODE.DB_NOT_FOUND);
+            });
+        });
+
+        describe('Get user with hash by username', () => {
             it('should get a user by username', async () => {
                 await usersDao.createUser(user1);
-                const user = await usersDao.getUserByUsername(user1.username);
+                const user = await usersDao.getUserWithHashByUsername(user1.username);
                 assert.deepEqual(user, user1);
             });
 
             it('should throw when getting a user that does not exist', async () => {
-                await assertThrowsWithError(() => usersDao.getUserByUsername('username'), BRIG_ERROR_CODE.DB_NOT_FOUND);
-            });
-        });
-
-        describe('List light users', () => {
-            it('should return empty list if there are no users', async () => {
-                const list = await usersDao.listUsersLight();
-                assert.deepEqual(list, []);
-            });
-
-            it('should return list of users', async () => {
-                await usersDao.createUser(user1);
-                await usersDao.createUser(user2);
-                const list = await usersDao.listUsersLight();
-                assert.equal(list.length, 2);
-                assert.deepEqual(list[0], _.pick(user1, ['id', 'username']));
-                assert.deepEqual(list[1], _.pick(user2, ['id', 'username']));
+                await assertThrowsWithError(() => usersDao.getUserWithHashByUsername('username'), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
         });
 
@@ -102,7 +102,7 @@ describe('UsersDao', () => {
             it('should delete a user', async () => {
                 await usersDao.createUser(user1);
                 await usersDao.deleteUser(user1.id);
-                await assertThrowsWithError(() => usersDao.getUserByUsername(user1.username), BRIG_ERROR_CODE.DB_NOT_FOUND);
+                await assertThrowsWithError(() => usersDao.getUserWithHashByUsername(user1.username), BRIG_ERROR_CODE.DB_NOT_FOUND);
             });
         });
     });

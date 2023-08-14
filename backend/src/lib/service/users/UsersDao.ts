@@ -1,6 +1,6 @@
 import { IMongoConnectionManager } from '../../utils/mongo';
 import { BrigAbstractDao } from '../BrigAbstractDao';
-import { IUserLightModel, IUserModel } from './UsersTypes';
+import { IUserModel, IUserWithHashModel } from './UsersTypes';
 
 interface IUserDb {
     id: string;
@@ -21,22 +21,22 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         super({ mongoConnectionManager: deps.mongoConnectionManager, collectionName: UsersDao.collectionName, elementName: UsersDao.elementName });
     }
 
-    private static mapDbToModelLight(db: IUserDb): IUserLightModel {
+    private static mapDbToModel(db: IUserDb): IUserModel {
         return {
             id: db.id,
             username: db.username,
-        };
-    }
-
-    private static mapDbToModel(db: IUserDb): IUserModel {
-        return {
-            ...UsersDao.mapDbToModelLight(db),
-            hash: db.hash,
             admin: db.admin,
         };
     }
 
-    private static mapModelToDb(model: IUserModel): IUserDb {
+    private static mapDbToModelWithHash(db: IUserDb): IUserWithHashModel {
+        return {
+            ...this.mapDbToModel(db),
+            hash: db.hash,
+        };
+    }
+
+    private static mapModelWithHashToDb(model: IUserWithHashModel): IUserDb {
         return {
             id: model.id,
             username: model.username,
@@ -58,20 +58,16 @@ export class UsersDao extends BrigAbstractDao<IUserDb> {
         });
     }
 
-    public async createUser(user: IUserModel): Promise<IUserModel> {
-        return UsersDao.mapDbToModel(await this.insert(UsersDao.mapModelToDb(user)));
+    public async createUser(user: IUserWithHashModel): Promise<IUserWithHashModel> {
+        return UsersDao.mapDbToModelWithHash(await this.insert(UsersDao.mapModelWithHashToDb(user)));
     }
 
     public async getUser(userId: string): Promise<IUserModel> {
         return UsersDao.mapDbToModel(await this.get({ id: userId }));
     }
 
-    public async getUserByUsername(username: string): Promise<IUserModel> {
-        return UsersDao.mapDbToModel(await this.get({ username }));
-    }
-
-    public async listUsersLight(): Promise<IUserLightModel[]> {
-        return (await this.list({})).map(UsersDao.mapDbToModelLight);
+    public async getUserWithHashByUsername(username: string): Promise<IUserWithHashModel> {
+        return UsersDao.mapDbToModelWithHash(await this.get({ username }));
     }
 
     public async deleteUser(userId: string): Promise<void> {

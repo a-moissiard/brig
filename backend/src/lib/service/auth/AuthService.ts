@@ -7,7 +7,7 @@ import * as uuid from 'uuid';
 import { IBrigAuthConfig } from '../../config';
 import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
-import { IUserModel, UsersService } from '../users';
+import { IUserModel, IUserWithHashModel, UsersService } from '../users';
 import { IEncodedAuthTokens } from './AuthTokensTypes';
 import { UserAuthTokensDao } from './UserAuthTokensDao';
 
@@ -36,7 +36,7 @@ export class AuthService {
         return schedule.gracefulShutdown();
     }
 
-    public async register(username: string, password: string): Promise<IUserModel> {
+    public async register(username: string, password: string): Promise<IUserWithHashModel> {
         const salt = await bcrypt.genSalt();
         const hash = await bcrypt.hash(password, salt);
         return this.usersService.createUser({
@@ -47,7 +47,7 @@ export class AuthService {
     }
 
     public async checkCredentials(username: string, password: string): Promise<IUserModel | undefined> {
-        const user = await this.usersService.getUserByUsername(username);
+        const user = await this.usersService.getUserWithHashByUsername(username);
         return (await bcrypt.compare(password, user.hash)) ? user : undefined;
     }
 
