@@ -1,40 +1,52 @@
 import { Container } from '@mui/material';
 import { FunctionComponent, ReactElement, useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
+import { IUser } from '../../../types/users/UsersTypes';
 import { AuthFacade } from '../../../utils/auth/AuthFacade';
+import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
 import Loader from '../loader/Loader';
 
 import './authRequired.scss';
 
 interface AuthRequiredProps {
+    user: IUser | undefined;
+    setUser: React.Dispatch<React.SetStateAction<IUser | undefined>>;
     children: ReactElement;
 }
 
-const AuthRequired: FunctionComponent<AuthRequiredProps> = ({ children }) => {
+const AuthRequired: FunctionComponent<AuthRequiredProps> = ({
+    user,
+    setUser,
+    children,
+}) => {
     const [loading, setLoading] = useState(true);
-    const [userIsLogged, setUserIsLogged] = useState<boolean>();
     const navigate = useNavigate();
 
     useEffect(() => {
         const controller = new AbortController();
-        AuthFacade.isLoggedIn({ signal: controller.signal })
-            .then((userIsLogged) => {
+        AuthFacade.getLoggedUser({ signal: controller.signal })
+            .then((loggedUser) => {
                 setLoading(false);
-                setUserIsLogged(userIsLogged);
+                setUser(loggedUser);
             })
             .catch((e) => {
-                navigate('/error');
+                if (e instanceof BrigFrontError && e.code === BRIG_FRONT_ERROR_CODE.REQUEST_401) {
+                    navigate('/auth');
+                } else {
+                    navigate('/error');
+                }
             });
         
         return () => controller.abort();
     }, []);
+    
     return (
         <>
             {loading && (<Container maxWidth='xs' className='loaderContainer'>
                 <Loader loading={loading} size={100} />
             </Container>)}
-            {userIsLogged === true ? children : userIsLogged === false ? <Navigate to={'/auth'} replace={true}/> : <></>}
+            {user ? children : <></>}
         </>
     );
 };

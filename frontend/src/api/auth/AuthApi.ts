@@ -1,5 +1,5 @@
+import { IUser } from '../../types/users/UsersTypes';
 import { AuthFacade } from '../../utils/auth/AuthFacade';
-import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../utils/error/BrigFrontError';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
 import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
@@ -28,15 +28,7 @@ export class AuthApi {
         AuthFacade.clearToken('refreshToken');
     }
 
-    public static async isLoggedIn(options?: IRequestOptions): Promise<boolean> {
-        try {
-            await AuthenticatedApiClient.get(this.authApiUrl + 'isLoggedIn', options);
-            return true;
-        } catch (e) {
-            if (e instanceof BrigFrontError && e.code === BRIG_FRONT_ERROR_CODE.REQUEST_401) {
-                return false;
-            }
-            throw e;
-        }
+    public static async getLoggedUser(options?: IRequestOptions): Promise<IUser> {
+        return AuthenticatedApiClient.get(this.authApiUrl + 'getLoggedUser', options);
     };
 }

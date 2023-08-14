@@ -1,6 +1,6 @@
+import { IFtpServer } from '../../types/ftpServers/FtpServersTypes';
 import { config } from '../config';
 import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
-import { IFtpServer } from './FtpServersTypes';
 
 export class FtpServersApi {
     private static authApiUrl = config.apiUrl + 'servers/';

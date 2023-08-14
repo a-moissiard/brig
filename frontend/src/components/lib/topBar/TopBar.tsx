@@ -4,13 +4,15 @@ import { FunctionComponent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AuthApi } from '../../../api/auth';
+import { IUser } from '../../../types/users/UsersTypes';
 
 import './topBar.scss';
 
 interface ITopBarProps {
+    user: IUser;
 }
 
-const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
+const TopBar: FunctionComponent<ITopBarProps> = ({ user }) => {
     const navigate = useNavigate();
 
     const onLogout = async (): Promise<void> => {

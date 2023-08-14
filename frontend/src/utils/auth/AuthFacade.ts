@@ -1,5 +1,6 @@
 import { AuthApi } from '../../api/auth';
 import { IRequestOptions } from '../../api/utils/ApiClientTypes';
+import { IUser } from '../../types/users/UsersTypes';
 
 export type TokenType = 'accessToken' | 'refreshToken'
 
@@ -16,7 +17,7 @@ export class AuthFacade {
         localStorage.removeItem(tokenType);
     }
 
-    public static async isLoggedIn(options?: IRequestOptions): Promise<boolean> {
-        return AuthApi.isLoggedIn(options);
+    public static async getLoggedUser(options?: IRequestOptions): Promise<IUser> {
+        return AuthApi.getLoggedUser(options);
     }
 }
