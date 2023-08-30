@@ -9,6 +9,9 @@ import { FormEvent, FunctionComponent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AuthApi } from '../../../api/auth';
+import { setUser } from '../../../redux/features/user/userSlice';
+import { useAppDispatch } from '../../../redux/hooks';
+import { AuthFacade } from '../../../utils/auth/AuthFacade';
 import { BrigFrontError } from '../../../utils/error/BrigFrontError';
 
 interface ISignInPageProps {
@@ -17,6 +20,8 @@ interface ISignInPageProps {
 const SignInPage: FunctionComponent<ISignInPageProps> = () => {
     const [error, setError] = useState<string>();
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -26,6 +31,8 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
             try {
                 setError(undefined);
                 await AuthApi.login(username, password);
+                const loggedUser = await AuthFacade.getLoggedUser();
+                dispatch(setUser(loggedUser));
                 navigate('/dashboard');
             } catch (e) {
                 if (e instanceof BrigFrontError) {
