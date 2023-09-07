@@ -1,6 +1,6 @@
 import MenuIcon from '@mui/icons-material/Menu';
-import { AppBar, Box, Button, IconButton, Typography } from '@mui/material';
-import { FunctionComponent } from 'react';
+import { AppBar, Box, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { FunctionComponent, MouseEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectUser, unsetUser } from 'redux/features/user/userSlice';
 
@@ -17,6 +17,17 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
 
     const user = useAppSelector(selectUser);
 
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+    const menuOpen = Boolean(menuAnchor);
+
+    const openMenu = (event: MouseEvent<HTMLButtonElement>): void => {
+        setMenuAnchor(event.currentTarget);
+    };
+
+    const closeMenu = (): void => {
+        setMenuAnchor(null);
+    };
+
     const onLogout = async (): Promise<void> => {
         dispatch(unsetUser());
         await AuthApi.logout();
@@ -25,9 +36,14 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
 
     return <AppBar position='sticky' className='topBar' enableColorOnDark={true}>
         {user && (<Box className='topBar__menuContainer'>
-            <IconButton color='info' className='topBar__menuButton' onClick={(): void => {}}>
+            <IconButton color='info' className='topBar__menuButton' onClick={openMenu}>
                 <MenuIcon />
             </IconButton>
+            <Menu open={menuOpen} anchorEl={menuAnchor} onClose={closeMenu} className='topBar__menu'>
+                <MenuItem onClick={(): void => navigate('/dashboard')}>Dashboard</MenuItem>
+                <MenuItem onClick={(): void => navigate('/servers')}>Servers</MenuItem>
+                {user.admin && (<MenuItem onClick={(): void => navigate('/admin')}>Admin</MenuItem>)}
+            </Menu>
         </Box>)}
         <Typography variant="h5" className="topBar__logo">BRIG</Typography>
         {user ? (
