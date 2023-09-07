@@ -2,7 +2,7 @@ import { ThemeOptions } from '@mui/material';
 
 export const themeOptions: ThemeOptions = {
     palette: {
-        mode: 'light',
+        mode: 'dark',
         primary: {
             main: '#620000',
         },
@@ -10,7 +10,11 @@ export const themeOptions: ThemeOptions = {
             main: '#f50057',
         },
         info: {
-            main: '#ffffff',
+            main: '#fff',
+        },
+        background: {
+            default: '#222',
+            paper: '#222',
         },
     },
 };

@@ -23,7 +23,7 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
         navigate('/auth');
     };
 
-    return <AppBar position='sticky' className='topBar'>
+    return <AppBar position='sticky' className='topBar' enableColorOnDark={true}>
         {user && (<Box className='topBar__menuContainer'>
             <IconButton color='info' className='topBar__menuButton' onClick={(): void => {}}>
                 <MenuIcon />
