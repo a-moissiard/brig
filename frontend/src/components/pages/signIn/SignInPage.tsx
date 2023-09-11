@@ -54,7 +54,7 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
                     alignItems: 'center',
                 }}
             >
-                <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                <Avatar sx={{ m: 1, bgcolor: 'primary.dark' }}>
                     <LockOutlinedIcon />
                 </Avatar>
                 <Typography component="h1" variant="h5">
@@ -88,7 +88,7 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
+                        sx={{ mt: 3, mb: 2, bgcolor: 'primary.dark' }}
                     >
                             Sign In
                     </Button>

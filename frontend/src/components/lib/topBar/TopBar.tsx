@@ -34,9 +34,9 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
         navigate('/auth');
     };
 
-    return <AppBar position='sticky' className='topBar' enableColorOnDark={true}>
+    return <AppBar position='sticky' className='topBar'>
         {user && (<Box className='topBar__menuContainer'>
-            <IconButton color='info' className='topBar__menuButton' onClick={openMenu}>
+            <IconButton sx={{ color:'primary.light' }} className='topBar__menuButton' onClick={openMenu}>
                 <MenuIcon />
             </IconButton>
             <Menu open={menuOpen} anchorEl={menuAnchor} onClose={closeMenu} className='topBar__menu'>
@@ -49,13 +49,13 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
         {user ? (
             <>
                 <Box className='topBar__links'>
-                    <Button color='info' onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
-                    <Button color="info" onClick={(): void => navigate('/servers')}>Servers</Button>
-                    {user.admin && (<Button color="info" onClick={(): void => navigate('/admin')}>Admin</Button>)}
+                    <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
+                    <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/servers')}>Servers</Button>
+                    {user.admin && (<Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/admin')}>Admin</Button>)}
                 </Box>
                 <Button
                     variant="outlined"
-                    color="info"
+                    sx={{ color:'primary.light', borderColor: 'primary.light' }}
                     onClick={onLogout}
                     className="topBar__logoutButton"
                 >
