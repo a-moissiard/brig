@@ -1,11 +1,12 @@
 import { IFtpServer } from '../../types/ftpServers/FtpServersTypes';
 import { config } from '../config';
+import { IRequestOptions } from '../utils/ApiClientTypes';
 import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
 
 export class FtpServersApi {
-    private static authApiUrl = config.apiUrl + 'servers/';
+    private static serversApiUrl = config.apiUrl + 'servers/';
 
-    public static async getFtpServers(): Promise<IFtpServer[]> {
-        return AuthenticatedApiClient.get<IFtpServer[]>(this.authApiUrl);
+    public static async getFtpServers(options?: IRequestOptions): Promise<IFtpServer[]> {
+        return AuthenticatedApiClient.get<IFtpServer[]>(this.serversApiUrl, options);
     }
 }
