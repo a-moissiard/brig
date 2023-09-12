@@ -1,37 +1,41 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { CONNECTION_STATUS, IServerConnection } from '../../../types/status/StatusTypes';
+import { IServerConnection } from '../../../types/status/StatusTypes';
 import { RootState } from '../../store';
 
-interface IServerConnectionState {
-    value?: IServerConnection;
+interface IServerConnectionsState {
+    value: {
+        1?: IServerConnection;
+        2?: IServerConnection;
+    };
 }
 
-const initialState: IServerConnectionState = {
-    value: undefined,
+const initialState: IServerConnectionsState = {
+    value: {
+        1: undefined,
+        2: undefined,
+    },
 };
 
 export const serverSlice = createSlice({
     name: 'server',
     initialState,
     reducers: {
-        setServer: (state, action: PayloadAction<IServerConnection>) => {
-            state.value = action.payload;
+        setServer: (state, action: PayloadAction<{
+            serverNumber: 1 | 2;
+            data: IServerConnection;
+        }>) => {
+            state.value[action.payload.serverNumber] = action.payload.data;
         },
-        setServerConnectionStatus: (state, action: PayloadAction<CONNECTION_STATUS>) => {
-            if (state.value) {
-                state.value.status = action.payload;
-            }
-        },
-        unsetServer: (state) => {
-            state.value = undefined;
+        unsetServer: (state, action: PayloadAction<1 | 2>) => {
+            state.value[action.payload] = undefined;
         },
     },
 });
 
-export const selectServer1 = (state: RootState): IServerConnection | undefined => state.server1.value;
-export const selectServer2 = (state: RootState): IServerConnection | undefined => state.server2.value;
+export const selectServer1 = (state: RootState): IServerConnection | undefined => state.servers.value[1];
+export const selectServer2 = (state: RootState): IServerConnection | undefined => state.servers.value[2];
 
-export const { setServer, setServerConnectionStatus, unsetServer } = serverSlice.actions;
+export const { setServer, unsetServer } = serverSlice.actions;
 
 export default serverSlice.reducer;

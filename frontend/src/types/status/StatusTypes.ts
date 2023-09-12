@@ -6,5 +6,5 @@ export enum CONNECTION_STATUS {
 
 export interface IServerConnection {
     id: string;
-    status: CONNECTION_STATUS;
+    status: CONNECTION_STATUS.CONNECTED | CONNECTION_STATUS.CONNECTING;
 }

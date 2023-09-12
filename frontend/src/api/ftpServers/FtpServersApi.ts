@@ -1,3 +1,4 @@
+import { IFileInfo } from '../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../types/ftpServers/FtpServersTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
@@ -8,5 +9,16 @@ export class FtpServersApi {
 
     public static async getFtpServers(options?: IRequestOptions): Promise<IFtpServer[]> {
         return AuthenticatedApiClient.get<IFtpServer[]>(this.serversApiUrl, options);
+    }
+
+    // Actions
+    public static async connect(serverId: string, password: string, options?: IRequestOptions): Promise<IFileInfo[]> {
+        const url = this.serversApiUrl + serverId + '/actions/connect';
+        return AuthenticatedApiClient.post<IFileInfo[], { password: string }>(url, { password }, options);
+    }
+
+    public static async disconnect(serverId: string, options?: IRequestOptions): Promise<IFileInfo[]> {
+        const url = this.serversApiUrl + serverId + '/actions/disconnect';
+        return AuthenticatedApiClient.post(url, null, options);
     }
 }
