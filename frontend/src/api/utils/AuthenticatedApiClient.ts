@@ -25,16 +25,16 @@ export abstract class AuthenticatedApiClient {
         return response.data;
     }
 
-    private static async tryAuthenticatedRequest<T>(fn: () => Promise<AxiosResponse<T>>): Promise<AxiosResponse<T>> {
+    private static async tryAuthenticatedRequest<T>(fn: () => Promise<AxiosResponse<T>>, alreadyRefreshed = false): Promise<AxiosResponse<T>> {
         try {
             return await fn();
         } catch (e) {
             if (e instanceof AxiosError) {
                 const errorDetails = parseAxiosError(e);
-                if (errorDetails.status === 401) {
+                if (errorDetails.status === 401 && errorDetails.message === 'Unauthorized' && !alreadyRefreshed) {
                     AuthFacade.clearToken('accessToken');
                     await this.refreshTokens();
-                    return await fn();
+                    return await this.tryAuthenticatedRequest(fn, true);
                 }
                 throw new BrigFrontError(HTTP_STATUS_CODES_TO_ERROR_CODE[errorDetails.status], errorDetails.message);
             }
@@ -53,7 +53,7 @@ export abstract class AuthenticatedApiClient {
         } catch (e) {
             if (e instanceof AxiosError) {
                 const errorDetails = parseAxiosError(e);
-                if (errorDetails.status === 401) {
+                if (errorDetails.status === 401 && errorDetails.message === 'Unauthorized') {
                     AuthFacade.clearToken('refreshToken');
                 }
                 throw new BrigFrontError(HTTP_STATUS_CODES_TO_ERROR_CODE[errorDetails.status], errorDetails.message);
