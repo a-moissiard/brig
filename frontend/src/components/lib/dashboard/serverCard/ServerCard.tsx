@@ -10,6 +10,7 @@ import {
     InputLabel,
     List,
     ListItem,
+    ListItemButton,
     ListItemIcon,
     ListItemText,
     ListSubheader,
@@ -24,7 +25,7 @@ import { FunctionComponent, useState } from 'react';
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hooks';
-import { FileType } from '../../../../types/ftpServers/FileInfoTypes';
+import { FileType, IFileInfo } from '../../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';
 import { CONNECTION_STATUS } from '../../../../types/status/StatusTypes';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../../utils/error/BrigFrontError';
@@ -46,6 +47,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
     const [error, setError] = useState<string>();
     const [controller, setController] = useState(() => new AbortController());
+
+    const [selectedFile, setSelectedFile] = useState<IFileInfo>();
 
     const selectServer = (event: SelectChangeEvent): void => {
         setSelectedServerId(event.target.value);
@@ -174,15 +177,20 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         <ListSubheader className="listSubHeader">
                             Files
                         </ListSubheader>
-                        {serverConnection.fileList.map(file => (
-                            <ListItem key={file.name + '_' + file.size}>
-                                <ListItemIcon>
-                                    {file.type === FileType.Directory ? (<FolderIcon />) : (<DescriptionIcon />)}
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={file.name}
-                                />
-                            </ListItem>
+                        {serverConnection.fileList.map((file) => (
+                            <ListItemButton
+                                key={file.name + '_' + file.size}
+                                selected={selectedFile === file}
+                                onClick={(): void => setSelectedFile(file)}>
+                                <ListItem>
+                                    <ListItemIcon>
+                                        {file.type === FileType.Directory ? (<FolderIcon />) : (<DescriptionIcon />)}
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={file.name}
+                                    />
+                                </ListItem>
+                            </ListItemButton>
                         ))}
                     </List>
                 </Box>
