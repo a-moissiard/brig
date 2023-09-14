@@ -1,12 +1,33 @@
-import { Box, Button, Card, CardContent, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from '@mui/material';
-import { FunctionComponent, useRef, useState } from 'react';
+import DescriptionIcon from '@mui/icons-material/Description';
+import FolderIcon from '@mui/icons-material/Folder';
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Divider,
+    FormControl,
+    InputLabel,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    ListSubheader,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    TextField,
+    Typography,
+} from '@mui/material';
+import { FunctionComponent, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hooks';
+import { FileType } from '../../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';
 import { CONNECTION_STATUS } from '../../../../types/status/StatusTypes';
-import { BrigFrontError } from '../../../../utils/error/BrigFrontError';
+import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../../utils/error/BrigFrontError';
 import ServerStatus from './ServerStatus';
 
 import './serverCard.scss';
@@ -20,11 +41,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const dispatch = useAppDispatch();
 
     const serverConnection = useAppSelector(serverNumber === 1 ? selectServer1 : selectServer2);
+
     const [selectedServerId, setSelectedServerId] = useState('');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
-
     const [error, setError] = useState<string>();
-    const controller = useRef(new AbortController());
+    const [controller, setController] = useState(() => new AbortController());
+
+    const selectServer = (event: SelectChangeEvent): void => {
+        setSelectedServerId(event.target.value);
+    };
 
     const onConnect = async (): Promise<void> => {
         const password = selectedServerPassword;
@@ -35,24 +60,28 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             data: {
                 id: selectedServerId,
                 status: CONNECTION_STATUS.CONNECTING,
+                fileList: [],
             },
         }));
         try {
-            const fileList = await FtpServersApi.connect(selectedServerId, password, {
-                signal: controller.current.signal,
+            const { workingDir, list } = await FtpServersApi.connect(selectedServerId, password, {
+                signal: controller.signal,
             });
-            // TODO: use filelist
             dispatch(setServer({
                 serverNumber,
                 data: {
                     id: selectedServerId,
                     status: CONNECTION_STATUS.CONNECTED,
+                    workingDir,
+                    fileList: list,
                 },
             }));
         } catch (e) {
             dispatch(unsetServer(serverNumber));
             if (e instanceof BrigFrontError) {
-                setError(e.message);
+                if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
+                    setError(e.message);
+                }
             } else {
                 setError(`Unknown error: ${JSON.stringify(e, null, 2)}`);
             }
@@ -60,7 +89,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     };
 
     const onCancel = (): void => {
-        controller.current.abort();
+        controller.abort();
+        setController(new AbortController());
         dispatch(unsetServer(serverNumber));
     };
 
@@ -69,66 +99,94 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         dispatch(unsetServer(serverNumber));
     };
 
-    const selectServer = (event: SelectChangeEvent): void => {
-        setSelectedServerId(event.target.value);
-    };
     return <Card>
         <CardContent className="serverCard">
-            <Box className="serverCard__header">
+            <Box className="header">
                 <Typography variant="h6">
                     Server {serverNumber}
                 </Typography>
                 <ServerStatus status={serverConnection?.status}/>
             </Box>
-            <Box className="serverCard__serverConnection">
-                <FormControl className="serverCard__serverConnectionSelect">
-                    <InputLabel>Server</InputLabel>
-                    <Select
-                        value={selectedServerId}
-                        label="Server"
-                        onChange={selectServer}
+            <Box className="connection">
+                <Box className="connectionParams">
+                    <FormControl className="connectionParams__select">
+                        <InputLabel>Server</InputLabel>
+                        <Select
+                            value={selectedServerId}
+                            label="Server"
+                            onChange={selectServer}
+                            disabled={serverConnection !== undefined}
+                        >
+                            {ftpServerList.map(server => (
+                                <MenuItem key={server.id} value={server.id}>
+                                    {`${server.username}@${server.host}:${server.port}`}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        label="Password"
+                        type="password"
+                        required
+                        value={selectedServerPassword}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>): void => {
+                            setSelectedServerPassword(event.target.value);
+                        }}
                         disabled={serverConnection !== undefined}
-                    >
-                        {ftpServerList.map(server => (
-                            <MenuItem key={server.id} value={server.id}>
-                                {`${server.username}@${server.host}:${server.port}`}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <TextField
-                    className="serverCard__serverConnectionPassword"
-                    label="Password"
-                    type="password"
-                    required
-                    value={selectedServerPassword}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>): void => {
-                        setSelectedServerPassword(event.target.value);
-                    }}
-                />
-                {serverConnection?.status === CONNECTION_STATUS.CONNECTED
-                    ? (<Button
-                        className="serverCard__serverConnectionButton"
-                        variant='contained'
-                        onClick={onDisconnect}>
-                        Disconnect
-                    </Button>)
-                    : serverConnection?.status === CONNECTION_STATUS.CONNECTING
+                    />
+                    {serverConnection?.status === CONNECTION_STATUS.CONNECTED
                         ? (<Button
-                            className="serverCard__serverConnectionButton"
+                            className="connectionParams__button"
                             variant='contained'
-                            onClick={onCancel}>
-                            Cancel
+                            onClick={onDisconnect}>
+                        Disconnect
                         </Button>)
-                        : (<Button
-                            className="serverCard__serverConnectionButton"
-                            variant='contained'
-                            disabled={selectedServerId === ''}
-                            onClick={onConnect}>
+                        : serverConnection?.status === CONNECTION_STATUS.CONNECTING
+                            ? (<Button
+                                className="connectionParams__button"
+                                variant='contained'
+                                onClick={onCancel}>
+                            Cancel
+                            </Button>)
+                            : (<Button
+                                className="connectionParams__button"
+                                variant='contained'
+                                disabled={selectedServerId === ''}
+                                onClick={onConnect}>
                                 Connect
-                        </Button>)}
+                            </Button>)
+                    }
+                </Box>
+                {error && (
+                    <Typography
+                        className="connectionError"
+                        component='h6'
+                        color='error'>
+                        {error}
+                    </Typography>
+                )}
             </Box>
-            {error && (<Typography component='h6' color='red'>{error}</Typography>)}
+            {serverConnection && serverConnection.status === CONNECTION_STATUS.CONNECTED && (
+                <Box className="listing">
+                    <Divider className="divider" variant="middle" />
+                    <TextField variant='standard' label='Current Directory' value={serverConnection.workingDir} disabled />
+                    <List dense>
+                        <ListSubheader className="listSubHeader">
+                            Files
+                        </ListSubheader>
+                        {serverConnection.fileList.map(file => (
+                            <ListItem key={file.name + '_' + file.size}>
+                                <ListItemIcon>
+                                    {file.type === FileType.Directory ? (<FolderIcon />) : (<DescriptionIcon />)}
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={file.name}
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            )}
         </CardContent>
     </Card>;
 };
