@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, CanceledError } from 'axios';
 
 import { AuthFacade } from '../../utils/auth/AuthFacade';
-import { BrigFrontError, HTTP_STATUS_CODES_TO_ERROR_CODE } from '../../utils/error/BrigFrontError';
+import { BRIG_FRONT_ERROR_CODE, BrigFrontError, HTTP_STATUS_CODES_TO_ERROR_CODE } from '../../utils/error/BrigFrontError';
 import { IAuthTokens } from '../auth';
 import { config } from '../config';
 import { IAxiosRequestOptions } from './ApiClientTypes';
@@ -29,6 +29,9 @@ export abstract class AuthenticatedApiClient {
         try {
             return await fn();
         } catch (e) {
+            if (e instanceof CanceledError) {
+                throw new BrigFrontError(BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED, 'Request canceled');
+            }
             if (e instanceof AxiosError) {
                 const errorDetails = parseAxiosError(e);
                 if (errorDetails.status === 401 && errorDetails.message === 'Unauthorized' && !alreadyRefreshed) {
