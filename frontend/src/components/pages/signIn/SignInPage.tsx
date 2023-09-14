@@ -83,7 +83,7 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
                         autoComplete="current-password"
                         error={error !== undefined}
                     />
-                    {error && (<Typography component='h6' color='red'>{error}</Typography>)}
+                    {error && (<Typography component='h6' color='error'>{error}</Typography>)}
                     <Button
                         type="submit"
                         fullWidth
