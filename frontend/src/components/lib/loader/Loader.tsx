@@ -10,6 +10,7 @@ const Loader: FunctionComponent<ILoaderProps> = ({ loading, size }) =>
     <PuffLoader
         loading={loading}
         size={size}
+        color='white'
     />;
 
 export default Loader;
