@@ -38,6 +38,13 @@ export class FtpServersHandler {
         res.send(servers);
     }
 
+    async listUserConnectedServers(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const userConnectedServers = await this.ftpServersService.getUserConnectedServers(requester);
+
+        res.send(userConnectedServers);
+    }
+
     async getServer(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;

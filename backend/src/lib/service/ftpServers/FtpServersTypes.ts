@@ -1,3 +1,5 @@
+import { IFileInfo } from '../ftpUtils';
+
 interface IFtpServerBaseModel {
     host: string;
     port: number;
@@ -10,4 +12,10 @@ export type IFtpServerUpdateModel = Partial<IFtpServerBaseModel>;
 export interface IFtpServerModel extends IFtpServerBaseModel {
     id: string;
     ownerId: string;
+}
+
+export interface IFtpServerConnectionStateModel {
+    server: IFtpServerModel;
+    workingDir: string;
+    files: IFileInfo[];
 }

@@ -15,7 +15,7 @@ interface IFtpClientDependencies {
 }
 
 export class FtpClient {
-    private readonly ftpServer: IFtpServerModel;
+    public readonly ftpServer: IFtpServerModel;
     private readonly basicFtpClient: ftp.Client;
     private readonly fileInfoCache: LRUCache<string, IFileInfo>;
 

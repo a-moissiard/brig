@@ -28,6 +28,7 @@ export class FtpServersRouter {
         this.router.get('/', asyncHandler(this.ftpServersHandler.listUserServers.bind(this.ftpServersHandler)));
         this.router.post('/', checkSchema(ftpServersCreateBodySchema), validate, asyncHandler(this.ftpServersHandler.createServer.bind(this.ftpServersHandler)));
         this.router.get('/all', asyncHandler(this.ftpServersHandler.listAllServers.bind(this.ftpServersHandler)));
+        this.router.get('/connected', asyncHandler(this.ftpServersHandler.listUserConnectedServers.bind(this.ftpServersHandler)));
         this.router.get('/:serverId', asyncHandler(this.ftpServersHandler.getServer.bind(this.ftpServersHandler)));
         this.router.put('/:serverId', checkSchema(ftpServersUpdateBodySchema), validate, asyncHandler(this.ftpServersHandler.updateServer.bind(this.ftpServersHandler)));
         this.router.delete('/:serverId', asyncHandler(this.ftpServersHandler.deleteServer.bind(this.ftpServersHandler)));

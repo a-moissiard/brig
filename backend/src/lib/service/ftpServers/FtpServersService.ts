@@ -8,7 +8,7 @@ import { IRequester } from '../authorizations';
 import { FtpClient, IFileInfo } from '../ftpUtils';
 import { FtpServersAuthorizationsEnforcer } from './FtpServersAuthorizationsEnforcer';
 import { FtpServersDao } from './FtpServersDao';
-import { IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
+import { IFtpServerConnectionStateModel, IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
 
 interface IFtpServersServiceDependencies {
     ftpServersDao: FtpServersDao;
@@ -129,7 +129,7 @@ export class FtpServersService {
         if (!fileInfo) {
             throw new BrigError(BRIG_ERROR_CODE.FTP_PATH_DOES_NOT_EXIST, `No file or directory exist at path='${path}'`);
         }
-        
+
         if (fileInfo.type === FileType.File) {
             await this.transferFile(requester, sourceClient, destinationClient, fileInfo);
         } else if (fileInfo.type === FileType.Directory) {
@@ -145,6 +145,22 @@ export class FtpServersService {
         if (ptStream) {
             ptStream.destroy();
         }
+    }
+
+    public async getUserConnectedServers(requester: IRequester): Promise<IFtpServerConnectionStateModel[]> {
+        const userClients = this.usersClients.get(requester.id);
+        if (userClients) {
+            const connectedServers = [];
+            for (let client of Object.values(userClients)) {
+                connectedServers.push({
+                    server: client.ftpServer,
+                    workingDir: await client.pwd(),
+                    files: await client.list(),
+                });
+            }
+            return connectedServers;
+        }
+        return [];
     }
 
     private async transferFile(requester: IRequester, sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {
