@@ -1,3 +1,5 @@
+import { IFileInfo } from './FileInfoTypes';
+
 interface IFtpServerBase {
     host: string;
     port: number;
@@ -10,4 +12,10 @@ export type IFtpServerUpdate = Partial<IFtpServerBase>;
 export interface IFtpServer extends IFtpServerBase {
     id: string;
     ownerId: string;
+}
+
+export interface IFtpServerConnectionStateModel {
+    server: IFtpServer;
+    workingDir: string;
+    files: IFileInfo[];
 }

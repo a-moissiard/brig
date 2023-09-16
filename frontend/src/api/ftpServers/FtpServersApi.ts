@@ -1,4 +1,4 @@
-import { IFtpServer } from '../../types/ftpServers/FtpServersTypes';
+import { IFtpServer, IFtpServerConnectionStateModel } from '../../types/ftpServers/FtpServersTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
 import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
@@ -9,6 +9,11 @@ export class FtpServersApi {
 
     public static async getFtpServers(options?: IRequestOptions): Promise<IFtpServer[]> {
         return AuthenticatedApiClient.get<IFtpServer[]>(this.serversApiUrl, options);
+    }
+
+    public static async getUserConnectedServers(options?: IRequestOptions): Promise<IFtpServerConnectionStateModel[]> {
+        const url = this.serversApiUrl + 'connected';
+        return AuthenticatedApiClient.get<IFtpServerConnectionStateModel[]>(url, options);
     }
 
     // Actions

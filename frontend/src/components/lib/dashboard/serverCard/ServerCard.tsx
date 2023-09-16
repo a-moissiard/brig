@@ -20,7 +20,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
@@ -43,12 +43,18 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const serverConnection = useAppSelector(serverNumber === 1 ? selectServer1 : selectServer2);
 
-    const [selectedServerId, setSelectedServerId] = useState('');
+    const [selectedServerId, setSelectedServerId] = useState(serverConnection?.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
     const [error, setError] = useState<string>();
     const [controller, setController] = useState(() => new AbortController());
 
     const [selectedFile, setSelectedFile] = useState<IFileInfo>();
+
+    useEffect(() => {
+        if (serverConnection && selectedServerId === '') {
+            setSelectedServerId(serverConnection.id);
+        }
+    }, [serverConnection]);
 
     const selectServer = (event: SelectChangeEvent): void => {
         setSelectedServerId(event.target.value);
