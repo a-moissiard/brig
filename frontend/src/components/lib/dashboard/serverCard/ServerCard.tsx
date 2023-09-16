@@ -23,7 +23,7 @@ import {
     Typography,
 } from '@mui/material';
 import _ from 'lodash';
-import { FunctionComponent, useEffect, useState } from 'react';
+import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
@@ -64,7 +64,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         setSelectedServerId(event.target.value);
     };
 
-    const onConnect = async (): Promise<void> => {
+    const onConnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+        event.preventDefault();
         const password = selectedServerPassword;
         setSelectedServerPassword('');
         setError(undefined);
@@ -101,13 +102,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         }
     };
 
-    const onCancel = (): void => {
+    const onCancel = (event: FormEvent<HTMLFormElement>): void => {
+        event.preventDefault();
         controller.abort();
         setController(new AbortController());
         dispatch(unsetServer(serverNumber));
     };
 
-    const onDisconnect = async (): Promise<void> => {
+    const onDisconnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+        event.preventDefault();
         controller.abort();
         setController(new AbortController());
         await FtpServersApi.disconnect(selectedServerId);
@@ -193,38 +196,32 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             ))}
                         </Select>
                     </FormControl>
-                    <TextField
-                        label="Password"
-                        type="password"
-                        required
-                        value={selectedServerPassword}
-                        onChange={(event: React.ChangeEvent<HTMLInputElement>): void => {
-                            setSelectedServerPassword(event.target.value);
-                        }}
-                        disabled={serverConnection !== undefined}
-                    />
-                    {serverConnection?.status === CONNECTION_STATUS.CONNECTED
-                        ? (<Button
-                            className="connectionParams__button"
-                            variant='contained'
-                            onClick={onDisconnect}>
-                        Disconnect
-                        </Button>)
-                        : serverConnection?.status === CONNECTION_STATUS.CONNECTING
-                            ? (<Button
-                                className="connectionParams__button"
-                                variant='contained'
-                                onClick={onCancel}>
-                            Cancel
-                            </Button>)
-                            : (<Button
-                                className="connectionParams__button"
-                                variant='contained'
-                                disabled={selectedServerId === ''}
-                                onClick={onConnect}>
-                                Connect
-                            </Button>)
-                    }
+                    <Box component="form"
+                        className="connectionParams__form"
+                        onSubmit={serverConnection?.status === CONNECTION_STATUS.CONNECTED
+                            ? onDisconnect
+                            : serverConnection?.status === CONNECTION_STATUS.CONNECTING
+                                ? onCancel : onConnect}>
+                        <TextField
+                            label="Password"
+                            type="password"
+                            required
+                            value={selectedServerPassword}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>): void => {
+                                setSelectedServerPassword(event.target.value);
+                            }}
+                            disabled={serverConnection !== undefined}
+                        />
+                        <Button
+                            type='submit'
+                            className="connectionParams__formButton"
+                            variant='contained'>
+                            {serverConnection?.status === CONNECTION_STATUS.CONNECTED
+                                ? 'Disconnect'
+                                : serverConnection?.status === CONNECTION_STATUS.CONNECTING
+                                    ? 'Cancel' : 'Connect'}
+                        </Button>
+                    </Box>
                 </Box>
                 {error && (
                     <Typography
