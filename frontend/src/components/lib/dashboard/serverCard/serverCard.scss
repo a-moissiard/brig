@@ -39,6 +39,15 @@
       margin-bottom: 15px;
     }
 
+    .navigation {
+      display: flex;
+      align-items: center;
+
+      &__button &__loader {
+        margin-left: 10px;
+      }
+    }
+
     .listSubHeader {
       background-color: transparent;
     }

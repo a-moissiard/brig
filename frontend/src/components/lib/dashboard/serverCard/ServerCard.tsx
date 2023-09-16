@@ -1,3 +1,4 @@
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DescriptionIcon from '@mui/icons-material/Description';
 import FolderIcon from '@mui/icons-material/Folder';
 import {
@@ -5,6 +6,7 @@ import {
     Button,
     Card,
     CardContent,
+    CircularProgress,
     Divider,
     FormControl,
     InputLabel,
@@ -20,6 +22,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
+import _ from 'lodash';
 import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
@@ -49,6 +52,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [controller, setController] = useState(() => new AbortController());
 
     const [selectedFile, setSelectedFile] = useState<IFileInfo>();
+    const [loadingFiles, setLoadingFiles] = useState(false);
 
     useEffect(() => {
         if (serverConnection && selectedServerId === '') {
@@ -104,8 +108,64 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     };
 
     const onDisconnect = async (): Promise<void> => {
+        controller.abort();
+        setController(new AbortController());
         await FtpServersApi.disconnect(selectedServerId);
         dispatch(unsetServer(serverNumber));
+    };
+
+    const onFileItemDoubleClick = async (file: IFileInfo): Promise<void> => {
+        if (file.type === FileType.Directory) {
+            if (serverConnection?.workingDir !== undefined) {
+                const newPath = serverConnection.workingDir === '/'
+                    ? `/${file.name}`
+                    : `${serverConnection.workingDir}/${file.name}`;
+                await listFiles(newPath);
+            } else {
+                setError('Cannot change directory if current directory is undefined'); // Should never happen
+            }
+        } else {
+            setError('Not implemented yet');
+        }
+    };
+
+    const onParentDirClick = async (): Promise<void> => {
+        if (serverConnection?.workingDir !== undefined && serverConnection?.workingDir !== '/') {
+            const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
+            const newPath = `${parentDirWithoutTrailingSlash}/`;
+            await listFiles(newPath);
+        } else {
+            setError('Cannot change directory if current directory is top directory or undefined');
+        }
+    };
+
+    const listFiles = async (path: string): Promise<void> => {
+        try {
+            setLoadingFiles(true);
+            const { workingDir, list } = await FtpServersApi.list(selectedServerId, path, {
+                signal: controller.signal,
+            });
+            setSelectedFile(undefined);
+            dispatch(setServer({
+                serverNumber,
+                data: {
+                    id: selectedServerId,
+                    status: CONNECTION_STATUS.CONNECTED,
+                    workingDir,
+                    fileList: list,
+                },
+            }));
+            setLoadingFiles(false);
+        } catch (e) {
+            if (e instanceof BrigFrontError) {
+                if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
+                    setError(e.message);
+                }
+            } else {
+                setError(`Unknown error: ${JSON.stringify(e, null, 2)}`);
+            }
+            setLoadingFiles(false);
+        }
     };
 
     return <Card>
@@ -178,7 +238,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             {serverConnection && serverConnection.status === CONNECTION_STATUS.CONNECTED && (
                 <Box className="listing">
                     <Divider className="divider" variant="middle" />
-                    <TextField variant='standard' label='Current Directory' value={serverConnection.workingDir} disabled />
+                    <Box className="navigation">
+                        <TextField variant='standard' label='Current Directory' value={serverConnection.workingDir} disabled />
+                        <Button className='navigation__button' onClick={onParentDirClick} sx={{ color: 'text.primary' }}>
+                            <ArrowUpwardIcon />
+                        </Button>
+                        {loadingFiles && (
+                            <CircularProgress className='navigation__loader' size={20} sx={{ color: 'text.primary' }}/>
+                        )}
+                    </Box>
                     <List dense>
                         <ListSubheader className="listSubHeader">
                             Files
@@ -186,8 +254,11 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         {serverConnection.fileList.map((file) => (
                             <ListItemButton
                                 key={file.name + '_' + file.size}
-                                selected={selectedFile === file}
-                                onClick={(): void => setSelectedFile(file)}>
+                                selected={_.isEqual(selectedFile, file)}
+                                disabled={loadingFiles}
+                                onClick={(): void => setSelectedFile(file)}
+                                onDoubleClick={(): Promise<void> => onFileItemDoubleClick(file)}
+                            >
                                 <ListItem>
                                     <ListItemIcon>
                                         {file.type === FileType.Directory ? (<FolderIcon />) : (<DescriptionIcon />)}

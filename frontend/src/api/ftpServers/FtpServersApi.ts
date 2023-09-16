@@ -26,4 +26,9 @@ export class FtpServersApi {
         const url = this.serversApiUrl + serverId + '/actions/disconnect';
         return AuthenticatedApiClient.post(url, null, options);
     }
+
+    public static async list(serverId: string, path: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
+        const url = this.serversApiUrl + serverId + '/actions/list';
+        return AuthenticatedApiClient.post(url, { path }, options);
+    }
 }
