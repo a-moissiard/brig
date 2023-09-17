@@ -23,6 +23,7 @@ import {
     Typography,
 } from '@mui/material';
 import _ from 'lodash';
+import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
@@ -266,6 +267,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                                     </ListItemIcon>
                                     <ListItemText
                                         primary={file.name}
+                                        secondary={file.type === FileType.File ? prettyBytes(file.size) : undefined}
                                     />
                                 </ListItem>
                             </ListItemButton>
