@@ -237,7 +237,11 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     <Divider className="divider" variant="middle" />
                     <Box className="navigation">
                         <TextField variant='standard' label='Current Directory' value={serverConnection.workingDir} disabled />
-                        <Button className='navigation__button' onClick={onParentDirClick} sx={{ color: 'text.primary' }}>
+                        <Button
+                            className='navigation__button'
+                            onClick={onParentDirClick}
+                            disabled={loadingFiles}
+                            sx={{ color: 'text.primary' }}>
                             <ArrowUpwardIcon />
                         </Button>
                         {loadingFiles && (
