@@ -82,14 +82,21 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
                     <Grid xs={12}>
                         <ActivityCard downloading={downloading} />
                     </Grid>
-                    <Grid xs={12} lg={5.5}>
-                        <ServerCard serverNumber={1} ftpServerList={serverList}/>
+                    <Grid xs={12} lg={6}>
+                        <ServerCard
+                            serverNumber={1}
+                            ftpServerList={serverList}
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                        />
                     </Grid>
-                    <Grid xs={12} lg={1}>
-                        {/* TODO: insert transfer buttons here */}
-                    </Grid>
-                    <Grid xs={12} lg={5.5}>
-                        <ServerCard serverNumber={2} ftpServerList={serverList}/>
+                    <Grid xs={12} lg={6}>
+                        <ServerCard
+                            serverNumber={2}
+                            ftpServerList={serverList}
+                            selectedFile={selectedFile}
+                            setSelectedFile={setSelectedFile}
+                        />
                     </Grid>
                 </Grid>
             )}
