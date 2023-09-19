@@ -237,7 +237,14 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                 <Box className="listing">
                     <Divider className="divider" variant="middle" />
                     <Box className="navigation">
-                        <TextField variant='standard' label='Current Directory' value={serverConnection.workingDir} disabled />
+                        <TextField
+                            className='navigation__workingDir'
+                            variant='standard'
+                            label='Current Directory'
+                            value={serverConnection.workingDir}
+                            fullWidth
+                            disabled
+                        />
                         <Button
                             className='navigation__button'
                             onClick={onParentDirClick}
