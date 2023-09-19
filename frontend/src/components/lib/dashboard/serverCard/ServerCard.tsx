@@ -22,7 +22,6 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import _ from 'lodash';
 import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
 
@@ -52,7 +51,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [error, setError] = useState<string>();
     const [controller, setController] = useState(() => new AbortController());
 
-    const [selectedFile, setSelectedFile] = useState<IFileInfo>();
     const [loadingFiles, setLoadingFiles] = useState(false);
 
     useEffect(() => {
@@ -149,7 +147,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             const { workingDir, list } = await FtpServersApi.list(selectedServerId, path, {
                 signal: controller.signal,
             });
-            setSelectedFile(undefined);
             dispatch(setServer({
                 serverNumber,
                 data: {
@@ -263,9 +260,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         {serverConnection.fileList.map((file) => (
                             <ListItemButton
                                 key={file.name + '_' + file.size}
-                                selected={_.isEqual(selectedFile, file)}
                                 disabled={loadingFiles}
-                                onClick={(): void => setSelectedFile(file)}
                                 onDoubleClick={(): Promise<void> => onFileItemDoubleClick(file)}
                             >
                                 <ListItem>

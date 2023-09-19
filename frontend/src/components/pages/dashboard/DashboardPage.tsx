@@ -86,16 +86,12 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
                         <ServerCard
                             serverNumber={1}
                             ftpServerList={serverList}
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
                         />
                     </Grid>
                     <Grid xs={12} lg={6}>
                         <ServerCard
                             serverNumber={2}
                             ftpServerList={serverList}
-                            selectedFile={selectedFile}
-                            setSelectedFile={setSelectedFile}
                         />
                     </Grid>
                 </Grid>
