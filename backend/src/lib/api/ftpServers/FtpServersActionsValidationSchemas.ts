@@ -7,11 +7,13 @@ export interface IConnectBody {
 }
 
 export interface IListBody {
-    path: string;
+    path?: string;
 }
 
-export type ICreateDirBody = IListBody;
-export type ITransferBody = IListBody;
+export type ICreateDirBody = {
+    path: string;
+};
+export type ITransferBody = ICreateDirBody;
 
 export const connectBodySchema: Schema = {
     password: {
@@ -25,11 +27,18 @@ export const listBodySchema: Schema = {
     path: {
         in: 'body',
         isString: true,
-        errorMessage: 'body is expected to contain `path` parameter which must be a string',
+        errorMessage: 'body can contain `path` parameter which must be a string if provided',
+        optional: true,
     },
 };
 
-export const createDirBodySchema = listBodySchema;
+export const createDirBodySchema: Schema = {
+    path: {
+        in: 'body',
+        isString: true,
+        errorMessage: 'body is expected to contain `path` parameter which must be a string',
+    },
+};
 export const transferBodySchema: Schema = {
     path: {
         in: 'body',

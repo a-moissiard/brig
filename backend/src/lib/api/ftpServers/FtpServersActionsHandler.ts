@@ -45,7 +45,9 @@ export class FtpServersActionsHandler {
         const { serverId } = req.params;
         const { path } = extractValidatedData<IListBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.cd(requester, serverId, path);
+        if (path) {
+            await this.ftpServersService.cd(requester, serverId, path);
+        }
         const list = await this.ftpServersService.list(requester, serverId);
         const workingDir = await this.ftpServersService.pwd(requester, serverId);
 
