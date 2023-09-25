@@ -5,6 +5,7 @@ import { FunctionComponent, useEffect, useState } from 'react';
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/server/serverSlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { IFileInfo } from '../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftpServers/FtpServersTypes';
 import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
 import ActivityCard from '../../lib/dashboard/activityCard/ActivityCard';
@@ -26,6 +27,17 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
 
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
+
+    const onTransfer = async (serverNumber: number, file: IFileInfo): Promise<void> => {
+        if (server1Connection && server2Connection) {
+            if (serverNumber === 1) {
+                await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
+            } else {
+                await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
+            }
+            setDownloading(true);
+        }
+    };
 
     useEffect(() => {
         const controller = new AbortController();
@@ -86,12 +98,16 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
                         <ServerCard
                             serverNumber={1}
                             ftpServerList={serverList}
+                            canTransfer={server2Connection?.status === CONNECTION_STATUS.CONNECTED}
+                            onTransfer={onTransfer}
                         />
                     </Grid>
                     <Grid xs={12} lg={6}>
                         <ServerCard
                             serverNumber={2}
                             ftpServerList={serverList}
+                            canTransfer={server1Connection?.status === CONNECTION_STATUS.CONNECTED}
+                            onTransfer={onTransfer}
                         />
                     </Grid>
                 </Grid>

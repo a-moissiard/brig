@@ -10,10 +10,15 @@ export interface IActivityCardProps {
 const ActivityCard: FunctionComponent<IActivityCardProps> = ({ downloading }) => <Card>
     <CardContent className="activityCard">
         <Typography variant="h6">
-            Downloads
+            Activity
         </Typography>
         {downloading
-            ? <>TODO</>
+            ? <Typography variant="body1" align='center' sx={{
+                color: 'text.primary',
+                fontStyle: 'italic',
+            }}>
+                Downloading
+            </Typography>
             : <Typography variant="body2" align='center' sx={{
                 color: 'text.secondary',
                 fontStyle: 'italic',

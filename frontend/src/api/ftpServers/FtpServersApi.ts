@@ -31,4 +31,9 @@ export class FtpServersApi {
         const url = this.serversApiUrl + serverId + '/actions/list';
         return AuthenticatedApiClient.post(url, { path }, options);
     }
+
+    public static async transfer(sourceServerId: string, path: string, destinationServerId: string, options?: IRequestOptions): Promise<void> {
+        const url = this.serversApiUrl + sourceServerId + '/actions/transfer/' + destinationServerId;
+        await AuthenticatedApiClient.post(url, { path }, options);
+    }
 }

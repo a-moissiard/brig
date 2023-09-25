@@ -16,6 +16,7 @@ import {
     ListItemIcon,
     ListItemText,
     ListSubheader,
+    Menu,
     MenuItem,
     Select,
     SelectChangeEvent,
@@ -23,7 +24,7 @@ import {
     Typography,
 } from '@mui/material';
 import prettyBytes from 'pretty-bytes';
-import { FormEvent, FunctionComponent, useEffect, useState } from 'react';
+import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
@@ -39,9 +40,11 @@ import './serverCard.scss';
 interface IServerCardProps {
     serverNumber: 1 | 2;
     ftpServerList: IFtpServer[];
+    canTransfer: boolean;
+    onTransfer: (serverNumber: number, file: IFileInfo) => Promise<void>;
 }
 
-const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServerList }) => {
+const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServerList, canTransfer, onTransfer }) => {
     const dispatch = useAppDispatch();
 
     const serverConnection = useAppSelector(serverNumber === 1 ? selectServer1 : selectServer2);
@@ -49,9 +52,25 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [selectedServerId, setSelectedServerId] = useState(serverConnection?.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
     const [error, setError] = useState<string>();
+    let errorTimer: NodeJS.Timeout;
     const [controller, setController] = useState(() => new AbortController());
 
     const [loadingFiles, setLoadingFiles] = useState(false);
+
+    const [contextMenu, setContextMenu] = useState<{
+        fileId: string;
+        mouseX: number;
+        mouseY: number;
+    } | null>(null);
+
+    const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
+        setError(error);
+        errorTimer = setTimeout(() => {
+            setError(undefined);
+        }, timeout);
+    };
+
+    useEffect(() => () => clearTimeout(errorTimer), []);
 
     useEffect(() => {
         if (serverConnection && selectedServerId === '') {
@@ -67,7 +86,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         event.preventDefault();
         const password = selectedServerPassword;
         setSelectedServerPassword('');
-        setError(undefined);
+        if (error) {
+            setError(undefined);
+        }
         dispatch(setServer({
             serverNumber,
             data: {
@@ -93,10 +114,10 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             dispatch(unsetServer(serverNumber));
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
-                    setError(e.message);
+                    setErrorWithTimeout(e.message);
                 }
             } else {
-                setError(`Unknown error: ${JSON.stringify(e, null, 2)}`);
+                setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
             }
         }
     };
@@ -124,11 +145,36 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     : `${serverConnection.workingDir}/${file.name}`;
                 await listFiles(newPath);
             } else {
-                setError('Cannot change directory if current directory is undefined'); // Should never happen
+                setErrorWithTimeout('Cannot change directory if current directory is undefined'); // Should never happen
             }
         } else {
-            setError('Not implemented yet');
+            await transfer(file);
         }
+    };
+    
+    const onFileItemRightClick = (event: MouseEvent, file: IFileInfo): void => {
+        event.preventDefault();
+        setContextMenu(contextMenu === null
+            ? {
+                fileId: `${file.name}_${file.size}`,
+                mouseX: event.clientX + 2,
+                mouseY: event.clientY - 6,
+            }
+            : null,
+        );
+    };
+
+    const onTransferMenuItemClick = async (file: IFileInfo): Promise<void> => {
+        setContextMenu(null);
+        await transfer(file);
+    };
+
+    const transfer = async (file: IFileInfo): Promise<void> => {
+        if (!canTransfer) {
+            setErrorWithTimeout('Both servers must be connected for transfer');
+            return;
+        }
+        await onTransfer(serverNumber, file);
     };
 
     const onParentDirClick = async (): Promise<void> => {
@@ -137,7 +183,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             const newPath = `${parentDirWithoutTrailingSlash}/`;
             await listFiles(newPath);
         } else {
-            setError('Cannot change directory if current directory is top directory or undefined');
+            setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
         }
     };
 
@@ -160,10 +206,10 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         } catch (e) {
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
-                    setError(e.message);
+                    setErrorWithTimeout(e.message);
                 }
             } else {
-                setError(`Unknown error: ${JSON.stringify(e, null, 2)}`);
+                setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
             }
             setLoadingFiles(false);
         }
@@ -205,7 +251,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             type="password"
                             required
                             value={selectedServerPassword}
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>): void => {
+                            onChange={(event): void => {
                                 setSelectedServerPassword(event.target.value);
                             }}
                             disabled={serverConnection !== undefined}
@@ -262,6 +308,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                                 key={file.name + '_' + file.size}
                                 disabled={loadingFiles}
                                 onDoubleClick={(): Promise<void> => onFileItemDoubleClick(file)}
+                                onContextMenu={(event): void => onFileItemRightClick(event, file)}
                             >
                                 <ListItem>
                                     <ListItemIcon>
@@ -272,6 +319,19 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                                         secondary={file.type === FileType.File ? prettyBytes(file.size) : undefined}
                                     />
                                 </ListItem>
+                                <Menu
+                                    variant='menu'
+                                    open={contextMenu !== null && contextMenu.fileId === `${file.name}_${file.size}`}
+                                    onClose={(): void => setContextMenu(null)}
+                                    anchorReference="anchorPosition"
+                                    anchorPosition={
+                                        contextMenu !== null
+                                            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                                            : undefined
+                                    }
+                                >
+                                    <MenuItem onClick={(): Promise<void> => onTransferMenuItemClick(file)}>Transfer</MenuItem>
+                                </Menu>
                             </ListItemButton>
                         ))}
                     </List>
