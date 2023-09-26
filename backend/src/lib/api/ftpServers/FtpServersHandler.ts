@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
-import { buildRequester } from '../utils';
+import { buildRequester, sendEventFactory } from '../utils';
 
 interface IFtpServersHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -71,5 +71,23 @@ export class FtpServersHandler {
         await this.ftpServersService.deleteServer(requester, serverId);
 
         res.send();
+    }
+
+    async trackProgress(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        const sendEvent = sendEventFactory(res);
+
+        await this.ftpServersService.registerSendEventCallback(requester, sendEvent);
+
+        res.on('close', async () => {
+            await this.ftpServersService.unregisterSendEventCallback(requester);
+            res.end();
+        });
     }
 }

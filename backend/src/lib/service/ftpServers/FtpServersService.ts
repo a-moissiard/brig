@@ -21,6 +21,7 @@ export class FtpServersService {
 
     private readonly usersClients: Map<string, Record<string, FtpClient>>;
     private readonly usersStreams: Map<string, PassThrough>;
+    private readonly usersSendEventCallback: Map<string, (data: Object) => void>;
 
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
@@ -28,6 +29,7 @@ export class FtpServersService {
 
         this.usersClients = new Map();
         this.usersStreams = new Map();
+        this.usersSendEventCallback = new Map();
     }
 
     // CRUD
@@ -71,9 +73,17 @@ export class FtpServersService {
     public async connect(requester: IRequester, serverId: string, password: string): Promise<void> {
         const server = await this.ftpServersDao.getServer(serverId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServer(requester, server);
+
         const client = new FtpClient({ ftpServer: server });
         this.setClient(requester, serverId, client);
+
         await client.connect(password);
+
+        // If progress tracking has been required, track progress for this newly created client
+        const sendEventCallback = this.usersSendEventCallback.get(requester.id);
+        if (sendEventCallback) {
+            await client.trackProgress(sendEventCallback);
+        }
     }
 
     public async disconnect(requester: IRequester, serverId: string): Promise<void> {
@@ -109,12 +119,21 @@ export class FtpServersService {
         await client.cd(originalDir);
     }
 
-    public async trackProgress(requester: IRequester, serverId: string, sendEvent: (data: Object) => void): Promise<void> {
-        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+    public async registerSendEventCallback(requester: IRequester, sendEvent: (data: Object) => void): Promise<void> {
+        // Register the callback so all future clients will be able to track progress immediately
+        this.usersSendEventCallback.set(requester.id, sendEvent);
 
-        const client = this.getClient(requester, serverId);
+        // Track progress for all already existing clients
+        const userClients = this.usersClients.get(requester.id);
+        if (userClients) {
+            for (let client of Object.values(userClients)) {
+                await client.trackProgress(sendEvent);
+            }
+        }
+    }
 
-        await client.trackProgress(sendEvent);
+    public async unregisterSendEventCallback(requester: IRequester): Promise<void> {
+        this.usersSendEventCallback.delete(requester.id);
     }
 
     public async transfer(requester: IRequester, sourceServerId: string, destinationServerId: string, path: string) : Promise<void> {

@@ -96,6 +96,7 @@ export class FtpClient {
                     progress = (info.bytes / file.size) * 100;
                 }
                 sendEvent(_.omitBy({
+                    serverId: this.ftpServer.id,
                     name: info.name,
                     type: info.type,
                     bytes: info.bytes,
