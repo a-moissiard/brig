@@ -1,6 +1,7 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import DescriptionIcon from '@mui/icons-material/Description';
 import FolderIcon from '@mui/icons-material/Folder';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import {
     Box,
     Button,
@@ -137,6 +138,20 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         dispatch(unsetServer(serverNumber));
     };
 
+    const onParentDirClick = async (): Promise<void> => {
+        if (serverConnection?.workingDir !== undefined && serverConnection?.workingDir !== '/') {
+            const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
+            const newPath = `${parentDirWithoutTrailingSlash}/`;
+            await listFiles(newPath);
+        } else {
+            setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
+        }
+    };
+
+    const onRefreshFileListClick = async (): Promise<void> => {
+        await listFiles();
+    };
+
     const onFileItemDoubleClick = async (file: IFileInfo): Promise<void> => {
         if (file.type === FileType.Directory) {
             if (serverConnection?.workingDir !== undefined) {
@@ -177,17 +192,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         await onTransfer(serverNumber, file);
     };
 
-    const onParentDirClick = async (): Promise<void> => {
-        if (serverConnection?.workingDir !== undefined && serverConnection?.workingDir !== '/') {
-            const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
-            const newPath = `${parentDirWithoutTrailingSlash}/`;
-            await listFiles(newPath);
-        } else {
-            setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
-        }
-    };
-
-    const listFiles = async (path: string): Promise<void> => {
+    const listFiles = async (path?: string): Promise<void> => {
         try {
             setLoadingFiles(true);
             const { workingDir, list } = await FtpServersApi.list(selectedServerId, path, {
@@ -294,6 +299,13 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             disabled={loadingFiles}
                             sx={{ color: 'text.primary' }}>
                             <ArrowUpwardIcon />
+                        </Button>
+                        <Button
+                            className='navigation__button'
+                            onClick={onRefreshFileListClick}
+                            disabled={loadingFiles}
+                            sx={{ color: 'text.primary' }}>
+                            <RefreshIcon />
                         </Button>
                         {loadingFiles && (
                             <CircularProgress className='navigation__loader' size={20} sx={{ color: 'text.primary' }}/>

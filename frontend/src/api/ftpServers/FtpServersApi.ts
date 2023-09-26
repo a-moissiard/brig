@@ -29,7 +29,7 @@ export class FtpServersApi {
         return AuthenticatedApiClient.post(url, null, options);
     }
 
-    public static async list(serverId: string, path: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
+    public static async list(serverId: string, path?: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
         const url = this.serversApiUrl + serverId + '/actions/list';
         return AuthenticatedApiClient.post(url, { path }, options);
     }

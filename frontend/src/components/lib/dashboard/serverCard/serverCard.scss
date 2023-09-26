@@ -48,8 +48,12 @@
         max-width: 500px;
       }
 
-      &__button &__loader {
+      &__button {
         margin-left: 10px;
+      }
+
+      &__loader  {
+        margin-left: 20px;
       }
     }
 
