@@ -27,7 +27,7 @@ import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
-import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/server/serverSlice';
+import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/serverConnections/serverConnectionsSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hooks';
 import { FileType, IFileInfo } from '../../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';

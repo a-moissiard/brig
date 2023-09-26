@@ -3,7 +3,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
-import { selectServer1, selectServer2, setServer } from '../../../redux/features/server/serverSlice';
+import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftpServers/FtpServersTypes';

@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import serversReducer from './features/server/serverSlice';
+import serverConnectionsReducer from './features/serverConnections/serverConnectionsSlice';
 import userReducer from './features/user/userSlice';
 
 export const store = configureStore({
     reducer: {
         user: userReducer,
-        servers: serversReducer,
+        serverConnections: serverConnectionsReducer,
     },
 });
 
