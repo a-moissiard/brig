@@ -4,6 +4,7 @@ import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
+import { setActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftpServers/FtpServersTypes';
@@ -22,20 +23,22 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
 
     const [loading, setLoading] = useState(true);
 
-    const [downloading, setDownloading] = useState(false);
     const [serverList, setServerList] = useState<IFtpServer[]>([]);
 
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
 
-    const onTransfer = async (serverNumber: number, file: IFileInfo): Promise<void> => {
+    const onTransfer = async (serverNumber: 1 | 2, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
             if (serverNumber === 1) {
                 await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
             } else {
                 await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
             }
-            setDownloading(true);
+            dispatch(setActivity({
+                originServer: serverNumber,
+                name: file.name,
+            }));
         }
     };
 
@@ -92,7 +95,7 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
             ) : (
                 <Grid container spacing={4}>
                     <Grid xs={12}>
-                        <ActivityCard downloading={downloading} />
+                        <ActivityCard />
                     </Grid>
                     <Grid xs={12} lg={6}>
                         <ServerCard

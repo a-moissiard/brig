@@ -1,3 +1,4 @@
+import { EventSourceMessage, fetchEventSource } from '@microsoft/fetch-event-source';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, CanceledError } from 'axios';
 
 import { AuthFacade } from '../../utils/auth/AuthFacade';
@@ -7,10 +8,12 @@ import { config } from '../config';
 import { IAxiosRequestOptions } from './ApiClientTypes';
 import { parseAxiosError } from './ApiErrorUtils';
 
+const getAuthorizationHeader = (options?: IAxiosRequestOptions): { Authorization: string } => ({
+    Authorization: 'Bearer ' + AuthFacade.getToken(options?.tokenType || 'accessToken'),
+});
+
 const getAxiosConfig = (options?: IAxiosRequestOptions): AxiosRequestConfig => ({
-    headers: {
-        Authorization: 'Bearer ' + AuthFacade.getToken(options?.tokenType || 'accessToken'),
-    },
+    headers: getAuthorizationHeader(options),
     signal: options?.signal,
 });
 
@@ -23,6 +26,14 @@ export abstract class AuthenticatedApiClient {
     public static async post<T, B>(url: string, body: B, options?: IAxiosRequestOptions): Promise<T> {
         const response = await this.tryAuthenticatedRequest(() => axios.post<T, AxiosResponse<T>, B>(url, body, getAxiosConfig(options)));
         return response.data;
+    }
+
+    public static async openSSE(url: string, method: 'GET' | 'POST', onmessage: (event: EventSourceMessage) => void): Promise<void> {
+        await fetchEventSource(url,  {
+            method,
+            headers: getAuthorizationHeader(),
+            onmessage,
+        });
     }
 
     private static async tryAuthenticatedRequest<T>(fn: () => Promise<AxiosResponse<T>>, alreadyRefreshed = false): Promise<AxiosResponse<T>> {

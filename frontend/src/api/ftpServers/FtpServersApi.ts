@@ -1,3 +1,5 @@
+import { EventSourceMessage } from '@microsoft/fetch-event-source';
+
 import { IFtpServer, IFtpServerConnectionStateModel } from '../../types/ftpServers/FtpServersTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
@@ -35,5 +37,10 @@ export class FtpServersApi {
     public static async transfer(sourceServerId: string, path: string, destinationServerId: string, options?: IRequestOptions): Promise<void> {
         const url = this.serversApiUrl + sourceServerId + '/actions/transfer/' + destinationServerId;
         await AuthenticatedApiClient.post(url, { path }, options);
+    }
+
+    public static async trackProgress(onMessage: (event: EventSourceMessage) => void): Promise<void> {
+        const url = this.serversApiUrl + 'trackProgress';
+        await AuthenticatedApiClient.openSSE(url, 'POST', onMessage);
     }
 }

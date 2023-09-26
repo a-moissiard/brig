@@ -41,7 +41,7 @@ interface IServerCardProps {
     serverNumber: 1 | 2;
     ftpServerList: IFtpServer[];
     canTransfer: boolean;
-    onTransfer: (serverNumber: number, file: IFileInfo) => Promise<void>;
+    onTransfer: (serverNumber: 1 | 2, file: IFileInfo) => Promise<void>;
 }
 
 const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServerList, canTransfer, onTransfer }) => {

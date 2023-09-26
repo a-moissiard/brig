@@ -5,7 +5,7 @@ import { RootState } from '../../store';
 interface ITransferActivityData {
     originServer: 1 | 2;
     name: string;
-    bytes: number;
+    bytes?: number;
     progress?: number;
 }
 
@@ -24,7 +24,7 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivityData>) => {
             state.value = action.payload;
         },
-        setProgress: (state, action: PayloadAction<{ bytes: number; progress: number }>) => {
+        setProgress: (state, action: PayloadAction<{ bytes: number; progress?: number }>) => {
             if (state.value) {
                 state.value.bytes = action.payload.bytes;
                 state.value.progress = action.payload.progress;
