@@ -1,11 +1,10 @@
-import { FileType } from 'basic-ftp';
 import { PassThrough } from 'stream';
 import * as uuid from 'uuid';
 
 import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IRequester } from '../authorizations';
-import { FtpClient, IFileInfo } from '../ftpUtils';
+import { FileType, FtpClient, IFileInfo } from '../ftpUtils';
 import { FtpServersAuthorizationsEnforcer } from './FtpServersAuthorizationsEnforcer';
 import { FtpServersDao } from './FtpServersDao';
 import { IFtpServerConnectionStateModel, IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
@@ -119,6 +118,21 @@ export class FtpServersService {
         await client.cd(originalDir);
     }
 
+    public async delete(requester: IRequester, serverId: string, path: string): Promise<void> {
+        await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
+        const client = this.getClient(requester, serverId);
+
+        const fileInfo = await this.findFileInfo(client, path);
+
+        if (fileInfo.type === FileType.File) {
+            await client.deleteFile(path);
+        } else if (fileInfo.type === FileType.Directory) {
+            await client.deleteDir(path);
+        } else {
+            throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_FILE_TYPE, `Operation not supported for file type='${fileInfo.type}'`);
+        }
+    }
+
     public async registerSendEventCallback(requester: IRequester, sendEvent: (data: Object) => void): Promise<void> {
         // Register the callback so all future clients will be able to track progress immediately
         this.usersSendEventCallback.set(requester.id, sendEvent);
@@ -143,18 +157,14 @@ export class FtpServersService {
         const sourceClient = this.getClient(requester, sourceServerId);
         const destinationClient = this.getClient(requester, destinationServerId);
 
-        const list = await sourceClient.list();
-        const fileInfo = list.find(f => f.name === path);
-        if (!fileInfo) {
-            throw new BrigError(BRIG_ERROR_CODE.FTP_PATH_DOES_NOT_EXIST, `No file or directory exist at path='${path}'`);
-        }
+        const fileInfo = await this.findFileInfo(sourceClient, path);
 
         if (fileInfo.type === FileType.File) {
             await this.transferFile(requester, sourceClient, destinationClient, fileInfo);
         } else if (fileInfo.type === FileType.Directory) {
             await this.transferDirectory(requester, sourceClient, destinationClient, fileInfo);
         } else {
-            throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_TRANSFER_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
+            throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
         }
     }
 
@@ -180,6 +190,15 @@ export class FtpServersService {
             return connectedServers;
         }
         return [];
+    }
+
+    private async findFileInfo(client: FtpClient, path: string): Promise<IFileInfo> {
+        const list = await client.list();
+        const fileInfo = list.find(f => f.name === path);
+        if (!fileInfo) {
+            throw new BrigError(BRIG_ERROR_CODE.FTP_PATH_DOES_NOT_EXIST, `No file or directory exist at path='${path}'`);
+        }
+        return fileInfo;
     }
 
     private async transferFile(requester: IRequester, sourceClient: FtpClient, destinationClient: FtpClient, fileInfo: IFileInfo): Promise<void> {

@@ -13,6 +13,7 @@ export interface IListBody {
 export type ICreateDirBody = {
     path: string;
 };
+export type IDeleteBody = ICreateDirBody;
 export type ITransferBody = ICreateDirBody;
 
 export const connectBodySchema: Schema = {
@@ -39,6 +40,9 @@ export const createDirBodySchema: Schema = {
         errorMessage: 'body is expected to contain `path` parameter which must be a string',
     },
 };
+
+export const deleteBodySchema = createDirBodySchema;
+
 export const transferBodySchema: Schema = {
     path: {
         in: 'body',

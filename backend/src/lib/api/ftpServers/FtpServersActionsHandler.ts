@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { FtpServersService } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
 import { buildRequester } from '../utils';
-import { IConnectBody, ICreateDirBody, IListBody, ITransferBody } from './FtpServersActionsValidationSchemas';
+import { IConnectBody, ICreateDirBody, IDeleteBody, IListBody, ITransferBody } from './FtpServersActionsValidationSchemas';
 
 interface IFtpServersActionsHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -74,6 +74,16 @@ export class FtpServersActionsHandler {
         const { path } = extractValidatedData<ICreateDirBody>(req, { locations: ['body'] });
 
         await this.ftpServersService.createDir(requester, serverId, path);
+
+        res.sendStatus(201);
+    }
+
+    async delete(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+        const { serverId } = req.params;
+        const { path } = extractValidatedData<IDeleteBody>(req, { locations: ['body'] });
+
+        await this.ftpServersService.delete(requester, serverId, path);
 
         res.sendStatus(201);
     }

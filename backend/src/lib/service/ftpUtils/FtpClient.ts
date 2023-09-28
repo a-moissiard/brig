@@ -78,6 +78,14 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.ensureDir(path));
     }
 
+    public async deleteFile(path: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.remove(path));
+    }
+
+    public async deleteDir(path: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.removeDir(path));
+    }
+
     public async download(ptStream: PassThrough, fileInfo: IFileInfo): Promise<void> {
         this.fileInfoCache.set(fileInfo.name, fileInfo);
         await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, fileInfo.name));
