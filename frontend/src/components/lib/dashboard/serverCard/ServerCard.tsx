@@ -79,10 +79,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         }
     }, [serverConnection]);
 
-    const selectServer = (event: SelectChangeEvent): void => {
-        setSelectedServerId(event.target.value);
-    };
-
     const onConnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
         const password = selectedServerPassword;
@@ -138,7 +134,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         dispatch(unsetServer(serverNumber));
     };
 
-    const onParentDirClick = async (): Promise<void> => {
+    const onParentDir = async (): Promise<void> => {
         if (serverConnection?.workingDir !== undefined && serverConnection?.workingDir !== '/') {
             const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
             const newPath = `${parentDirWithoutTrailingSlash}/`;
@@ -148,11 +144,11 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         }
     };
 
-    const onRefreshFileListClick = async (): Promise<void> => {
+    const onRefreshList = async (): Promise<void> => {
         await listFiles();
     };
 
-    const onFileItemDoubleClick = async (file: IFileInfo): Promise<void> => {
+    const onFileDoubleClick = async (file: IFileInfo): Promise<void> => {
         if (file.type === FileType.Directory) {
             if (serverConnection?.workingDir !== undefined) {
                 const newPath = serverConnection.workingDir === '/'
@@ -167,7 +163,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         }
     };
     
-    const onFileItemRightClick = (event: MouseEvent, file: IFileInfo): void => {
+    const onFileRightClick = (event: MouseEvent, file: IFileInfo): void => {
         event.preventDefault();
         setContextMenu(contextMenu === null
             ? {
@@ -179,9 +175,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         );
     };
 
-    const onTransferMenuItemClick = async (file: IFileInfo): Promise<void> => {
+    const onContextMenuTransfer = async (file: IFileInfo): Promise<void> => {
         setContextMenu(null);
         await transfer(file);
+    };
+
+    const onContextMenuDelete = async (file: IFileInfo): Promise<void> => {
+        setContextMenu(null);
+        await FtpServersApi.delete(selectedServerId, file.name);
+        await listFiles();
     };
 
     const transfer = async (file: IFileInfo): Promise<void> => {
@@ -235,7 +237,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         <Select
                             value={selectedServerId}
                             label="Server"
-                            onChange={selectServer}
+                            onChange={(event: SelectChangeEvent): void => {
+                                setSelectedServerId(event.target.value);
+                            }}
                             disabled={serverConnection !== undefined}
                         >
                             {ftpServerList.map(server => (
@@ -295,14 +299,14 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         />
                         <Button
                             className='navigation__button'
-                            onClick={onParentDirClick}
+                            onClick={onParentDir}
                             disabled={loadingFiles}
                             sx={{ color: 'text.primary' }}>
                             <ArrowUpwardIcon />
                         </Button>
                         <Button
                             className='navigation__button'
-                            onClick={onRefreshFileListClick}
+                            onClick={onRefreshList}
                             disabled={loadingFiles}
                             sx={{ color: 'text.primary' }}>
                             <RefreshIcon />
@@ -319,8 +323,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             <ListItemButton
                                 key={file.name + '_' + file.size}
                                 disabled={loadingFiles}
-                                onDoubleClick={(): Promise<void> => onFileItemDoubleClick(file)}
-                                onContextMenu={(event): void => onFileItemRightClick(event, file)}
+                                onDoubleClick={(): Promise<void> => onFileDoubleClick(file)}
+                                onContextMenu={(event): void => onFileRightClick(event, file)}
                             >
                                 <ListItem>
                                     <ListItemIcon>
@@ -342,7 +346,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                                             : undefined
                                     }
                                 >
-                                    <MenuItem onClick={(): Promise<void> => onTransferMenuItemClick(file)}>Transfer</MenuItem>
+                                    <MenuItem onClick={(): Promise<void> => onContextMenuTransfer(file)}>Transfer</MenuItem>
+                                    <MenuItem onClick={(): Promise<void> => onContextMenuDelete(file)}>Delete</MenuItem>
                                 </Menu>
                             </ListItemButton>
                         ))}
