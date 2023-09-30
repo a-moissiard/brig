@@ -58,7 +58,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     let errorTimer: NodeJS.Timeout;
     const [controller, setController] = useState(() => new AbortController());
 
-    const [loadingFiles, setLoadingFiles] = useState(false);
+    const [ongoingAction, setOngoingAction] = useState(false);
 
     const [contextMenu, setContextMenu] = useState<{
         fileId: string;
@@ -85,7 +85,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         if (transferActivity?.originServer !== serverNumber && transferActivity?.transferCompleted) {
             // Wait a bit before refreshing once transfer is completed to avoid timing error
             setTimeout(async () => {
+                setOngoingAction(true);
                 await listFiles();
+                setOngoingAction(false);
             }, 2000);
         }
     }, [transferActivity]);
@@ -149,14 +151,18 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         if (serverConnection?.workingDir !== undefined && serverConnection?.workingDir !== '/') {
             const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
             const newPath = `${parentDirWithoutTrailingSlash}/`;
+            setOngoingAction(true);
             await listFiles(newPath);
+            setOngoingAction(false);
         } else {
             setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
         }
     };
 
     const onRefreshList = async (): Promise<void> => {
+        setOngoingAction(true);
         await listFiles();
+        setOngoingAction(false);
     };
 
     const onFileDoubleClick = async (file: IFileInfo): Promise<void> => {
@@ -165,7 +171,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                 const newPath = serverConnection.workingDir === '/'
                     ? `/${file.name}`
                     : `${serverConnection.workingDir}/${file.name}`;
+                setOngoingAction(true);
                 await listFiles(newPath);
+                setOngoingAction(false);
             } else {
                 setErrorWithTimeout('Cannot change directory if current directory is undefined'); // Should never happen
             }
@@ -193,8 +201,10 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const onContextMenuDelete = async (file: IFileInfo): Promise<void> => {
         setContextMenu(null);
+        setOngoingAction(true);
         await FtpServersApi.delete(selectedServerId, file.name);
         await listFiles();
+        setOngoingAction(false);
     };
 
     const transfer = async (file: IFileInfo): Promise<void> => {
@@ -207,7 +217,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const listFiles = async (path?: string): Promise<void> => {
         try {
-            setLoadingFiles(true);
             const { workingDir, list } = await FtpServersApi.list(selectedServerId, path, {
                 signal: controller.signal,
             });
@@ -220,7 +229,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     fileList: list,
                 },
             }));
-            setLoadingFiles(false);
         } catch (e) {
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
@@ -229,7 +237,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             } else {
                 setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
             }
-            setLoadingFiles(false);
         }
     };
 
@@ -311,19 +318,21 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         <Button
                             className='navigation__button'
                             onClick={onParentDir}
-                            disabled={loadingFiles}
+                            disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
                             <ArrowUpwardIcon />
                         </Button>
                         <Button
                             className='navigation__button'
                             onClick={onRefreshList}
-                            disabled={loadingFiles}
+                            disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
                             <RefreshIcon />
                         </Button>
-                        {loadingFiles && (
-                            <CircularProgress className='navigation__loader' size={20} sx={{ color: 'text.primary' }}/>
+                        {ongoingAction && (
+                            <Box className='navigation__loader'>
+                                <CircularProgress size={20} sx={{ color: 'text.primary' }}/>
+                            </Box>
                         )}
                     </Box>
                     <List dense>
@@ -333,7 +342,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         {serverConnection.fileList.map((file) => (
                             <ListItemButton
                                 key={file.name + '_' + file.size}
-                                disabled={loadingFiles}
+                                disabled={ongoingAction}
                                 onDoubleClick={(): Promise<void> => onFileDoubleClick(file)}
                                 onContextMenu={(event): void => onFileRightClick(event, file)}
                             >
