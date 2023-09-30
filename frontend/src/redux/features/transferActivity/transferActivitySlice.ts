@@ -4,9 +4,10 @@ import { RootState } from '../../store';
 
 interface ITransferActivityData {
     originServer: 1 | 2;
-    name: string;
-    bytes?: number;
-    progress?: number;
+    currentFileName: string;
+    currentFileBytes?: number;
+    currentFileProgress?: number;
+    transferCompleted: boolean;
 }
 
 interface ITransferActivityState {
@@ -24,10 +25,16 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivityData>) => {
             state.value = action.payload;
         },
-        setProgress: (state, action: PayloadAction<{ bytes: number; progress?: number }>) => {
+        setProgress: (state, action: PayloadAction<Omit<ITransferActivityData, 'originServer' | 'transferCompleted'>>) => {
             if (state.value) {
-                state.value.bytes = action.payload.bytes;
-                state.value.progress = action.payload.progress;
+                state.value.currentFileName = action.payload.currentFileName;
+                state.value.currentFileBytes = action.payload.currentFileBytes;
+                state.value.currentFileProgress = action.payload.currentFileProgress;
+            }
+        },
+        setTransferCompleted: (state) => {
+            if (state.value) {
+                state.value.transferCompleted = true;
             }
         },
         unsetActivity: (state) => {
@@ -38,6 +45,11 @@ export const transferActivitySlice = createSlice({
 
 export const selectTransferActivity = (state: RootState): ITransferActivityData | undefined => state.transferActivity.value;
 
-export const { setActivity, setProgress, unsetActivity } = transferActivitySlice.actions;
+export const {
+    setActivity,
+    setProgress,
+    setTransferCompleted,
+    unsetActivity,
+} = transferActivitySlice.actions;
 
 export default transferActivitySlice.reducer;

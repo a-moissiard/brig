@@ -29,6 +29,7 @@ import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'r
 
 import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/serverConnections/serverConnectionsSlice';
+import { selectTransferActivity } from '../../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/hooks';
 import { FileType, IFileInfo } from '../../../../types/ftpServers/FileInfoTypes';
 import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';
@@ -49,6 +50,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const dispatch = useAppDispatch();
 
     const serverConnection = useAppSelector(serverNumber === 1 ? selectServer1 : selectServer2);
+    const transferActivity = useAppSelector(selectTransferActivity);
 
     const [selectedServerId, setSelectedServerId] = useState(serverConnection?.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
@@ -78,6 +80,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             setSelectedServerId(serverConnection.id);
         }
     }, [serverConnection]);
+
+    useEffect(() => {
+        if (transferActivity?.originServer !== serverNumber && transferActivity?.transferCompleted) {
+            // Wait a bit before refreshing once transfer is completed to avoid timing error
+            setTimeout(async () => {
+                await listFiles();
+            }, 2000);
+        }
+    }, [transferActivity]);
 
     const onConnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();

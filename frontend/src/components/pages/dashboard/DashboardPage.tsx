@@ -37,7 +37,9 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
             }
             dispatch(setActivity({
                 originServer: serverNumber,
-                name: file.name,
+                currentFileName: file.name,
+                currentFileProgress: 0,
+                transferCompleted: false,
             }));
         }
     };

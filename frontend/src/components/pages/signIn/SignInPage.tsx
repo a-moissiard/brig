@@ -13,9 +13,9 @@ import { setUser } from '../../../redux/features/user/userSlice';
 import { useAppDispatch } from '../../../redux/hooks';
 import { AuthFacade } from '../../../utils/auth/AuthFacade';
 import { BrigFrontError } from '../../../utils/error/BrigFrontError';
+import { ProgressTracking } from '../../../utils/sse/ProgressTracking';
 
-interface ISignInPageProps {
-}
+interface ISignInPageProps {}
 
 const SignInPage: FunctionComponent<ISignInPageProps> = () => {
     const [error, setError] = useState<string>();
@@ -33,6 +33,7 @@ const SignInPage: FunctionComponent<ISignInPageProps> = () => {
                 await AuthApi.login(username, password);
                 const loggedUser = await AuthFacade.getLoggedUser();
                 dispatch(setUser(loggedUser));
+                ProgressTracking.setupProgressTracking(dispatch);
                 navigate('/dashboard');
             } catch (e) {
                 if (e instanceof BrigFrontError) {

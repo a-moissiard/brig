@@ -3,7 +3,6 @@ import _ from 'lodash';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
-import { FtpServersApi } from './api/ftpServers/FtpServersApi';
 import Loader from './components/lib/loader/Loader';
 import PageGuard from './components/lib/pageGuard/PageGuard';
 import Admin from './components/pages/admin/Admin';
@@ -12,11 +11,10 @@ import ErrorPage from './components/pages/error/ErrorPage';
 import ManageServersPage from './components/pages/manageServers/ManageServersPage';
 import NotFoundPage from './components/pages/notFound/NotFoundPage';
 import SignInPage from './components/pages/signIn/SignInPage';
-import { setProgress } from './redux/features/transferActivity/transferActivitySlice';
 import { setUser } from './redux/features/user/userSlice';
 import { useAppDispatch } from './redux/hooks';
-import { IProgressEventData } from './types/transferProgress/ProgressEvent';
 import { AuthFacade } from './utils/auth/AuthFacade';
+import { ProgressTracking } from './utils/sse/ProgressTracking';
 import { themeOptions } from './utils/theme/ThemeOptions';
 
 import './app.scss';
@@ -34,15 +32,8 @@ const App: FunctionComponent<IAppProps> = ({}) => {
         AuthFacade.getLoggedUser({ signal: controller.signal })
             .then((loggedUser) => {
                 dispatch(setUser(loggedUser));
+                ProgressTracking.setupProgressTracking(dispatch);
                 setLoading(false);
-                
-                void FtpServersApi.trackProgress((event): void => {
-                    const eventData = JSON.parse(event.data) as IProgressEventData;
-                    dispatch(setProgress({
-                        bytes: eventData.bytes,
-                        progress: eventData.progress,
-                    }));
-                });
             })
             .catch(() => {
                 setLoading(false);

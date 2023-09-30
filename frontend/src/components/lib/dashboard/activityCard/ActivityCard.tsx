@@ -21,8 +21,8 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
                 ? <Typography variant="body1" align="center" sx={{
                     color: 'text.primary',
                 }}>
-                    {`Downloading ${transferActivity.name} (from server ${transferActivity.originServer}) \
-                    - Progress: ${transferActivity.progress}`}
+                    {`Downloading ${transferActivity.currentFileName} (from server ${transferActivity.originServer}) \
+                    - Progress: ${transferActivity.currentFileProgress}`}
                 </Typography>
                 : <Typography variant="body2" align="center" sx={{
                     color: 'text.secondary',
