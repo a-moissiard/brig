@@ -5,6 +5,7 @@ import _ from 'lodash';
 import { LRUCache } from 'lru-cache';
 import { PassThrough } from 'stream';
 
+import { EVENT_TYPE, SendEventCallback } from '../../api/utils';
 import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IFtpServerModel } from '../ftpServers';
@@ -95,7 +96,7 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, fileInfo.name));
     }
     
-    public async trackProgress(sendEvent: (data: Object) => void): Promise<void> {
+    public async trackProgress(sendEvent: SendEventCallback): Promise<void> {
         await this.wrapFtpClientCall(() => this.basicFtpClient.trackProgress((info: ProgressInfo) => {
             if (info.type === 'download') {
                 let progress: number | undefined;
@@ -103,7 +104,7 @@ export class FtpClient {
                 if (file) {
                     progress = (info.bytes / file.size) * 100;
                 }
-                sendEvent(_.omitBy({
+                sendEvent(EVENT_TYPE.PROGRESS, _.omitBy({
                     serverId: this.ftpServer.id,
                     name: info.name,
                     type: info.type,

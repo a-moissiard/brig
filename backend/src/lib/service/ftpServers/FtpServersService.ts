@@ -1,6 +1,7 @@
 import { PassThrough } from 'stream';
 import * as uuid from 'uuid';
 
+import { EVENT_TYPE, SendEventCallback } from '../../api/utils';
 import { logger } from '../../logger';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 import { IRequester } from '../authorizations';
@@ -20,7 +21,7 @@ export class FtpServersService {
 
     private readonly usersClients: Map<string, Record<string, FtpClient>>;
     private readonly usersStreams: Map<string, PassThrough>;
-    private readonly usersSendEventCallback: Map<string, (data: Object) => void>;
+    private readonly usersSendEventCallback: Map<string, SendEventCallback>;
 
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
@@ -133,7 +134,7 @@ export class FtpServersService {
         }
     }
 
-    public async registerSendEventCallback(requester: IRequester, sendEvent: (data: Object) => void): Promise<void> {
+    public async registerSendEventCallback(requester: IRequester, sendEvent: SendEventCallback): Promise<void> {
         // Register the callback so all future clients will be able to track progress immediately
         this.usersSendEventCallback.set(requester.id, sendEvent);
 
@@ -162,9 +163,18 @@ export class FtpServersService {
         if (fileInfo.type === FileType.File) {
             await this.transferFile(requester, sourceClient, destinationClient, fileInfo);
         } else if (fileInfo.type === FileType.Directory) {
+            const initialSourceDir = await sourceClient.pwd();
+            const initialDestinationDir = await destinationClient.pwd();
             await this.transferDirectory(requester, sourceClient, destinationClient, fileInfo);
+            await sourceClient.cd(initialSourceDir);
+            await destinationClient.cd(initialDestinationDir);
         } else {
             throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
+        }
+
+        const sendEventCallback = this.usersSendEventCallback.get(requester.id);
+        if (sendEventCallback) {
+            sendEventCallback(EVENT_TYPE.TRANSFER_COMPLETED, { serverId: sourceServerId });
         }
     }
 

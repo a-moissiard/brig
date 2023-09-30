@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
-import { buildRequester, sendEventFactory } from '../utils';
+import { buildRequester, ServerSentEventsHelper } from '../utils';
 
 interface IFtpServersHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -81,7 +81,7 @@ export class FtpServersHandler {
         res.setHeader('Connection', 'keep-alive');
         res.flushHeaders();
 
-        const sendEvent = sendEventFactory(res);
+        const sendEvent = ServerSentEventsHelper.sendEventFactory(res);
 
         await this.ftpServersService.registerSendEventCallback(requester, sendEvent);
 
