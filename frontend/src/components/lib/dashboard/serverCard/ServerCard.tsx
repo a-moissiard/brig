@@ -9,11 +9,6 @@ import {
     Card,
     CardContent,
     CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     Divider,
     FormControl,
     InputLabel,
@@ -41,6 +36,7 @@ import { FileType, IFileInfo } from '../../../../types/ftpServers/FileInfoTypes'
 import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';
 import { CONNECTION_STATUS } from '../../../../types/status/StatusTypes';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../../utils/error/BrigFrontError';
+import Dialog from '../../dialog/Dialog';
 import ServerStatus from './ServerStatus';
 
 import './serverCard.scss';
@@ -396,34 +392,19 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     </Box>
                     <Dialog
                         open={dirCreationState.dialogOpen}
-                        onClose={(): void => setDirCreationState(initialDirCreationState)}>
-                        <DialogTitle>
-                            Create directory
-                        </DialogTitle>
-                        <DialogContent>
-                            <DialogContentText>
-                                Please enter the name of the directory you want to create.
-                            </DialogContentText>
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                id="name"
-                                label="Name"
-                                fullWidth
-                                required
-                                variant="standard"
-                                onChange={(event): void => setDirCreationState({
-                                    ...dirCreationState,
-                                    dirName: event.target.value,
-                                })}
-                            />
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={(): void => setDirCreationState(initialDirCreationState)}>Cancel</Button>
-                            <Button onClick={onValidateCreateDir}>Create</Button>
-                        </DialogActions>
-
-                    </Dialog>
+                        onClose={(): void => setDirCreationState(initialDirCreationState)}
+                        onValidate={onValidateCreateDir}
+                        dialogTitle={'Create directory'}
+                        dialogContentText={'Please enter the name of the directory you want to create.'}
+                        textField={{
+                            label: 'Name',
+                            onChange: (event) => setDirCreationState({
+                                ...dirCreationState,
+                                dirName: event.target.value,
+                            }),
+                        }}
+                        validateButtonLabel={'Create'}
+                    />
                     <List dense>
                         <ListSubheader className="listSubHeader">
                             Files
@@ -463,21 +444,16 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     </List>
                     <Dialog
                         open={fileDeletionState.dialogOpen}
-                        onClose={(): void => setFileDeletionState(initialFileDeletionState)}>
-                        <DialogTitle>
-                            Definitely delete file ?
-                        </DialogTitle>
-                        <DialogContent>
-                            <DialogContentText>
-                                Are you sure you want to delete this file? This action is irreversible.
-                            </DialogContentText>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={(): void => setFileDeletionState(initialFileDeletionState)}>Cancel</Button>
-                            <Button onClick={onValidateDeleteFile}>Delete</Button>
-                        </DialogActions>
-
-                    </Dialog>
+                        onClose={(): void => setFileDeletionState(initialFileDeletionState)}
+                        onValidate={onValidateDeleteFile}
+                        dialogTitle={'Definitely delete file ?'}
+                        dialogContentText={`Are you sure you want to delete ${
+                            fileDeletionState.file
+                                ? `the file \'${fileDeletionState.file.name}\'`
+                                : 'this file'
+                        }? This action is irreversible.`}
+                        validateButtonLabel={'Delete'}
+                    />
                 </Box>
             )}
         </CardContent>
