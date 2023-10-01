@@ -1,4 +1,5 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import DescriptionIcon from '@mui/icons-material/Description';
 import FolderIcon from '@mui/icons-material/Folder';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -51,6 +52,25 @@ interface IServerCardProps {
     onTransfer: (serverNumber: 1 | 2, file: IFileInfo) => Promise<void>;
 }
 
+interface IDirCreationState {
+    dialogOpen: boolean;
+    dirName: string;
+}
+
+const initialDirCreationState: IDirCreationState = {
+    dialogOpen: false,
+    dirName: '',
+};
+
+interface IFileDeletionState {
+    dialogOpen: boolean;
+    file?: IFileInfo;
+}
+
+const initialFileDeletionState: IFileDeletionState = {
+    dialogOpen: false,
+};
+
 const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServerList, canTransfer, onTransfer }) => {
     const dispatch = useAppDispatch();
 
@@ -65,14 +85,14 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const [ongoingAction, setOngoingAction] = useState(false);
 
+    const [dirCreationState, setDirCreationState] = useState<IDirCreationState>(initialDirCreationState);
+
     const [contextMenu, setContextMenu] = useState<{
         fileId: string;
         mouseX: number;
         mouseY: number;
     } | null>(null);
-    const [fileDeletionState, setFileDeletionState] = useState<{ dialogOpen: boolean; file?: IFileInfo }>({
-        dialogOpen: false,
-    });
+    const [fileDeletionState, setFileDeletionState] = useState<IFileDeletionState>(initialFileDeletionState);
 
     const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
         setError(error);
@@ -167,6 +187,22 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         }
     };
 
+    const onCreateDir = async (): Promise<void> => {
+        setDirCreationState({
+            ...dirCreationState,
+            dialogOpen: true,
+        });
+    };
+
+    const onValidateCreateDir = async (): Promise<void> => {
+        const dirName = dirCreationState.dirName;
+        setDirCreationState(initialDirCreationState);
+        setOngoingAction(true);
+        await FtpServersApi.createDir(selectedServerId, dirName);
+        await listFiles();
+        setOngoingAction(false);
+    };
+
     const onRefreshList = async (): Promise<void> => {
         setOngoingAction(true);
         await listFiles();
@@ -214,7 +250,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const onValidateDeleteFile = async (): Promise<void> => {
         const file = fileDeletionState.file;
-        setFileDeletionState({ dialogOpen: false });
+        setFileDeletionState(initialFileDeletionState);
         if (file) {
             setOngoingAction(true);
             await FtpServersApi.delete(selectedServerId, file.name);
@@ -340,6 +376,13 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         </Button>
                         <Button
                             className='navigation__button'
+                            onClick={onCreateDir}
+                            disabled={ongoingAction}
+                            sx={{ color: 'text.primary' }}>
+                            <CreateNewFolderIcon />
+                        </Button>
+                        <Button
+                            className='navigation__button'
                             onClick={onRefreshList}
                             disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
@@ -351,6 +394,36 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             </Box>
                         )}
                     </Box>
+                    <Dialog
+                        open={dirCreationState.dialogOpen}
+                        onClose={(): void => setDirCreationState(initialDirCreationState)}>
+                        <DialogTitle>
+                            Create directory
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Please enter the name of the directory you want to create.
+                            </DialogContentText>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                id="name"
+                                label="Name"
+                                fullWidth
+                                required
+                                variant="standard"
+                                onChange={(event): void => setDirCreationState({
+                                    ...dirCreationState,
+                                    dirName: event.target.value,
+                                })}
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={(): void => setDirCreationState(initialDirCreationState)}>Cancel</Button>
+                            <Button onClick={onValidateCreateDir}>Create</Button>
+                        </DialogActions>
+
+                    </Dialog>
                     <List dense>
                         <ListSubheader className="listSubHeader">
                             Files
@@ -390,7 +463,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     </List>
                     <Dialog
                         open={fileDeletionState.dialogOpen}
-                        onClose={(): void => setFileDeletionState({ dialogOpen: false })}>
+                        onClose={(): void => setFileDeletionState(initialFileDeletionState)}>
                         <DialogTitle>
                             Definitely delete file ?
                         </DialogTitle>
@@ -400,7 +473,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             </DialogContentText>
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={(): void => setFileDeletionState({ dialogOpen: false })}>Cancel</Button>
+                            <Button onClick={(): void => setFileDeletionState(initialFileDeletionState)}>Cancel</Button>
                             <Button onClick={onValidateDeleteFile}>Delete</Button>
                         </DialogActions>
 

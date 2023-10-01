@@ -34,6 +34,11 @@ export class FtpServersApi {
         return AuthenticatedApiClient.post(url, { path }, options);
     }
 
+    public static async createDir(serverId: string, path?: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
+        const url = this.serversApiUrl + serverId + '/actions/createDir';
+        return AuthenticatedApiClient.post(url, { path }, options);
+    }
+
     public static async delete(serverId: string, path?: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
         const url = this.serversApiUrl + serverId + '/actions/delete';
         return AuthenticatedApiClient.post(url, { path }, options);
