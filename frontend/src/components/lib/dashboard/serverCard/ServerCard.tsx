@@ -8,6 +8,11 @@ import {
     Card,
     CardContent,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     Divider,
     FormControl,
     InputLabel,
@@ -65,6 +70,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         mouseX: number;
         mouseY: number;
     } | null>(null);
+    const [fileDeletionState, setFileDeletionState] = useState<{ dialogOpen: boolean; file?: IFileInfo }>({
+        dialogOpen: false,
+    });
 
     const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
         setError(error);
@@ -201,10 +209,18 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     const onContextMenuDelete = async (file: IFileInfo): Promise<void> => {
         setContextMenu(null);
-        setOngoingAction(true);
-        await FtpServersApi.delete(selectedServerId, file.name);
-        await listFiles();
-        setOngoingAction(false);
+        setFileDeletionState({ dialogOpen: true, file });
+    };
+
+    const onValidateDeleteFile = async (): Promise<void> => {
+        const file = fileDeletionState.file;
+        setFileDeletionState({ dialogOpen: false });
+        if (file) {
+            setOngoingAction(true);
+            await FtpServersApi.delete(selectedServerId, file.name);
+            await listFiles();
+            setOngoingAction(false);
+        }
     };
 
     const transfer = async (file: IFileInfo): Promise<void> => {
@@ -372,6 +388,23 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             </ListItemButton>
                         ))}
                     </List>
+                    <Dialog
+                        open={fileDeletionState.dialogOpen}
+                        onClose={(): void => setFileDeletionState({ dialogOpen: false })}>
+                        <DialogTitle>
+                            Definitely delete file ?
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Are you sure you want to delete this file? This action is irreversible.
+                            </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={(): void => setFileDeletionState({ dialogOpen: false })}>Cancel</Button>
+                            <Button onClick={onValidateDeleteFile}>Delete</Button>
+                        </DialogActions>
+
+                    </Dialog>
                 </Box>
             )}
         </CardContent>
