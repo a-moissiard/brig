@@ -76,7 +76,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [selectedServerId, setSelectedServerId] = useState(serverConnection?.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
     const [error, setError] = useState<string>();
-    let errorTimer: NodeJS.Timeout;
+    const [errorTimer, setErrorTimer] = useState<ReturnType<typeof setTimeout>>();
     const [controller, setController] = useState(() => new AbortController());
 
     const [ongoingAction, setOngoingAction] = useState(false);
@@ -91,10 +91,11 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     const [fileDeletionState, setFileDeletionState] = useState<IFileDeletionState>(initialFileDeletionState);
 
     const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
+        clearTimeout(errorTimer);
         setError(error);
-        errorTimer = setTimeout(() => {
+        setErrorTimer(setTimeout(() => {
             setError(undefined);
-        }, timeout);
+        }, timeout));
     };
 
     useEffect(() => () => clearTimeout(errorTimer), []);
