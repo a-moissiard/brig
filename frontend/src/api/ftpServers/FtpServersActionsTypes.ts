@@ -1,4 +1,4 @@
-import { IFileInfo } from '../../types/ftpServers/FileInfoTypes';
+import { IFileInfo } from '../../types/ftp/FileInfoTypes';
 
 export interface IFilesListingResponse {
     workingDir: string;

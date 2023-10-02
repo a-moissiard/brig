@@ -1,7 +1,7 @@
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { FunctionComponent, useEffect, useState } from 'react';
 
-import { CONNECTION_STATUS } from '../../../../types/status/StatusTypes';
+import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
 
 interface IServerStatusProps {
     status?: CONNECTION_STATUS;

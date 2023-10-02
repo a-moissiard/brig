@@ -1,4 +1,4 @@
-import { IFileInfo } from '../ftpServers/FileInfoTypes';
+import { IFileInfo } from '../ftp/FileInfoTypes';
 
 export enum CONNECTION_STATUS {
     CONNECTED = 'Connected',

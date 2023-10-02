@@ -6,13 +6,13 @@ import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { setActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import { IFileInfo } from '../../../types/ftpServers/FileInfoTypes';
-import { IFtpServer } from '../../../types/ftpServers/FtpServersTypes';
+import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
+import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
 import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
-import ActivityCard from '../../lib/dashboard/activityCard/ActivityCard';
-import ServerCard from '../../lib/dashboard/serverCard/ServerCard';
 import Loader from '../../lib/loader/Loader';
-import TopBar from '../../lib/topBar/TopBar';
+import ActivityCard from '../../modules/activityCard/ActivityCard';
+import ServerCard from '../../modules/serverCard/ServerCard';
+import TopBar from '../../modules/topBar/TopBar';
 
 import './dashboard.scss';
 

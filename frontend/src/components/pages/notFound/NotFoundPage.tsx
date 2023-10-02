@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 
-import TopBar from '../../lib/topBar/TopBar';
+import TopBar from '../../modules/topBar/TopBar';
 
 interface INotFoundPageProps {}
 

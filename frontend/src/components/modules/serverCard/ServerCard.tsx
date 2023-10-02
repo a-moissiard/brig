@@ -28,16 +28,16 @@ import {
 import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'react';
 
-import { FtpServersApi } from '../../../../api/ftpServers/FtpServersApi';
-import { selectServer1, selectServer2, setServer, unsetServer } from '../../../../redux/features/serverConnections/serverConnectionsSlice';
-import { selectTransferActivity } from '../../../../redux/features/transferActivity/transferActivitySlice';
-import { useAppDispatch, useAppSelector } from '../../../../redux/hooks';
-import { FileType, IFileInfo } from '../../../../types/ftpServers/FileInfoTypes';
-import { IFtpServer } from '../../../../types/ftpServers/FtpServersTypes';
-import { CONNECTION_STATUS } from '../../../../types/status/StatusTypes';
-import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../../utils/error/BrigFrontError';
-import Dialog from '../../dialog/Dialog';
-import ServerStatus from './ServerStatus';
+import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
+import { selectServer1, selectServer2, setServer, unsetServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
+import { selectTransferActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { FileType, IFileInfo } from '../../../types/ftp/FileInfoTypes';
+import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
+import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
+import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
+import Dialog from '../../lib/dialog/Dialog';
+import ServerStatus from '../../lib/serverStatus/ServerStatus';
 
 import './serverCard.scss';
 

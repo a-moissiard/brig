@@ -2,8 +2,8 @@ import { Card, CardContent, Typography } from '@mui/material';
 import _ from 'lodash';
 import { FunctionComponent } from 'react';
 
-import { selectTransferActivity } from '../../../../redux/features/transferActivity/transferActivitySlice';
-import { useAppSelector } from '../../../../redux/hooks';
+import { selectTransferActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { useAppSelector } from '../../../redux/hooks';
 
 import './activityCard.scss';
 

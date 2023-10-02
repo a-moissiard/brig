@@ -5,7 +5,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 import Loader from './components/lib/loader/Loader';
 import PageGuard from './components/lib/pageGuard/PageGuard';
-import Admin from './components/pages/admin/Admin';
+import AdminPage from './components/pages/admin/AdminPage';
 import DashboardPage from './components/pages/dashboard/DashboardPage';
 import ErrorPage from './components/pages/error/ErrorPage';
 import ManageServersPage from './components/pages/manageServers/ManageServersPage';
@@ -69,7 +69,7 @@ const App: FunctionComponent<IAppProps> = ({}) => {
                 <Route path="/admin" element={
                     <PageGuard
                         verify={(user): boolean => !_.isUndefined(user) && user.admin}
-                        guardedChildren={<Admin />}
+                        guardedChildren={<AdminPage />}
                         fallbackChildren={<NotFoundPage />}
                     />
                 } />

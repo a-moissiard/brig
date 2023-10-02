@@ -1,6 +1,6 @@
 import { EventSourceMessage } from '@microsoft/fetch-event-source';
 
-import { IFtpServer, IFtpServerConnectionStateModel } from '../../types/ftpServers/FtpServersTypes';
+import { IFtpServer, IFtpServerConnectionStateModel } from '../../types/ftp/FtpServersTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
 import { AuthenticatedApiClient } from '../utils/AuthenticatedApiClient';
