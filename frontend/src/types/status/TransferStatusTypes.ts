@@ -11,4 +11,5 @@ export interface ITransferActivity {
     currentFileBytes?: number;
     currentFileProgress?: number;
     status: TRANSFER_STATUS;
+    refreshNeeded: boolean;
 }

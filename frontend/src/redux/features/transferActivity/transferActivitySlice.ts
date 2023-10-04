@@ -18,7 +18,9 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivity>) => {
             state.value = action.payload;
         },
-        setProgress: (state, action: PayloadAction<Omit<ITransferActivity, 'originServer' | 'serverId' | 'status'>>) => {
+        setProgress: (state, action: PayloadAction<
+            Pick<ITransferActivity, 'currentFileName' | 'currentFileBytes' | 'currentFileProgress'>
+        >) => {
             if (state.value) {
                 state.value.currentFileName = action.payload.currentFileName;
                 state.value.currentFileBytes = action.payload.currentFileBytes;
@@ -28,6 +30,14 @@ export const transferActivitySlice = createSlice({
         setTransferStatus: (state, action: PayloadAction<TRANSFER_STATUS>) => {
             if (state.value && !(state.value.status === TRANSFER_STATUS.CANCELED && action.payload === TRANSFER_STATUS.COMPLETED)) {
                 state.value.status = action.payload;
+                if (action.payload === TRANSFER_STATUS.COMPLETED) {
+                    state.value.refreshNeeded = true;
+                }
+            }
+        },
+        setRefreshment: (state, action: PayloadAction<boolean>) => {
+            if (state.value) {
+                state.value.refreshNeeded = action.payload;
             }
         },
         unsetActivity: (state) => {
@@ -42,6 +52,7 @@ export const {
     setActivity,
     setProgress,
     setTransferStatus,
+    setRefreshment,
     unsetActivity,
 } = transferActivitySlice.actions;
 

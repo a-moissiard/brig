@@ -41,6 +41,7 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
                 currentFileName: file.name,
                 currentFileProgress: 0,
                 status: TRANSFER_STATUS.IN_PROGRESS,
+                refreshNeeded: false,
             }));
         }
     };
@@ -76,11 +77,13 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
                                     },
                                 }));
                             }
+                            setLoading(false);
                         }).catch(() => {
                             setLoading(false);
                         });
+                } else {
+                    setLoading(false);
                 }
-                setLoading(false);
             }).catch(() => {
                 setLoading(false);
             });
