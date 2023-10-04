@@ -191,11 +191,15 @@ export class FtpServersService {
         if (userClients) {
             const connectedServers = [];
             for (let client of Object.values(userClients)) {
-                connectedServers.push({
-                    server: client.ftpServer,
-                    workingDir: await client.pwd(),
-                    files: await client.list(),
-                });
+                try {
+                    connectedServers.push({
+                        server: client.ftpServer,
+                        workingDir: await client.pwd(),
+                        files: await client.list(),
+                    });
+                } catch (e) {
+                    this.unsetClient(requester, client.ftpServer.id);
+                }
             }
             return connectedServers;
         }
