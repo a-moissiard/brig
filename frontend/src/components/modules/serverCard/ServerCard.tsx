@@ -34,7 +34,7 @@ import { selectTransferActivity, setRefreshment } from '../../../redux/features/
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { FileType, IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
-import { CONNECTION_STATUS } from '../../../types/status';
+import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
 import Dialog from '../../lib/dialog/Dialog';
 import ServerStatus from '../../lib/serverStatus/ServerStatus';
@@ -107,15 +107,27 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     }, [serverConnection]);
 
     useEffect(() => {
-        if (transferActivity?.originServer !== serverNumber && transferActivity?.refreshNeeded) {
-            // Wait a bit before refreshing once transfer is completed to avoid timing error
-            setTimeout(async () => {
-                dispatch(setRefreshment(false));
-                await listFiles();
-                setOngoingAction(false);
-            }, 1000);
+        // When transfer starts, we disabled actions to avoid the user to trigger multiple requests at the same time
+        // (which is not allowed by ftp protocol when considering a single client instance)
+        if (transferActivity?.status === TRANSFER_STATUS.IN_PROGRESS && !ongoingAction) {
+            setOngoingAction(true);
         }
-    }, [transferActivity]);
+
+        // If refresh needed flag is true, it means the transfer just got completed
+        if (transferActivity?.refreshNeeded) {
+            if (transferActivity.originServer === serverNumber) {
+                setOngoingAction(false);
+            } else {
+                // Wait a bit before refreshing once transfer is completed to avoid
+                // triggering a new request while ftp transfer request is not completely over
+                setTimeout(async () => {
+                    dispatch(setRefreshment(false));
+                    await listFiles();
+                    setOngoingAction(false);
+                }, 1000);
+            }
+        }
+    }, [transferActivity, ongoingAction]);
 
     const onConnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
