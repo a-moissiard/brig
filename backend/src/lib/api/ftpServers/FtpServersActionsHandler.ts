@@ -75,7 +75,13 @@ export class FtpServersActionsHandler {
 
         await this.ftpServersService.createDir(requester, serverId, path);
 
-        res.sendStatus(201);
+        const list = await this.ftpServersService.list(requester, serverId);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId);
+
+        res.send({
+            workingDir,
+            list,
+        });
     }
 
     async delete(req: Request, res: Response): Promise<void> {
@@ -85,7 +91,13 @@ export class FtpServersActionsHandler {
 
         await this.ftpServersService.delete(requester, serverId, path);
 
-        res.sendStatus(201);
+        const list = await this.ftpServersService.list(requester, serverId);
+        const workingDir = await this.ftpServersService.pwd(requester, serverId);
+
+        res.send({
+            workingDir,
+            list,
+        });
     }
 
     async transfer(req: Request, res: Response): Promise<void> {

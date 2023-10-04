@@ -28,6 +28,7 @@ import {
 import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'react';
 
+import { IFilesListingResponse } from '../../../api/ftpServers/FtpServersActionsTypes';
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { selectTransferActivity, setRefreshment } from '../../../redux/features/transferActivity/transferActivitySlice';
@@ -122,7 +123,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                 // triggering a new request while ftp transfer request is not completely over
                 setTimeout(async () => {
                     dispatch(setRefreshment(false));
-                    await listFiles();
+                    await requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, undefined, {
+                        signal: controller.signal,
+                    }));
                     setOngoingAction(false);
                 }, 1000);
             }
@@ -189,7 +192,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             const parentDirWithoutTrailingSlash = serverConnection.workingDir.substring(0, serverConnection.workingDir.lastIndexOf('/'));
             const newPath = `${parentDirWithoutTrailingSlash}/`;
             setOngoingAction(true);
-            await listFiles(newPath);
+            await requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, newPath, {
+                signal: controller.signal,
+            }));
             setOngoingAction(false);
         } else {
             setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
@@ -207,14 +212,15 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         const dirName = dirCreationState.dirName;
         setDirCreationState(initialDirCreationState);
         setOngoingAction(true);
-        await FtpServersApi.createDir(selectedServerId, dirName);
-        await listFiles();
+        await requestInducingListRefresh(() => FtpServersApi.createDir(selectedServerId, dirName));
         setOngoingAction(false);
     };
 
     const onRefreshList = async (): Promise<void> => {
         setOngoingAction(true);
-        await listFiles();
+        await requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, undefined, {
+            signal: controller.signal,
+        }));
         setOngoingAction(false);
     };
 
@@ -225,7 +231,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                     ? `/${file.name}`
                     : `${serverConnection.workingDir}/${file.name}`;
                 setOngoingAction(true);
-                await listFiles(newPath);
+                await requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, newPath, {
+                    signal: controller.signal,
+                }));
                 setOngoingAction(false);
             } else {
                 setErrorWithTimeout('Cannot change directory if current directory is undefined'); // Should never happen
@@ -262,8 +270,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         setFileDeletionState(initialFileDeletionState);
         if (file) {
             setOngoingAction(true);
-            await FtpServersApi.delete(selectedServerId, file.name);
-            await listFiles();
+            await requestInducingListRefresh(() => FtpServersApi.delete(selectedServerId, file.name));
             setOngoingAction(false);
         }
     };
@@ -276,11 +283,9 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         await onTransfer(serverNumber, file);
     };
 
-    const listFiles = async (path?: string): Promise<void> => {
+    const requestInducingListRefresh = async (fn: () =>  Promise<IFilesListingResponse>): Promise<void> => {
         try {
-            const { workingDir, list } = await FtpServersApi.list(selectedServerId, path, {
-                signal: controller.signal,
-            });
+            const { workingDir, list } = await fn();
             dispatch(setServer({
                 serverNumber,
                 data: {
