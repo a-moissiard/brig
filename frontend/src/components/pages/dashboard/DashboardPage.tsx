@@ -8,7 +8,7 @@ import { setActivity } from '../../../redux/features/transferActivity/transferAc
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
-import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
+import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
 import Loader from '../../lib/loader/Loader';
 import ActivityCard from '../../modules/activityCard/ActivityCard';
 import ServerCard from '../../modules/serverCard/ServerCard';
@@ -28,18 +28,19 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
 
-    const onTransfer = async (serverNumber: 1 | 2, file: IFileInfo): Promise<void> => {
+    const onTransfer = async (originServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
-            if (serverNumber === 1) {
+            if (originServerNumber === 1) {
                 await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
             } else {
                 await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
             }
             dispatch(setActivity({
-                originServer: serverNumber,
+                originServer: originServerNumber,
+                serverId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
                 currentFileName: file.name,
                 currentFileProgress: 0,
-                transferCompleted: false,
+                status: TRANSFER_STATUS.IN_PROGRESS,
             }));
         }
     };

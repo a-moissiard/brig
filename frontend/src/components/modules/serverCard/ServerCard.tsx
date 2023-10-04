@@ -34,7 +34,7 @@ import { selectTransferActivity } from '../../../redux/features/transferActivity
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { FileType, IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
-import { CONNECTION_STATUS } from '../../../types/status/StatusTypes';
+import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
 import Dialog from '../../lib/dialog/Dialog';
 import ServerStatus from '../../lib/serverStatus/ServerStatus';
@@ -107,7 +107,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     }, [serverConnection]);
 
     useEffect(() => {
-        if (transferActivity?.originServer !== serverNumber && transferActivity?.transferCompleted) {
+        if (transferActivity?.originServer !== serverNumber && transferActivity?.status === TRANSFER_STATUS.COMPLETED) {
             // Wait a bit before refreshing once transfer is completed to avoid timing error
             setTimeout(async () => {
                 setOngoingAction(true);

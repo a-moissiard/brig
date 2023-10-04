@@ -49,6 +49,11 @@ export class FtpServersApi {
         await AuthenticatedApiClient.post(url, { path }, options);
     }
 
+    public static async cancelTransfer(sourceServerId: string, options?: IRequestOptions): Promise<void> {
+        const url = this.serversApiUrl + sourceServerId + '/actions/cancelTransfer';
+        await AuthenticatedApiClient.post(url, null, options);
+    }
+
     public static async trackProgress(onMessage: (event: EventSourceMessage) => void): Promise<void> {
         const url = this.serversApiUrl + 'trackProgress';
         await AuthenticatedApiClient.openSSE(url, 'POST', onMessage);

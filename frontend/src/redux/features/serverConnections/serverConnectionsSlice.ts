@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { IServerConnection } from '../../../types/status/StatusTypes';
+import { IServerConnection } from '../../../types/status';
 import { RootState } from '../../store';
 
 interface IServerConnectionsState {

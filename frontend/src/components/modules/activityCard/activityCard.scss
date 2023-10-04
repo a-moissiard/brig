@@ -1,4 +1,28 @@
 .activityCard {
   display: flex;
   flex-direction: column;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  .direction {
+    display: flex;
+
+    &__icon {
+      margin: 0 10px;
+    }
+  }
+
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+
+    &__button {
+
+    }
+  }
 }
