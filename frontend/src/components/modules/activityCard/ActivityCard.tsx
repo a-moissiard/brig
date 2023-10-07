@@ -25,7 +25,7 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
 
     const onCancel = async (): Promise<void> => {
         if (transferActivity) {
-            await FtpServersApi.cancelTransfer(transferActivity.serverId);
+            await FtpServersApi.cancelTransfer(transferActivity.originServerId);
             dispatch(setTransferStatus(TRANSFER_STATUS.CANCELED));
         }
     };
@@ -42,16 +42,16 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
                 ? <Box>
                     <Typography className='direction' variant="body1" align="left" sx={{ color: 'text.primary' }}>
                         <Box component="span" sx={{ fontWeight: 'bold' }}>Direction</Box>
-                        {': Server 1 '}{transferActivity.originServer === 1
+                        {': Server 1 '}{transferActivity.originServerNumber === 1
                             ? <ArrowCircleRightOutlinedIcon className='direction__icon'/>
                             : <ArrowCircleLeftOutlinedIcon className='direction__icon'/>
                         }{' Server 2'}
                     </Typography>
                     <Typography variant="body1" align="left" sx={{ color: 'text.primary' }}>
-                        <Box component="span" sx={{ fontWeight: 'bold' }}>File name</Box>
-                        {`: ${transferActivity.currentFileName}`}
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Transfer target</Box>
+                        {`: ${transferActivity.transferTargetName}`}
                     </Typography>
-                    <LinearProgress color='primary' value={transferActivity.currentFileProgress || 0}/>
+                    <LinearProgress color='primary' value={transferActivity.currentTransfer?.fileProgress || 0}/>
                     <Box className='footer'>
                         {transferActivity.status === TRANSFER_STATUS.IN_PROGRESS
                             ? (<Button

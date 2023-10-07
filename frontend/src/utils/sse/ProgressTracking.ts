@@ -10,9 +10,9 @@ export class ProgressTracking {
             if (event.event === EVENT_TYPE.PROGRESS) {
                 const eventData = JSON.parse(event.data) as IProgressEventData;
                 dispatch(setProgress({
-                    currentFileName: eventData.name,
-                    currentFileBytes: eventData.bytes,
-                    currentFileProgress: eventData.progress,
+                    fileName: eventData.name,
+                    fileBytes: eventData.bytes,
+                    fileProgress: eventData.progress,
                 }));
             } else if (event.event === EVENT_TYPE.TRANSFER_COMPLETED) {
                 dispatch(setTransferStatus(TRANSFER_STATUS.COMPLETED));

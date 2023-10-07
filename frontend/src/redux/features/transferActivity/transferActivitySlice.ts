@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { ITransferActivity, TRANSFER_STATUS } from '../../../types/status';
+import { ICurrentTransferActivity, ITransferActivity, TRANSFER_STATUS } from '../../../types/status';
 import { RootState } from '../../store';
 
 interface ITransferActivityState {
@@ -18,13 +18,9 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivity>) => {
             state.value = action.payload;
         },
-        setProgress: (state, action: PayloadAction<
-            Pick<ITransferActivity, 'currentFileName' | 'currentFileBytes' | 'currentFileProgress'>
-        >) => {
+        setProgress: (state, action: PayloadAction<ICurrentTransferActivity>) => {
             if (state.value) {
-                state.value.currentFileName = action.payload.currentFileName;
-                state.value.currentFileBytes = action.payload.currentFileBytes;
-                state.value.currentFileProgress = action.payload.currentFileProgress;
+                state.value.currentTransfer = action.payload;
             }
         },
         setTransferStatus: (state, action: PayloadAction<TRANSFER_STATUS>) => {

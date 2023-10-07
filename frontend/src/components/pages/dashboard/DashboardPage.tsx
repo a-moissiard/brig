@@ -30,16 +30,18 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
 
     const onTransfer = async (originServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
+            let transferMapping: Record<string, string>;
             if (originServerNumber === 1) {
-                await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
+                transferMapping = await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
             } else {
-                await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
+                transferMapping = await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
             }
             dispatch(setActivity({
-                originServer: originServerNumber,
-                serverId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
-                currentFileName: file.name,
-                currentFileProgress: 0,
+                originServerNumber,
+                originServerId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
+                transferTargetName: file.name,
+                transferMappingRemaining: transferMapping,
+                transferMappingSuccessful: {},
                 status: TRANSFER_STATUS.IN_PROGRESS,
                 refreshNeeded: false,
             }));
