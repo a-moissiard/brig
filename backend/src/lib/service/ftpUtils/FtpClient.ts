@@ -63,8 +63,8 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.close());
     }
 
-    public async list(): Promise<IFileInfo[]> {
-        return (await this.wrapFtpClientCall(() => this.basicFtpClient.list())).map(FtpClient.mapFtpFileInfoToFileInfo);
+    public async list(path?: string): Promise<IFileInfo[]> {
+        return (await this.wrapFtpClientCall(() => this.basicFtpClient.list(path))).map(FtpClient.mapFtpFileInfoToFileInfo);
     }
 
     public async pwd(): Promise<string> {
@@ -87,13 +87,13 @@ export class FtpClient {
         await this.wrapFtpClientCall(() => this.basicFtpClient.removeDir(path));
     }
 
-    public async download(ptStream: PassThrough, fileInfo: IFileInfo): Promise<void> {
-        this.fileInfoCache.set(fileInfo.name, fileInfo);
-        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, fileInfo.name));
+    public async download(ptStream: PassThrough, filePath: string, fileInfo: IFileInfo): Promise<void> {
+        this.fileInfoCache.set(filePath, fileInfo);
+        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, filePath));
     }
 
-    public async upload(ptStream: PassThrough, fileInfo: IFileInfo): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, fileInfo.name));
+    public async upload(ptStream: PassThrough, filePath: string): Promise<void> {
+        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, filePath));
     }
     
     public async trackProgress(sendEvent: SendEventCallback): Promise<void> {

@@ -69,10 +69,10 @@ export class BrigMicroService {
 
         this.expressApp.use(cors({
             origin: 'http://localhost:3000',
-            allowedHeaders: ['Content-Type', 'Cache-Control', 'Connection', 'Authorization'],
+            allowedHeaders: ['Content-Type', 'Cache-Control', 'Connection', 'Authorization', 'Last-Event-Id'],
             credentials: true,
-
         }));
+
         this.expressApp.use(express.json());
         this.expressApp.use('/api', this.brigApi.init());
         this.expressApp.use(errorMiddleware);
