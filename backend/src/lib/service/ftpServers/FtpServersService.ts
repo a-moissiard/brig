@@ -311,7 +311,7 @@ export class FtpServersService {
         });
         ptStream.on('close', () => {
             this.usersStreams.delete(requester.id);
-            logger.info('Stream closed');
+            logger.debug('Stream closed');
         });
         this.usersStreams.set(requester.id, ptStream);
 
