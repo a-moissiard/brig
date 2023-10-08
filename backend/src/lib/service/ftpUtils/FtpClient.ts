@@ -106,7 +106,7 @@ export class FtpClient {
                 }
                 sendEvent(EVENT_TYPE.PROGRESS, _.omitBy({
                     serverId: this.ftpServer.id,
-                    name: info.name,
+                    path: info.name,
                     type: info.type,
                     bytes: info.bytes,
                     progress,
