@@ -5,7 +5,8 @@ export enum TRANSFER_STATUS {
 }
 
 export interface ICurrentTransferActivity {
-    fileName: string;
+    sourceFilePath: string;
+    destinationFilePath: string;
     fileBytes: number;
     fileProgress?: number;
 }

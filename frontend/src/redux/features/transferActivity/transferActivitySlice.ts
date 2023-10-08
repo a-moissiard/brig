@@ -18,17 +18,44 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivity>) => {
             state.value = action.payload;
         },
-        setProgress: (state, action: PayloadAction<ICurrentTransferActivity>) => {
+        setTransferMapping: (state, action: PayloadAction<Record<string, string>>) => {
             if (state.value) {
-                state.value.currentTransfer = action.payload;
+                state.value.transferMappingRemaining = action.payload;
+            }
+        },
+        setProgress: (state, action: PayloadAction<Omit<ICurrentTransferActivity, 'destinationFilePath'>>) => {
+            if (state.value) {
+                const sourceFilePath = action.payload.sourceFilePath;
+
+                if (state.value.transferMappingRemaining[sourceFilePath]) {
+                    // The transfer is starting
+                    state.value.currentTransfer = {
+                        ...action.payload,
+                        destinationFilePath: state.value.transferMappingRemaining[sourceFilePath],
+                    };
+                    delete state.value.transferMappingRemaining[sourceFilePath];
+                } else {
+                    state.value.currentTransfer = {
+                        ...action.payload,
+                        destinationFilePath: state.value.currentTransfer?.destinationFilePath || '',
+                    };
+                }
+
+                if (action.payload.fileProgress === 100) {
+                    state.value.transferMappingSuccessful[sourceFilePath] = state.value.currentTransfer.destinationFilePath;
+                }
             }
         },
         setTransferStatus: (state, action: PayloadAction<TRANSFER_STATUS>) => {
-            if (state.value && !(state.value.status === TRANSFER_STATUS.CANCELED && action.payload === TRANSFER_STATUS.COMPLETED)) {
+            if (state.value) {
                 state.value.status = action.payload;
-                if (action.payload === TRANSFER_STATUS.COMPLETED) {
-                    state.value.refreshNeeded = true;
-                }
+            }
+        },
+        setTransferCompleted: (state) => {
+            if (state.value && state.value.status !== TRANSFER_STATUS.CANCELED) {
+                state.value.status = TRANSFER_STATUS.COMPLETED;
+                state.value.currentTransfer = undefined;
+                state.value.refreshNeeded = true;
             }
         },
         setRefreshment: (state, action: PayloadAction<boolean>) => {
@@ -46,8 +73,10 @@ export const selectTransferActivity = (state: RootState): ITransferActivity | un
 
 export const {
     setActivity,
+    setTransferMapping,
     setProgress,
     setTransferStatus,
+    setTransferCompleted,
     setRefreshment,
     unsetActivity,
 } = transferActivitySlice.actions;

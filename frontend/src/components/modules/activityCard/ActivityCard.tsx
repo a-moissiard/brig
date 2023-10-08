@@ -1,4 +1,3 @@
-import ArrowCircleLeftOutlinedIcon from '@mui/icons-material/ArrowCircleLeftOutlined';
 import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import { Box, Button, Card, CardContent, Typography } from '@mui/material';
 import _ from 'lodash';
@@ -10,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { TRANSFER_STATUS } from '../../../types/status';
 import ActivityStatus from '../../lib/activityStatus/ActivityStatus';
 import LinearProgress from '../../lib/linearProgress/linearProgress';
+import TransferMapping from '../../lib/transferMapping/TransferMapping';
 
 import './activityCard.scss';
 
@@ -33,7 +33,7 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
     return <Card>
         <CardContent className="activityCard">
             <Box className="header">
-                <Typography variant="h6">
+                <Typography variant="h5">
                     Activity
                 </Typography>
                 <ActivityStatus status={transferActivity?.status}/>
@@ -42,16 +42,47 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
                 ? <Box>
                     <Typography className='direction' variant="body1" align="left" sx={{ color: 'text.primary' }}>
                         <Box component="span" sx={{ fontWeight: 'bold' }}>Direction</Box>
-                        {': Server 1 '}{transferActivity.originServerNumber === 1
-                            ? <ArrowCircleRightOutlinedIcon className='direction__icon'/>
-                            : <ArrowCircleLeftOutlinedIcon className='direction__icon'/>
-                        }{' Server 2'}
+                        {`: Server ${transferActivity.originServerNumber} `}
+                        <ArrowCircleRightOutlinedIcon className='direction__icon'/>
+                        {` Server ${3 - transferActivity.originServerNumber}`}
                     </Typography>
                     <Typography variant="body1" align="left" sx={{ color: 'text.primary' }}>
                         <Box component="span" sx={{ fontWeight: 'bold' }}>Transfer target</Box>
                         {`: ${transferActivity.transferTargetName}`}
                     </Typography>
-                    <LinearProgress color='primary' value={transferActivity.currentTransfer?.fileProgress || 0}/>
+                    {transferActivity.currentTransfer && (
+                        <Card className='activitySubCard' raised>
+                            <CardContent>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                    Transferring
+                                </Typography>
+                                <Typography variant="body1">
+                                    {`${transferActivity.currentTransfer.sourceFilePath} --> ${transferActivity.currentTransfer.destinationFilePath}`}
+                                </Typography>
+                                <LinearProgress className='transferProgressBar' color='primary' value={transferActivity.currentTransfer.fileProgress || 0}/>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {Object.keys(transferActivity.transferMappingRemaining).length > 0 && (
+                        <Card className='activitySubCard' raised>
+                            <CardContent>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                    Pending
+                                </Typography>
+                                <TransferMapping transferMapping={transferActivity.transferMappingRemaining}/>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {Object.keys(transferActivity.transferMappingSuccessful).length > 0 && (
+                        <Card className='activitySubCard' raised>
+                            <CardContent>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                    Successful
+                                </Typography>
+                                <TransferMapping transferMapping={transferActivity.transferMappingSuccessful}/>
+                            </CardContent>
+                        </Card>
+                    )}
                     <Box className='footer'>
                         {transferActivity.status === TRANSFER_STATUS.IN_PROGRESS
                             ? (<Button

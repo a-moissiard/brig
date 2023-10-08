@@ -1,6 +1,6 @@
 export interface IProgressEventData {
     serverId: string;
-    name: string;
+    path: string;
     type: string;
     bytes: number;
     progress?: number;

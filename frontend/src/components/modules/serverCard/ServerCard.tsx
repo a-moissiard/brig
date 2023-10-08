@@ -309,7 +309,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
     return <Card>
         <CardContent className="serverCard">
             <Box className="header">
-                <Typography variant="h6">
+                <Typography variant="h5">
                     Server {serverNumber}
                 </Typography>
                 <ServerStatus status={serverConnection?.status}/>

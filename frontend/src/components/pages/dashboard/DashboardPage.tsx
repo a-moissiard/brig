@@ -4,7 +4,7 @@ import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
-import { setActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { setActivity, setTransferMapping } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
@@ -30,21 +30,22 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
 
     const onTransfer = async (originServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
+            dispatch(setActivity({
+                originServerNumber,
+                originServerId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
+                transferTargetName: file.name,
+                transferMappingRemaining: {},
+                transferMappingSuccessful: {},
+                status: TRANSFER_STATUS.IN_PROGRESS,
+                refreshNeeded: false,
+            }));
             let transferMapping: Record<string, string>;
             if (originServerNumber === 1) {
                 transferMapping = await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
             } else {
                 transferMapping = await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
             }
-            dispatch(setActivity({
-                originServerNumber,
-                originServerId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
-                transferTargetName: file.name,
-                transferMappingRemaining: transferMapping,
-                transferMappingSuccessful: {},
-                status: TRANSFER_STATUS.IN_PROGRESS,
-                refreshNeeded: false,
-            }));
+            dispatch(setTransferMapping(transferMapping));
         }
     };
 
