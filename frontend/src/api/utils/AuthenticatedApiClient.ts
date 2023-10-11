@@ -29,11 +29,12 @@ export abstract class AuthenticatedApiClient {
     }
 
     public static async openSSE(url: string, method: 'GET' | 'POST', onmessage: (event: EventSourceMessage) => void): Promise<void> {
-        await this.tryAuthenticatedRequest(() => fetchEventSource(url,  {
+        await fetchEventSource(url,  {
             method,
             headers: getAuthorizationHeader(),
             onmessage,
-        }));
+            openWhenHidden: true,
+        });
     }
 
     private static async tryAuthenticatedRequest<T>(fn: () => Promise<T>, alreadyRefreshed = false): Promise<T> {
