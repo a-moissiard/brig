@@ -1,6 +1,7 @@
 import { Response } from 'express';
 
 export enum EVENT_TYPE {
+    KEEP_ALIVE = 'keep_alive',
     PROGRESS = 'progress',
     TRANSFER_COMPLETED = 'transfer_completed',
 }

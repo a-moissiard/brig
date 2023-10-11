@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import { FtpServersService, IFtpServerCreateModel, IFtpServerUpdateModel } from '../../service/ftpServers';
 import { extractValidatedData } from '../middlewares';
-import { buildRequester, ServerSentEventsHelper } from '../utils';
+import { buildRequester, EVENT_TYPE, ServerSentEventsHelper } from '../utils';
 
 interface IFtpServersHandlerDependencies {
     ftpServersService: FtpServersService;
@@ -85,8 +85,13 @@ export class FtpServersHandler {
 
         await this.ftpServersService.registerSendEventCallback(requester, sendEvent);
 
+        const intervalId = setInterval(() => {
+            sendEvent(EVENT_TYPE.KEEP_ALIVE, {});
+        }, 60 * 1000);
+
         res.on('close', async () => {
             await this.ftpServersService.unregisterSendEventCallback(requester);
+            clearInterval(intervalId);
             res.end();
         });
     }
