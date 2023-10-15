@@ -11,6 +11,13 @@ import { FtpServersAuthorizationsEnforcer } from './FtpServersAuthorizationsEnfo
 import { FtpServersDao } from './FtpServersDao';
 import { IFtpServerConnectionStateModel, IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
 
+interface IUserConnectionsState {
+    clients: Record<string, FtpClient>;
+    transferCanceled: boolean;
+    stream?: PassThrough;
+    sendEventCallback?: SendEventCallback;
+}
+
 interface IFtpServersServiceDependencies {
     ftpServersDao: FtpServersDao;
     ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
@@ -20,17 +27,13 @@ export class FtpServersService {
     private readonly ftpServersDao: FtpServersDao;
     private readonly ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
 
-    private readonly usersClients: Map<string, Record<string, FtpClient>>;
-    private readonly usersStreams: Map<string, PassThrough>;
-    private readonly usersSendEventCallback: Map<string, SendEventCallback>;
+    private readonly usersStates: Map<string, IUserConnectionsState>;
 
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
         this.ftpServersAuthorizationsEnforcer = deps.ftpServersAuthorizationsEnforcer;
 
-        this.usersClients = new Map();
-        this.usersStreams = new Map();
-        this.usersSendEventCallback = new Map();
+        this.usersStates = new Map();
     }
 
     // CRUD
@@ -81,17 +84,18 @@ export class FtpServersService {
         await client.connect(password);
 
         // If progress tracking has been required, track progress for this newly created client
-        const sendEventCallback = this.usersSendEventCallback.get(requester.id);
+        const userState = this.usersStates.get(requester.id);
+        const sendEventCallback = userState?.sendEventCallback;
         if (sendEventCallback) {
             await client.trackProgress(sendEventCallback);
         }
     }
 
     public async getUserConnectedServers(requester: IRequester): Promise<IFtpServerConnectionStateModel[]> {
-        const userClients = this.usersClients.get(requester.id);
-        if (userClients) {
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
             const connectedServers = [];
-            for (let client of Object.values(userClients)) {
+            for (let client of Object.values(userState.clients)) {
                 try {
                     connectedServers.push({
                         server: client.ftpServer,
@@ -157,19 +161,31 @@ export class FtpServersService {
 
     public async registerSendEventCallback(requester: IRequester, sendEvent: SendEventCallback): Promise<void> {
         // Register the callback so all future clients will be able to track progress immediately
-        this.usersSendEventCallback.set(requester.id, sendEvent);
 
-        // Track progress for all already existing clients
-        const userClients = this.usersClients.get(requester.id);
-        if (userClients) {
-            for (let client of Object.values(userClients)) {
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            userState.sendEventCallback = sendEvent;
+            this.usersStates.set(requester.id, userState);
+
+            // Track progress for all already existing clients
+            for (let client of Object.values(userState.clients)) {
                 await client.trackProgress(sendEvent);
             }
+        } else {
+            this.usersStates.set(requester.id, {
+                clients: {},
+                transferCanceled: false,
+                sendEventCallback: sendEvent,
+            });
         }
     }
 
     public async unregisterSendEventCallback(requester: IRequester): Promise<void> {
-        this.usersSendEventCallback.delete(requester.id);
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            userState.sendEventCallback = undefined;
+            this.usersStates.set(requester.id, userState);
+        }
     }
 
     /**
@@ -226,24 +242,49 @@ export class FtpServersService {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, sourceServerId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, destinationServerId);
 
-        const sourceClient = this.getClient(requester, sourceServerId);
-        const destinationClient = this.getClient(requester, destinationServerId);
+        const userState = this.usersStates.get(requester.id);
 
-        for (const sourceFilePath of Object.keys(transferMapping)) {
-            await this.transferFile(requester, sourceClient, destinationClient, sourceFilePath, transferMapping[sourceFilePath]);
-        }
+        if (userState) {
+            const sourceClient = this.getClient(requester, sourceServerId);
+            const destinationClient = this.getClient(requester, destinationServerId);
 
-        const sendEventCallback = this.usersSendEventCallback.get(requester.id);
-        if (sendEventCallback) {
-            sendEventCallback(EVENT_TYPE.TRANSFER_COMPLETED, { serverId: sourceServerId });
+            userState.transferCanceled = false;
+
+            for (const sourceFilePath of Object.keys(transferMapping)) {
+                try {
+                    if (!userState.transferCanceled) {
+                        await this.transferFile(requester, userState, sourceClient, destinationClient, sourceFilePath, transferMapping[sourceFilePath]);
+                    }
+                } catch (e) {
+                    logger.warn(`Error caught on file transfer: ${(e as any)?.code}`);
+                }
+            }
+
+            const sendEventCallback = userState.sendEventCallback;
+            if (sendEventCallback) {
+                if (!userState.transferCanceled) {
+                    sendEventCallback(EVENT_TYPE.TRANSFER_COMPLETED, { serverId: sourceServerId });
+                } else {
+                    sendEventCallback(EVENT_TYPE.TRANSFER_CANCELED, { serverId: sourceServerId });
+                }
+            }
+        } else {
+            // Should never happen, if userState is undefined prepareTransfer step would have already throw
+            throw new BrigError(BRIG_ERROR_CODE.FTP_NO_STATE, `No state registered for user=${requester.id}`, {
+                publicMessage: 'Internal error, cannot transfer',
+            });
         }
     }
 
     public async cancelTransfer(requester: IRequester, serverId: string): Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
-        const ptStream = this.usersStreams.get(requester.id);
-        if (ptStream) {
-            ptStream.destroy();
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            userState.transferCanceled = true;
+            if (userState.stream) {
+                userState.stream.destroy();
+            }
+            this.usersStates.set(requester.id, userState);
         }
     }
 
@@ -299,6 +340,7 @@ export class FtpServersService {
 
     private async transferFile(
         requester: IRequester,
+        userState: IUserConnectionsState,
         sourceClient: FtpClient,
         destinationClient: FtpClient,
         sourceFilePath: string,
@@ -306,56 +348,69 @@ export class FtpServersService {
     ): Promise<void> {
         const ptStream = new PassThrough();
         ptStream.on('error', (err: Error) => {
-            this.usersStreams.delete(requester.id);
+            userState.stream = undefined;
             throw new BrigError(BRIG_ERROR_CODE.STREAM_CLOSED_WITH_ERROR, err.message);
         });
         ptStream.on('close', () => {
-            this.usersStreams.delete(requester.id);
+            userState.stream = undefined;
             logger.debug('Stream closed');
         });
-        this.usersStreams.set(requester.id, ptStream);
+        userState.stream = ptStream;
+        this.usersStates.set(requester.id, userState);
 
         const splitSourceFilePath = sourceFilePath.split('/');
         const fileName = splitSourceFilePath.pop();
         const directory = splitSourceFilePath.join('/');
         const fileInfo = await this.findFileInfoAtPath(sourceClient, fileName || '', directory);
 
-        try {
-            await Promise.all([
-                sourceClient.download(ptStream, sourceFilePath, fileInfo),
-                destinationClient.upload(ptStream, destinationFilePath),
-            ]);
-        } catch (e) {
-            logger.warn(`Error caught on file transfer: ${(e as any)?.code}`);
-        }
+        await Promise.all([
+            sourceClient.download(ptStream, sourceFilePath, fileInfo),
+            destinationClient.upload(ptStream, destinationFilePath),
+        ]);
+        
         ptStream.end();
     }
 
     private setClient(requester: IRequester, serverId: string, client: FtpClient): void {
-        const userClients = this.usersClients.get(requester.id) || {};
-        const serverIds = Object.keys(userClients);
-        if (serverIds.length < 2 || serverIds.includes(serverId)) {
-            userClients[serverId] = client;
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            const userClients = userState.clients;
+            const serverIds = Object.keys(userClients);
+            if (serverIds.length < 2 || serverIds.includes(serverId)) {
+                userClients[serverId] = client;
+            } else {
+                throw new BrigError(BRIG_ERROR_CODE.FTP_MAX_CLIENT_NUMBER_REACHED, 'Connection to more than two FTP servers at a time not permitted');
+            }
+            userState.clients = userClients;
+            this.usersStates.set(requester.id, userState);
         } else {
-            throw new BrigError(BRIG_ERROR_CODE.FTP_MAX_CLIENT_NUMBER_REACHED, 'Connection to more than two FTP servers at a time not permitted');
+            this.usersStates.set(requester.id, {
+                clients: {
+                    serverId: client,
+                },
+                transferCanceled: false,
+            });
         }
-        this.usersClients.set(requester.id, userClients);
     }
 
     private unsetClient(requester: IRequester, serverId: string): void {
-        const userClients = this.usersClients.get(requester.id) || {};
-        delete userClients[serverId];
-        if (Object.keys(userClients).length === 0) {
-            this.usersClients.delete(requester.id);
-        } else {
-            this.usersClients.set(requester.id, userClients);
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            const userClients = userState.clients;
+            delete userClients[serverId];
+            if (Object.keys(userClients).length === 0) {
+                this.usersStates.delete(requester.id);
+            } else {
+                userState.clients = userClients;
+                this.usersStates.set(requester.id, userState);
+            }
         }
     }
 
     private getClient(requester: IRequester, serverId: string): FtpClient {
-        const userClients = this.usersClients.get(requester.id);
-        if (userClients && userClients[serverId]) {
-            return userClients[serverId];
+        const userState = this.usersStates.get(requester.id);
+        if (userState && userState.clients[serverId]) {
+            return userState.clients[serverId];
         }
         throw new BrigError(BRIG_ERROR_CODE.FTP_NOT_LOGGED_IN, `Client not registered for user=${requester.id}`, {
             publicMessage: 'You are not connected to this FTP server, please connect first',
