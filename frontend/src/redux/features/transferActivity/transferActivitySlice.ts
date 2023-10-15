@@ -43,18 +43,13 @@ export const transferActivitySlice = createSlice({
 
                 if (action.payload.fileProgress === 100) {
                     state.value.transferMappingSuccessful[sourceFilePath] = state.value.currentTransfer.destinationFilePath;
+                    state.value.currentTransfer = undefined;
                 }
             }
         },
         setTransferStatus: (state, action: PayloadAction<TRANSFER_STATUS>) => {
             if (state.value) {
                 state.value.status = action.payload;
-            }
-        },
-        setTransferCompleted: (state) => {
-            if (state.value && state.value.status !== TRANSFER_STATUS.CANCELED) {
-                state.value.status = TRANSFER_STATUS.COMPLETED;
-                state.value.currentTransfer = undefined;
                 state.value.refreshNeeded = true;
             }
         },
@@ -76,7 +71,6 @@ export const {
     setTransferMapping,
     setProgress,
     setTransferStatus,
-    setTransferCompleted,
     setRefreshment,
     unsetActivity,
 } = transferActivitySlice.actions;

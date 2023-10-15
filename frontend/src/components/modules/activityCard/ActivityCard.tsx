@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { FunctionComponent } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
-import { selectTransferActivity, setTransferStatus, unsetActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { selectTransferActivity, unsetActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { TRANSFER_STATUS } from '../../../types/status';
 import ActivityStatus from '../../lib/activityStatus/ActivityStatus';
@@ -26,7 +26,6 @@ const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
     const onCancel = async (): Promise<void> => {
         if (transferActivity) {
             await FtpServersApi.cancelTransfer(transferActivity.originServerId);
-            dispatch(setTransferStatus(TRANSFER_STATUS.CANCELED));
         }
     };
 

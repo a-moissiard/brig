@@ -127,7 +127,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         signal: controller.signal,
                     }));
                     setOngoingAction(false);
-                }, 1000);
+                }, 2000);
             }
         }
     }, [transferActivity, ongoingAction]);
