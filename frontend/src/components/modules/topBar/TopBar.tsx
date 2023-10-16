@@ -1,11 +1,13 @@
 import MenuIcon from '@mui/icons-material/Menu';
-import { AppBar, Box, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { AppBar, Badge, Box, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import { FunctionComponent, MouseEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectUser, unsetUser } from 'redux/features/user/userSlice';
 
 import { AuthApi } from '../../../api/auth';
+import { selectTransferActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
+import { TRANSFER_STATUS } from '../../../types/status';
 
 import './topBar.scss';
 
@@ -16,6 +18,7 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
     const navigate = useNavigate();
 
     const user = useAppSelector(selectUser);
+    const transferActivity = useAppSelector(selectTransferActivity);
 
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
     const menuOpen = Boolean(menuAnchor);
@@ -37,7 +40,9 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
     return <AppBar position='sticky' className='topBar'>
         {user && (<Box className='topBar__menuContainer'>
             <IconButton sx={{ color:'primary.light' }} className='topBar__menuButton' onClick={openMenu}>
-                <MenuIcon />
+                <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>
+                    <MenuIcon />
+                </Badge>
             </IconButton>
             <Menu open={menuOpen} anchorEl={menuAnchor} onClose={closeMenu} className='topBar__menu'>
                 <MenuItem onClick={(): void => navigate('/dashboard')}>Dashboard</MenuItem>
@@ -49,7 +54,9 @@ const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
         {user ? (
             <>
                 <Box className='topBar__links'>
-                    <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
+                    <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>
+                        <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
+                    </Badge>
                     <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/servers')}>Servers</Button>
                     {user.admin && (<Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/admin')}>Admin</Button>)}
                 </Box>
