@@ -1,9 +1,9 @@
-import { Container, createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import _ from 'lodash';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
-import Loader from './components/lib/loader/Loader';
+import LoadingBox from './components/lib/loadingBox/LoadingBox';
 import PageGuard from './components/lib/pageGuard/PageGuard';
 import AdminPage from './components/pages/admin/AdminPage';
 import DashboardPage from './components/pages/dashboard/DashboardPage';
@@ -16,8 +16,6 @@ import { useAppDispatch } from './redux/hooks';
 import { AuthFacade } from './utils/auth/AuthFacade';
 import { ProgressTracking } from './utils/sse/ProgressTracking';
 import { themeOptions } from './utils/theme/ThemeOptions';
-
-import './app.scss';
 
 interface IAppProps {}
 
@@ -45,11 +43,7 @@ const App: FunctionComponent<IAppProps> = ({}) => {
 
     return <ThemeProvider theme={createTheme(themeOptions)}>
         <CssBaseline />
-        {loading ? (
-            <Container maxWidth='xs' className='loaderContainer'>
-                <Loader loading={loading} size={100} />
-            </Container>
-        ) : (
+        <LoadingBox loading={loading} withMargin={false}>
             <Routes>
                 <Route path="/" element={<Navigate to="/dashboard"/>} />
                 <Route path="/dashboard" element={
@@ -81,7 +75,7 @@ const App: FunctionComponent<IAppProps> = ({}) => {
                 <Route path="/error" element={<ErrorPage />} />
                 <Route path="/*" element={<NotFoundPage />} />
             </Routes>
-        )}
+        </LoadingBox>
     </ThemeProvider>;
 };
 

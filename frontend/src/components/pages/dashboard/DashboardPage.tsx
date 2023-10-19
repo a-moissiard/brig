@@ -1,4 +1,4 @@
-import { Box, Container } from '@mui/material';
+import { Box } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { FunctionComponent, useEffect, useState } from 'react';
 
@@ -9,12 +9,10 @@ import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
 import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
-import Loader from '../../lib/loader/Loader';
+import LoadingBox from '../../lib/loadingBox/LoadingBox';
 import ActivityCard from '../../modules/activityCard/ActivityCard';
 import ServerCard from '../../modules/serverCard/ServerCard';
 import TopBar from '../../modules/topBar/TopBar';
-
-import './dashboard.scss';
 
 export interface IDashboardPageProps {}
 
@@ -96,35 +94,29 @@ const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
 
     return <Box>
         <TopBar/>
-        <Box component="main" className="main">
-            {loading ? (
-                <Container maxWidth='xs' className='loaderContainer'>
-                    <Loader loading={loading} size={100} />
-                </Container>
-            ) : (
-                <Grid container spacing={4}>
-                    <Grid xs={12}>
-                        <ActivityCard />
-                    </Grid>
-                    <Grid xs={12} lg={6}>
-                        <ServerCard
-                            serverNumber={1}
-                            ftpServerList={serverList}
-                            canTransfer={server2Connection?.status === CONNECTION_STATUS.CONNECTED}
-                            onTransfer={onTransfer}
-                        />
-                    </Grid>
-                    <Grid xs={12} lg={6}>
-                        <ServerCard
-                            serverNumber={2}
-                            ftpServerList={serverList}
-                            canTransfer={server1Connection?.status === CONNECTION_STATUS.CONNECTED}
-                            onTransfer={onTransfer}
-                        />
-                    </Grid>
+        <LoadingBox loading={loading} withMargin>
+            <Grid container spacing={4}>
+                <Grid xs={12}>
+                    <ActivityCard />
                 </Grid>
-            )}
-        </Box>
+                <Grid xs={12} lg={6}>
+                    <ServerCard
+                        serverNumber={1}
+                        ftpServerList={serverList}
+                        canTransfer={server2Connection?.status === CONNECTION_STATUS.CONNECTED}
+                        onTransfer={onTransfer}
+                    />
+                </Grid>
+                <Grid xs={12} lg={6}>
+                    <ServerCard
+                        serverNumber={2}
+                        ftpServerList={serverList}
+                        canTransfer={server1Connection?.status === CONNECTION_STATUS.CONNECTED}
+                        onTransfer={onTransfer}
+                    />
+                </Grid>
+            </Grid>
+        </LoadingBox>
     </Box>;
 };
 

@@ -1,0 +1,17 @@
+.main {
+  margin: 0;
+
+  &--withMargin {
+    margin: 40px;
+
+    @media screen and (max-width: 600px) {
+      margin: 20px;
+    }
+  }
+}
+
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 20vh;
+}
