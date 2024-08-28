@@ -7,7 +7,7 @@
     "build:frontend": "yarn workspace frontend run build",
     "clean": "yarn workspaces foreach run clean",
     "copy_front_build": "mkdir -p backend/build && cp -r frontend/build backend/build/frontend",
-    "dev:all": "yarn workspaces foreach -p run dev",
+    "dev": "yarn workspaces foreach -p run dev",
     "start": "yarn build && yarn copy_front_build && yarn start:backend",
     "start:backend": "yarn workspace backend run start",
     "start:frontend": "yarn workspace frontend run start"

@@ -1,5 +1,6 @@
 export interface IBrigConfig {
     express: {
+        host: string;
         port: string;
     };
     mongo: IBrigMongoConfig;
@@ -33,7 +34,8 @@ export interface IBrigAuthConfig {
 
 export const config: IBrigConfig = {
     express: {
-        port: process.env.PORT || '8080',
+        host: process.env.SERVER_HOST || '',
+        port: process.env.SERVER_PORT || '8080',
     },
     mongo: {
         connection:{
@@ -43,7 +45,7 @@ export const config: IBrigConfig = {
             host: process.env.MONGO_HOST || '',
             port: process.env.MONGO_PORT || '27017',
         },
-        dbName: 'brig',
+        dbName: process.env.MONGO_DB_NAME || 'brig',
     },
     auth: {
         openToUserRegistration: process.env.OPEN_TO_USER_REGISTRATION || 'false',

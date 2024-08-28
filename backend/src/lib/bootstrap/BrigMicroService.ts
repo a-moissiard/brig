@@ -82,9 +82,9 @@ export class BrigMicroService {
             res.sendFile(path.join(__dirname, '../../../build/frontend', 'index.html'));
         });
 
-        const { port } = this.config.express;
+        const { host, port } = this.config.express;
         this.server = this.expressApp.listen(port, () => {
-            logger.info(`Server started at http://localhost:${port}`);
+            logger.info(`Server started at http://${host}:${port}`);
         });
     }
 

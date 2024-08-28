@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 import { config } from '../config';
 import { logger } from '../logger';
 import { MongoConnectionManager } from '../utils/mongo';
