@@ -3,5 +3,5 @@ interface IBrigFrontConfig {
 }
 
 export const config: IBrigFrontConfig = {
-    apiUrl: 'http://localhost:8080/api/',
+    apiUrl: `http://${process.env.REACT_APP_SERVER_HOST}:${process.env.REACT_APP_SERVER_PORT}/api/`,
 };
