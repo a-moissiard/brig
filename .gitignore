@@ -16,4 +16,6 @@
 build
 node_modules
 certs
-.env
+
+.env*
+!.env*.example
