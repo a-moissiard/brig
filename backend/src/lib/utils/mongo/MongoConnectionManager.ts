@@ -1,4 +1,4 @@
-import { Db, MongoClient } from 'mongodb';
+import { Db, MongoClient, MongoClientOptions } from 'mongodb';
 
 import { IBrigMongoConfig } from '../../config';
 import { logger } from '../../logger';
@@ -16,9 +16,16 @@ export class MongoConnectionManager implements IMongoConnectionManager {
 
     constructor(mongoConfig: IBrigMongoConfig) {
         this.mongoConfig = mongoConfig;
-        const { user, pass, host, port } = mongoConfig.connection;
-        const mongoUrl = `mongodb://${user}:${pass}@${host}:${port}`;
-        this.mongoClient = new MongoClient(mongoUrl);
+        const { user, pass, authSource, host, port } = mongoConfig.connection;
+        const mongoUrl = `mongodb://${host}:${port}`;
+        const mongoOptions: MongoClientOptions = {
+            auth: user && pass ? {
+                username: user,
+                password: pass,
+            } : undefined,
+            authSource,
+        };
+        this.mongoClient = new MongoClient(mongoUrl, mongoOptions);
         this.db = this.mongoClient.db(this.mongoConfig.dbName);
     }
 
