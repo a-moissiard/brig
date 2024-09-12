@@ -87,7 +87,7 @@ export class FtpServersHandler {
 
         const intervalId = setInterval(() => {
             sendEvent(EVENT_TYPE.KEEP_ALIVE, {});
-        }, 60 * 1000);
+        }, 30 * 1000);
 
         res.on('close', async () => {
             await this.ftpServersService.unregisterSendEventCallback(requester);

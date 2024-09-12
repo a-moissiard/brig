@@ -6,19 +6,23 @@ import { TRANSFER_STATUS } from '../../types/status';
 
 export class ProgressTracking {
     public static setupProgressTracking(dispatch: AppDispatch): void {
-        void FtpServersApi.trackProgress((event): void => {
-            if (event.event === EVENT_TYPE.PROGRESS) {
-                const eventData = JSON.parse(event.data) as IProgressEventData;
-                dispatch(setProgress({
-                    sourceFilePath: eventData.path,
-                    fileBytes: eventData.bytes,
-                    fileProgress: eventData.progress,
-                }));
-            } else if (event.event === EVENT_TYPE.TRANSFER_COMPLETED) {
-                dispatch(setTransferStatus(TRANSFER_STATUS.COMPLETED));
-            } else if (event.event === EVENT_TYPE.TRANSFER_CANCELED) {
-                dispatch(setTransferStatus(TRANSFER_STATUS.CANCELED));
-            }
-        });
+        void FtpServersApi.trackProgress(
+            {
+                [EVENT_TYPE.PROGRESS]: (event: MessageEvent): void => {
+                    const eventData = JSON.parse(event.data) as IProgressEventData;
+                    dispatch(setProgress({
+                        sourceFilePath: eventData.path,
+                        fileBytes: eventData.bytes,
+                        fileProgress: eventData.progress,
+                    }));
+                },
+                [EVENT_TYPE.TRANSFER_COMPLETED]: (): void => {
+                    dispatch(setTransferStatus(TRANSFER_STATUS.COMPLETED));
+                },
+                [EVENT_TYPE.TRANSFER_CANCELED]: (): void => {
+                    dispatch(setTransferStatus(TRANSFER_STATUS.CANCELED));
+                },
+            },
+        );
     };
 }

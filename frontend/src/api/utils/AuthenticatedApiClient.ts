@@ -1,6 +1,8 @@
-import { EventSourceMessage, fetchEventSource } from '@microsoft/fetch-event-source';
+import EventSourcePolyfill from '@sanity/eventsource';
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, CanceledError } from 'axios';
+import _ from 'lodash';
 
+import { IEventHandlers } from '../../types/sse/EventTypes';
 import { AuthFacade } from '../../utils/auth/AuthFacade';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError, HTTP_STATUS_CODES_TO_ERROR_CODE } from '../../utils/error/BrigFrontError';
 import { IAuthTokens } from '../auth';
@@ -28,12 +30,12 @@ export abstract class AuthenticatedApiClient {
         return response.data;
     }
 
-    public static async openSSE(url: string, method: 'GET' | 'POST', onmessage: (event: EventSourceMessage) => void): Promise<void> {
-        await fetchEventSource(url,  {
-            method,
+    public static async openSSE(url: string, handlers: IEventHandlers): Promise<void> {
+        const sse = new EventSourcePolyfill(url, {
             headers: getAuthorizationHeader(),
-            onmessage,
-            openWhenHidden: true,
+        });
+        _.forEach(handlers, (handler, eventKey) => {
+            sse.addEventListener(eventKey, handler);
         });
     }
 
