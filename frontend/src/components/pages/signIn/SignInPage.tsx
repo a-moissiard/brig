@@ -15,9 +15,7 @@ import { AuthFacade } from '../../../utils/auth/AuthFacade';
 import { BrigFrontError } from '../../../utils/error/BrigFrontError';
 import { ProgressTracking } from '../../../utils/sse/ProgressTracking';
 
-interface ISignInPageProps {}
-
-const SignInPage: FunctionComponent<ISignInPageProps> = () => {
+const SignInPage: FunctionComponent = () => {
     const [error, setError] = useState<string>();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();

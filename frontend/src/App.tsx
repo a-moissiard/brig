@@ -17,9 +17,7 @@ import { AuthFacade } from './utils/auth/AuthFacade';
 import { ProgressTracking } from './utils/sse/ProgressTracking';
 import { themeOptions } from './utils/theme/ThemeOptions';
 
-interface IAppProps {}
-
-const App: FunctionComponent<IAppProps> = ({}) => {
+const App: FunctionComponent = () => {
     const [loading, setLoading] = useState(true);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();

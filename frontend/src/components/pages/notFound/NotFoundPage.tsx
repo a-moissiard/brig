@@ -2,9 +2,7 @@ import { FunctionComponent } from 'react';
 
 import TopBar from '../../modules/topBar/TopBar';
 
-interface INotFoundPageProps {}
-
-const NotFoundPage: FunctionComponent<INotFoundPageProps> = () => <>
+const NotFoundPage: FunctionComponent = () => <>
     <TopBar />
     Page Not Found
 </>;

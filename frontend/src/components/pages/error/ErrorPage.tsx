@@ -2,9 +2,7 @@ import { FunctionComponent } from 'react';
 
 import TopBar from '../../modules/topBar/TopBar';
 
-interface IErrorPageProps {}
-
-const ErrorPage: FunctionComponent<IErrorPageProps> = () => <>
+const ErrorPage: FunctionComponent = () => <>
     <TopBar />
     Error
 </>;

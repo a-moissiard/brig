@@ -11,9 +11,7 @@ import { TRANSFER_STATUS } from '../../../types/status';
 
 import './topBar.scss';
 
-interface ITopBarProps {}
-
-const TopBar: FunctionComponent<ITopBarProps> = ({}) => {
+const TopBar: FunctionComponent = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 

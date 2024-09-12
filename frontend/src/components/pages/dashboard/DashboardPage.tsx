@@ -14,9 +14,7 @@ import ActivityCard from '../../modules/activityCard/ActivityCard';
 import ServerCard from '../../modules/serverCard/ServerCard';
 import TopBar from '../../modules/topBar/TopBar';
 
-export interface IDashboardPageProps {}
-
-const DashboardPage: FunctionComponent<IDashboardPageProps> = ({}) => {
+const DashboardPage: FunctionComponent = () => {
     const dispatch = useAppDispatch();
 
     const [loading, setLoading] = useState(true);

@@ -13,9 +13,7 @@ import TransferMapping from '../../lib/transferMapping/TransferMapping';
 
 import './activityCard.scss';
 
-export interface IActivityCardProps {}
-
-const ActivityCard: FunctionComponent<IActivityCardProps> = () => {
+const ActivityCard: FunctionComponent = () => {
     const dispatch = useAppDispatch();
     const transferActivity = useAppSelector(selectTransferActivity);
 
