@@ -42,10 +42,14 @@ export class FtpClient {
                 port: this.ftpServer.port,
                 user: this.ftpServer.username,
                 password,
-                secure: true,
-                secureOptions: {
-                    rejectUnauthorized: secure,
-                },
+                ...(this.ftpServer.secure ? {
+                    secure: true,
+                    secureOptions: {
+                        rejectUnauthorized: secure,
+                    },
+                } : {
+                    secure: false,
+                }),
             }));
         } catch (e: any) {
             if (typeof e?.code === 'string' && (e.code as string).match(/UNABLE_TO_VERIFY_LEAF_SIGNATURE/)) {

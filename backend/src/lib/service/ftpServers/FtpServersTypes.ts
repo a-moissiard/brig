@@ -4,6 +4,7 @@ interface IFtpServerBaseModel {
     host: string;
     port: number;
     username: string;
+    secure: boolean;
 }
 
 export type IFtpServerCreateModel = IFtpServerBaseModel;

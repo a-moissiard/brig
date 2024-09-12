@@ -9,6 +9,7 @@ interface IFtpServerDb {
     host: string;
     port: number;
     username: string;
+    secure: boolean;
     ownerId: string;
 }
 
@@ -30,6 +31,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             host: db.host,
             port: db.port,
             username: db.username,
+            secure: db.secure,
             ownerId: db.ownerId,
         };
     }
@@ -40,6 +42,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             host: model.host,
             port: model.port,
             username: model.username,
+            secure: model.secure,
             ownerId: model.ownerId,
         };
     }
@@ -88,6 +91,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
                 host: server.host,
                 port: server.port,
                 username: server.username,
+                secure: server.secure,
             }, _.isUndefined),
         }, {
             returnDocument: 'after',

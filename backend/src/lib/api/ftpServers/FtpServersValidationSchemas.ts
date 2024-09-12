@@ -16,6 +16,11 @@ export const ftpServersCreateBodySchema: Schema = {
         isString: true,
         errorMessage: 'body is expected to contain `username` parameter which must be a string',
     },
+    secure: {
+        in: 'body',
+        isBoolean: true,
+        errorMessage: 'body is expected to contain `secure` parameter which must be a boolean',
+    },
 };
 
 export const ftpServersUpdateBodySchema: Schema = {
