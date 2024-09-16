@@ -24,6 +24,7 @@ export class FtpClient {
     private readonly transferClient: ftp.Client;
     private readonly sendEventCallbacks: Record<string, SendEventCallback>;
     private readonly fileInfoCache: LRUCache<string, IFileInfo>;
+    private lastPath: string | undefined;
 
     constructor(deps: IFtpClientDependencies) {
         this.ftpServer = deps.ftpServer;
@@ -78,6 +79,7 @@ export class FtpClient {
             }
             throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, String(e));
         }
+        await this.cd(this.lastPath ?? this.ftpServer.lastPath);
     }
 
     public async disconnect(client: ftp.Client = this.regularClient): Promise<void> {
@@ -94,6 +96,7 @@ export class FtpClient {
 
     public async cd(path: string): Promise<void> {
         await this.wrapFtpClientCall(() => this.regularClient.cd(path));
+        this.lastPath = path;
     }
 
     public async ensureDirAndMoveIn(path: string): Promise<void> {

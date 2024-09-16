@@ -11,6 +11,7 @@ interface IFtpServerDb {
     username: string;
     secure: boolean;
     ownerId: string;
+    lastPath: string;
 }
 
 interface IFtpServersDaoDependencies {
@@ -33,6 +34,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             username: db.username,
             secure: db.secure,
             ownerId: db.ownerId,
+            lastPath: db.lastPath,
         };
     }
     
@@ -44,6 +46,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
             username: model.username,
             secure: model.secure,
             ownerId: model.ownerId,
+            lastPath: model.lastPath,
         };
     }
 
@@ -86,7 +89,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
-        return FtpServersDao.mapDbToModel(await this.update( { id: serverId }, {
+        return FtpServersDao.mapDbToModel(await this.update({ id: serverId }, {
             $set: _.omitBy({
                 host: server.host,
                 port: server.port,
@@ -96,6 +99,10 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
         }, {
             returnDocument: 'after',
         }));
+    }
+
+    public async updateLastPath(serverId: string, lastPath: string) : Promise<IFtpServerModel> {
+        return FtpServersDao.mapDbToModel(await this.update({ id: serverId }, { $set: { lastPath } }, { returnDocument: 'after' }));
     }
 
     public async deleteServer(serverId: string): Promise<void> {

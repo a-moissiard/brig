@@ -44,6 +44,7 @@ export class FtpServersService {
         return this.ftpServersDao.createServer({
             id,
             ownerId: requester.id,
+            lastPath: '/',
             ...server,
         });
     }
@@ -140,6 +141,7 @@ export class FtpServersService {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, serverId);
         const client = this.getClient(requester, serverId);
         await client.cd(path);
+        await this.ftpServersDao.updateLastPath(serverId, path);
     }
 
     public async list(requester: IRequester, serverId: string): Promise<IFileInfo[]> {
