@@ -7,22 +7,31 @@ import { PassThrough } from 'stream';
 
 import { EVENT_TYPE, SendEventCallback } from '../../api/utils';
 import { logger } from '../../logger';
-import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
+import { BRIG_ERROR_CODE, BrigError, isTLSError } from '../../utils/error';
 import { IFtpServerModel } from '../ftpServers';
 import { IFileInfo } from './FileInfoTypes';
 
 interface IFtpClientDependencies {
     ftpServer: IFtpServerModel;
+    password: string;
 }
 
 export class FtpClient {
     public readonly ftpServer: IFtpServerModel;
-    private readonly basicFtpClient: ftp.Client;
+    private readonly password: string;
+    private rejectUnauthorized: boolean;
+    private readonly regularClient: ftp.Client;
+    private readonly transferClient: ftp.Client;
+    private readonly sendEventCallbacks: Record<string, SendEventCallback>;
     private readonly fileInfoCache: LRUCache<string, IFileInfo>;
 
     constructor(deps: IFtpClientDependencies) {
         this.ftpServer = deps.ftpServer;
-        this.basicFtpClient = new ftp.Client();
+        this.password = deps.password;
+        this.rejectUnauthorized = true;
+        this.regularClient = new ftp.Client();
+        this.transferClient = new ftp.Client();
+        this.sendEventCallbacks = {};
         this.fileInfoCache = new LRUCache<string, IFileInfo>({ max: 32 });
     }
 
@@ -35,86 +44,109 @@ export class FtpClient {
     }
 
     // TODO: ask user before switching to rejectUnauthorized=false
-    public async connect(password: string, secure: boolean = true): Promise<void> {
+    public async connect(client: ftp.Client = this.regularClient): Promise<void> {
         try {
-            await this.wrapFtpClientCall(() => this.basicFtpClient.access({
+            await client.access({
                 host: this.ftpServer.host,
                 port: this.ftpServer.port,
                 user: this.ftpServer.username,
-                password,
+                password: this.password,
                 ...(this.ftpServer.secure ? {
                     secure: true,
                     secureOptions: {
-                        rejectUnauthorized: secure,
+                        rejectUnauthorized: this.rejectUnauthorized,
                     },
                 } : {
                     secure: false,
                 }),
-            }));
-        } catch (e: any) {
-            if (typeof e?.code === 'string' && (e.code as string).match(/UNABLE_TO_VERIFY_LEAF_SIGNATURE/)) {
-                logger.warn('Unable to verify leaf signature');
-                return await this.connect(password, false);
-            } else if (typeof e?.code === 'string' && (e.code as string).match(/SELF_SIGNED_CERT/)) {
-                logger.warn('Self signed certificate');
-                return await this.connect(password, false);
+            });
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                if (e instanceof FTPError && e.code === 530) {
+                    throw new BrigError(BRIG_ERROR_CODE.FTP_INVALID_CREDENTIALS, e.message);
+                }
+                if (isTLSError(e)) {
+                    if (e.code.match(/UNABLE_TO_VERIFY_LEAF_SIGNATURE/)) {
+                        logger.warn('Unable to verify leaf signature');
+                    } else if (e.code.match(/SELF_SIGNED_CERT/)) {
+                        logger.warn('Self signed certificate');
+                    }
+                    this.rejectUnauthorized = false;
+                    return await this.connect();
+                }
+                throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, e.message);
             }
-            throw e;
+            throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, String(e));
         }
     }
 
-    public async disconnect(): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.close());
+    public async disconnect(client: ftp.Client = this.regularClient): Promise<void> {
+        await this.wrapFtpClientCall(() => client.close());
     }
 
     public async list(path?: string): Promise<IFileInfo[]> {
-        return (await this.wrapFtpClientCall(() => this.basicFtpClient.list(path))).map(FtpClient.mapFtpFileInfoToFileInfo);
+        return (await this.wrapFtpClientCall(() => this.regularClient.list(path))).map(FtpClient.mapFtpFileInfoToFileInfo);
     }
 
     public async pwd(): Promise<string> {
-        return this.wrapFtpClientCall(() => this.basicFtpClient.pwd());
+        return this.wrapFtpClientCall(() => this.regularClient.pwd());
     }
 
     public async cd(path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.cd(path));
+        await this.wrapFtpClientCall(() => this.regularClient.cd(path));
     }
 
     public async ensureDirAndMoveIn(path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.ensureDir(path));
+        await this.wrapFtpClientCall(() => this.regularClient.ensureDir(path));
     }
 
     public async deleteFile(path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.remove(path));
+        await this.wrapFtpClientCall(() => this.regularClient.remove(path));
     }
 
     public async deleteDir(path: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.removeDir(path));
+        await this.wrapFtpClientCall(() => this.regularClient.removeDir(path));
     }
 
     public async download(ptStream: PassThrough, filePath: string, fileInfo: IFileInfo): Promise<void> {
         this.fileInfoCache.set(filePath, fileInfo);
-        await this.wrapFtpClientCall(() => this.basicFtpClient.downloadTo(ptStream, filePath));
+        await this.connect(this.transferClient);
+        await this.trackProgress();
+        await this.wrapFtpClientCall(() => this.transferClient.downloadTo(ptStream, filePath));
+        await this.disconnect(this.transferClient);
     }
 
     public async upload(ptStream: PassThrough, filePath: string): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.uploadFrom(ptStream, filePath));
+        await this.connect(this.transferClient);
+        await this.wrapFtpClientCall(() => this.transferClient.uploadFrom(ptStream, filePath));
+        await this.disconnect(this.transferClient);
     }
-    
-    public async trackProgress(sendEvent: SendEventCallback): Promise<void> {
-        await this.wrapFtpClientCall(() => this.basicFtpClient.trackProgress((info: ProgressInfo) => {
+
+    public registerSendEventCallback(id: string, callback: SendEventCallback): void {
+        this.sendEventCallbacks[id] = callback;
+    }
+
+    public unregisterSendEventCallback(id: string): void {
+        delete this.sendEventCallbacks[id];
+    }
+
+    public async trackProgress(): Promise<void> {
+        await this.wrapFtpClientCall(() => this.transferClient.trackProgress((info: ProgressInfo) => {
             if (info.type === 'download') {
                 let progress: number | undefined;
                 const file = this.fileInfoCache.get(info.name);
                 if (file) {
                     progress = (info.bytes / file.size) * 100;
                 }
-                sendEvent(EVENT_TYPE.PROGRESS, _.omitBy({
-                    serverId: this.ftpServer.id,
-                    path: info.name,
-                    type: info.type,
-                    bytes: info.bytes,
-                    progress,
-                }, _.isUndefined));
+                _.forEach(this.sendEventCallbacks, (cb) => {
+                    cb(EVENT_TYPE.PROGRESS, _.omitBy({
+                        serverId: this.ftpServer.id,
+                        path: info.name,
+                        type: info.type,
+                        bytes: info.bytes,
+                        progress,
+                    }, _.isUndefined));
+                });
             }
         }));
     }
@@ -122,21 +154,16 @@ export class FtpClient {
     private async wrapFtpClientCall<T>(fn: () => T | Promise<T>): Promise<T> {
         try {
             return await fn();
-        } catch (e: any) {
-            if (e instanceof FTPError) {
-                switch (e.code) {
-                    case 530:
-                        throw new BrigError(BRIG_ERROR_CODE.FTP_INVALID_CREDENTIALS, e.message);
-                    case 550:
-                        throw new BrigError(BRIG_ERROR_CODE.FTP_FAILED_TO_CHANGE_DIRECTORY, e.message);
-                    default:
-                        throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, e.message);
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                if (e.message.match(/Client is closed/)) {
+                    logger.debug('Client disconnected, reconnecting...');
+                    await this.connect();
+                    return this.wrapFtpClientCall(fn);
                 }
-            } else if (e?.code !== undefined && e.code === '0') {
-                throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, (e as Error)?.message);
-            } else {
-                throw e;
+                throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, e.message);
             }
+            throw new BrigError(BRIG_ERROR_CODE.FTP_UNKNOWN_ERROR, String(e));
         }
     }
 }

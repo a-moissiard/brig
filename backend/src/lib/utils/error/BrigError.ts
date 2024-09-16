@@ -63,7 +63,7 @@ interface IBrigErrorOptions extends ErrorOptions {
     parseMessage?: boolean;
 }
 
-export class BrigError extends Error{
+export class BrigError extends Error {
     public readonly code: BRIG_ERROR_CODE;
     public readonly options?: IBrigErrorOptions;
     
@@ -76,3 +76,9 @@ export class BrigError extends Error{
         logger.error(this.stack);
     }
 }
+
+export class TLSError extends Error {
+    public readonly code!: string;
+}
+
+export const isTLSError = (error: any): error is TLSError => error instanceof Error && 'code' in error;

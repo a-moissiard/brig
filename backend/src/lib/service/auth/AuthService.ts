@@ -103,7 +103,7 @@ export class AuthService {
         const userAuthTokens = await this.userAuthTokensDao.getUserAuthTokensDocument(userId);
         for (const activeRefreshToken of userAuthTokens.activeRefreshTokenInfos) {
             await this.userAuthTokensDao.revokeRefreshToken(userId, activeRefreshToken.tokenId);
-            logger.info(`Token ${activeRefreshToken} of user ${userId} revoked`);
+            logger.info(`Token ${activeRefreshToken.tokenId} of user ${userId} revoked`);
         }
     }
 

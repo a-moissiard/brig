@@ -83,14 +83,14 @@ export class FtpServersHandler {
 
         const sendEvent = ServerSentEventsHelper.sendEventFactory(res);
 
-        await this.ftpServersService.registerSendEventCallback(requester, sendEvent);
+        const callbackId = await this.ftpServersService.registerSendEventCallback(requester, sendEvent);
 
         const intervalId = setInterval(() => {
             sendEvent(EVENT_TYPE.KEEP_ALIVE, {});
         }, 30 * 1000);
 
         res.on('close', async () => {
-            await this.ftpServersService.unregisterSendEventCallback(requester);
+            await this.ftpServersService.unregisterSendEventCallback(requester, callbackId);
             clearInterval(intervalId);
             res.end();
         });
