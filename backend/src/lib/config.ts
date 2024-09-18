@@ -13,8 +13,8 @@ export interface IBrigConfig {
 
 export interface IBrigMongoConfig {
     connection: {
-        user?: string;
-        pass?: string;
+        username?: string;
+        password?: string;
         authSource?: string;
         host: string;
         port: string;
@@ -43,8 +43,8 @@ export const config: IBrigConfig = {
     },
     mongo: {
         connection:{
-            user: process.env.MONGO_USER,
-            pass: process.env.MONGO_PASS,
+            username: process.env.MONGO_USERNAME,
+            password: process.env.MONGO_PASSWORD,
             authSource: process.env.MONGO_AUTH_SOURCE,
             host: process.env.MONGO_HOST || '',
             port: process.env.MONGO_PORT || '27017',

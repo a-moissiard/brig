@@ -10,23 +10,21 @@ export interface IMongoConnectionManager {
 }
 
 export class MongoConnectionManager implements IMongoConnectionManager {
-    private readonly mongoConfig: IBrigMongoConfig;
     private readonly mongoClient: MongoClient;
     public readonly db: Db;
 
     constructor(mongoConfig: IBrigMongoConfig) {
-        this.mongoConfig = mongoConfig;
-        const { user, pass, authSource, host, port } = mongoConfig.connection;
+        const { username, password, authSource, host, port } = mongoConfig.connection;
         const mongoUrl = `mongodb://${host}:${port}`;
         const mongoOptions: MongoClientOptions = {
-            auth: user && pass ? {
-                username: user,
-                password: pass,
+            auth: username && password ? {
+                username,
+                password,
             } : undefined,
             authSource,
         };
         this.mongoClient = new MongoClient(mongoUrl, mongoOptions);
-        this.db = this.mongoClient.db(this.mongoConfig.dbName);
+        this.db = this.mongoClient.db(mongoConfig.dbName);
     }
 
     public async init(): Promise<void> {
