@@ -8,6 +8,7 @@ export interface IBrigConfig {
         port: string;
     };
     mongo: IBrigMongoConfig;
+    redis: IBrigRedisConfig;
     auth: IBrigAuthConfig;
 }
 
@@ -20,6 +21,15 @@ export interface IBrigMongoConfig {
         port: string;
     };
     dbName: string;
+}
+
+export interface IBrigRedisConfig {
+    connection: {
+        password?: string;
+        host: string;
+        port: number;
+        db: number;
+    };
 }
 
 export interface IBrigAuthConfig {
@@ -50,6 +60,14 @@ export const config: IBrigConfig = {
             port: process.env.MONGO_PORT || '27017',
         },
         dbName: process.env.MONGO_DB_NAME || 'brig',
+    },
+    redis: {
+        connection:{
+            password: process.env.REDIS_PASSWORD,
+            host: process.env.REDIS_HOST || '',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
+            db: parseInt(process.env.REDIS_DB_NUMBER || '0', 10),
+        },
     },
     auth: {
         openToUserRegistration: process.env.OPEN_TO_USER_REGISTRATION || 'false',

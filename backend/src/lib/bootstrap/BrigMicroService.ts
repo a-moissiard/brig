@@ -15,10 +15,12 @@ import { UserAuthTokensDao } from '../service/auth/UserAuthTokensDao';
 import { FtpServersAuthorizationsEnforcer, FtpServersDao, FtpServersService } from '../service/ftpServers';
 import { UsersAuthorizationsEnforcer, UsersDao, UsersService } from '../service/users';
 import { MongoConnectionManager } from '../utils/mongo';
+import { RedisConnectionManager } from '../utils/redis';
 
 interface IBrigMicroServiceDependencies {
     config: IBrigConfig;
     mongoConnectionManager: MongoConnectionManager;
+    redisConnectionManager: RedisConnectionManager;
 }
 
 export class BrigMicroService {
