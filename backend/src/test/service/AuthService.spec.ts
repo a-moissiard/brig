@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import * as chai from 'chai';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';

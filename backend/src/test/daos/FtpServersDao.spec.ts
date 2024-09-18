@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import * as chai from 'chai';
 
 import { logger } from '../../lib/logger';
@@ -40,6 +39,8 @@ describe('FtpServersDao', () => {
             port: 21,
             username: 'username_1',
             ownerId: ownerId1,
+            secure: false,
+            lastPath: '/',
         };
         const server2: IFtpServerModel = {
             id: 'id_2',
@@ -47,6 +48,8 @@ describe('FtpServersDao', () => {
             port: 21,
             username: 'username_2',
             ownerId: ownerId2,
+            secure: false,
+            lastPath: '/',
         };
 
         describe('Create FTP server', () => {
@@ -160,8 +163,7 @@ describe('FtpServersDao', () => {
                 };
                 const updatedServer = await ftpServersDao.updateServer(server1.id, server1Update);
                 assert.deepEqual(updatedServer, {
-                    id: server1.id,
-                    ownerId: server1.ownerId,
+                    ...server1,
                     ...server1Update,
                 });
             });
@@ -182,6 +184,8 @@ describe('FtpServersDao', () => {
                     port: 21,
                     username: 'username_3',
                     ownerId: ownerId1,
+                    secure: false,
+                    lastPath: '/',
                 };
                 await ftpServersDao.createServer(server1);
                 await ftpServersDao.createServer(server3);

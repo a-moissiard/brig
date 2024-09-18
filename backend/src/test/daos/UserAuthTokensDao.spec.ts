@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import * as chai from 'chai';
 
 import { logger } from '../../lib/logger';
