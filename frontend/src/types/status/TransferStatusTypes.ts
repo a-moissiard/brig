@@ -4,20 +4,19 @@ export enum TRANSFER_STATUS {
     CANCELED = 'Transfer canceled',
 }
 
-export interface ICurrentTransferActivity {
-    sourceFilePath: string;
-    destinationFilePath: string;
+export interface ITransferCurrentFileProgress {
     fileBytes: number;
     fileProgress?: number;
 }
 
 export interface ITransferActivity {
-    originServerNumber: 1 | 2;
-    originServerId: string;
-    transferTargetName: string;
-    transferMappingRemaining: Record<string, string>;
-    transferMappingSuccessful: Record<string, string>;
-    currentTransfer?: ICurrentTransferActivity;
+    sourceServerId: string;
+    target: string;
+    pending: Record<string, string>;
+    current: Record<string, string>;
+    success: Record<string, string>;
+    failed: Record<string, string>;
+    currentProgress?: ITransferCurrentFileProgress;
     status: TRANSFER_STATUS;
     refreshNeeded: boolean;
 }

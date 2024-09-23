@@ -19,3 +19,12 @@ export interface IFtpServerConnectionStateModel {
     workingDir: string;
     files: IFileInfo[];
 }
+
+export interface ITransferActivity {
+    sourceServerId: string;
+    target: string;
+    pending: Record<string, string>;
+    current: Record<string, string>;
+    success: Record<string, string>;
+    failed: Record<string, string>;
+}

@@ -1,9 +1,9 @@
-import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOutlined';
 import { Box, Button, Card, CardContent, Typography } from '@mui/material';
 import _ from 'lodash';
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
+import { selectServer1, selectServer2 } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { selectTransferActivity, unsetActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { TRANSFER_STATUS } from '../../../types/status';
@@ -16,16 +16,31 @@ import './activityCard.scss';
 const ActivityCard: FunctionComponent = () => {
     const dispatch = useAppDispatch();
     const transferActivity = useAppSelector(selectTransferActivity);
+    const server1Connection = useAppSelector(selectServer1);
+    const server2Connection = useAppSelector(selectServer2);
+    const [sourceServerNumber, setSourceServerNumber] = useState(0);
 
-    const onClear = (): void => {
+    const onClear = async (): Promise<void> => {
+        await FtpServersApi.clearTransferActivity();
         dispatch(unsetActivity());
     };
 
     const onCancel = async (): Promise<void> => {
         if (transferActivity) {
-            await FtpServersApi.cancelTransfer(transferActivity.originServerId);
+            await FtpServersApi.cancelTransfer(transferActivity.sourceServerId);
         }
     };
+
+    useEffect(() => {
+        if (transferActivity && server1Connection && server2Connection) {
+            setSourceServerNumber(transferActivity.sourceServerId === server1Connection.id
+                ? 1
+                : transferActivity.sourceServerId === server2Connection.id
+                    ? 2
+                    : 0, // should not happen
+            );
+        }
+    }, [transferActivity, server1Connection, server2Connection]);
 
     return <Card>
         <CardContent className="activityCard">
@@ -38,45 +53,53 @@ const ActivityCard: FunctionComponent = () => {
             {!_.isUndefined(transferActivity)
                 ? <Box>
                     <Typography className='direction' variant="body1" align="left" sx={{ color: 'text.primary' }}>
-                        <Box component="span" sx={{ fontWeight: 'bold' }}>Direction</Box>
-                        {`: Server ${transferActivity.originServerNumber} `}
-                        <ArrowCircleRightOutlinedIcon className='direction__icon'/>
-                        {` Server ${3 - transferActivity.originServerNumber}`}
+                        <Box component="span" sx={{ fontWeight: 'bold' }}>Source server</Box>
+                        {`: Server ${sourceServerNumber} `}
                     </Typography>
                     <Typography variant="body1" align="left" sx={{ color: 'text.primary' }}>
                         <Box component="span" sx={{ fontWeight: 'bold' }}>Transfer target</Box>
-                        {`: ${transferActivity.transferTargetName}`}
+                        {`: ${transferActivity.target}`}
                     </Typography>
-                    {transferActivity.currentTransfer && (
+                    {transferActivity.currentProgress && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                     Transferring
                                 </Typography>
                                 <Typography variant="body1">
-                                    {`${transferActivity.currentTransfer.sourceFilePath} --> ${transferActivity.currentTransfer.destinationFilePath}`}
+                                    {`${Object.keys(transferActivity.current)[0]} --> ${Object.values(transferActivity.current)[0]}`}
                                 </Typography>
-                                <LinearProgress className='transferProgressBar' color='primary' value={transferActivity.currentTransfer.fileProgress || 0}/>
+                                <LinearProgress className='transferProgressBar' color='primary' value={transferActivity.currentProgress.fileProgress || 0}/>
                             </CardContent>
                         </Card>
                     )}
-                    {Object.keys(transferActivity.transferMappingRemaining).length > 0 && (
+                    {Object.keys(transferActivity.pending).length > 0 && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                     Pending
                                 </Typography>
-                                <TransferMapping transferMapping={transferActivity.transferMappingRemaining}/>
+                                <TransferMapping transferMapping={transferActivity.pending}/>
                             </CardContent>
                         </Card>
                     )}
-                    {Object.keys(transferActivity.transferMappingSuccessful).length > 0 && (
+                    {Object.keys(transferActivity.success).length > 0 && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                     Successful
                                 </Typography>
-                                <TransferMapping transferMapping={transferActivity.transferMappingSuccessful}/>
+                                <TransferMapping transferMapping={transferActivity.success}/>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {Object.keys(transferActivity.failed).length > 0 && (
+                        <Card className='activitySubCard' raised>
+                            <CardContent>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                    Failed
+                                </Typography>
+                                <TransferMapping transferMapping={transferActivity.failed}/>
                             </CardContent>
                         </Card>
                     )}
@@ -90,7 +113,7 @@ const ActivityCard: FunctionComponent = () => {
                             </Button>)
                             : (<Button
                                 variant='outlined'
-                                onClick={onClear}>
+                                onClick={(): Promise<void> => onClear()}>
                                 Clear
                             </Button>)
                         }

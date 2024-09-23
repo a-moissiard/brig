@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { ICurrentTransferActivity, ITransferActivity, TRANSFER_STATUS } from '../../../types/status';
+import { ITransferActivity, ITransferCurrentFileProgress, TRANSFER_STATUS } from '../../../types/status';
 import { RootState } from '../../store';
 
 interface ITransferActivityState {
@@ -18,32 +18,27 @@ export const transferActivitySlice = createSlice({
         setActivity: (state, action: PayloadAction<ITransferActivity>) => {
             state.value = action.payload;
         },
-        setTransferMapping: (state, action: PayloadAction<Record<string, string>>) => {
-            if (state.value) {
-                state.value.transferMappingRemaining = action.payload;
-            }
-        },
-        setProgress: (state, action: PayloadAction<Omit<ICurrentTransferActivity, 'destinationFilePath'>>) => {
+        setProgress: (state, action: PayloadAction<ITransferCurrentFileProgress & { sourceFilePath: string }>) => {
             if (state.value) {
                 const sourceFilePath = action.payload.sourceFilePath;
 
-                if (state.value.transferMappingRemaining[sourceFilePath]) {
+                if (state.value.pending[sourceFilePath]) {
                     // The transfer is starting
-                    state.value.currentTransfer = {
+                    state.value.current[sourceFilePath] = state.value.pending[sourceFilePath];
+                    state.value.currentProgress = {
                         ...action.payload,
-                        destinationFilePath: state.value.transferMappingRemaining[sourceFilePath],
                     };
-                    delete state.value.transferMappingRemaining[sourceFilePath];
+                    delete state.value.pending[sourceFilePath];
                 } else {
-                    state.value.currentTransfer = {
+                    state.value.currentProgress = {
                         ...action.payload,
-                        destinationFilePath: state.value.currentTransfer?.destinationFilePath || '',
                     };
                 }
 
                 if (action.payload.fileProgress === 100) {
-                    state.value.transferMappingSuccessful[sourceFilePath] = state.value.currentTransfer.destinationFilePath;
-                    state.value.currentTransfer = undefined;
+                    state.value.success[sourceFilePath] = state.value.current[sourceFilePath];
+                    delete state.value.current[sourceFilePath];
+                    state.value.currentProgress = undefined;
                 }
             }
         },
@@ -68,7 +63,6 @@ export const selectTransferActivity = (state: RootState): ITransferActivity | un
 
 export const {
     setActivity,
-    setTransferMapping,
     setProgress,
     setTransferStatus,
     setRefreshment,

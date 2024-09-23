@@ -1,10 +1,11 @@
 import { Box } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
+import _ from 'lodash';
 import { FunctionComponent, useEffect, useState } from 'react';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
-import { setActivity, setTransferMapping } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { setActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
 import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
@@ -24,68 +25,60 @@ const DashboardPage: FunctionComponent = () => {
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
 
-    const onTransfer = async (originServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
+    const onTransfer = async (sourceServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
-            dispatch(setActivity({
-                originServerNumber,
-                originServerId: originServerNumber === 1 ? server1Connection.id : server2Connection.id,
-                transferTargetName: file.name,
-                transferMappingRemaining: {},
-                transferMappingSuccessful: {},
-                status: TRANSFER_STATUS.IN_PROGRESS,
-                refreshNeeded: false,
-            }));
-            let transferMapping: Record<string, string>;
-            if (originServerNumber === 1) {
-                transferMapping = await FtpServersApi.transfer(server1Connection.id, file.name, server2Connection.id);
-            } else {
-                transferMapping = await FtpServersApi.transfer(server2Connection.id, file.name, server1Connection.id);
-            }
-            dispatch(setTransferMapping(transferMapping));
+            const [sourceServerId, destinationServerId] = sourceServerNumber === 1
+                ? [server1Connection.id, server2Connection.id]
+                : [server2Connection.id, server1Connection.id];
+            await FtpServersApi.transfer(sourceServerId, file.name, destinationServerId);
         }
     };
 
     useEffect(() => {
         const controller = new AbortController();
 
-        FtpServersApi.getFtpServers({ signal: controller.signal })
-            .then((ftpServers) => {
-                setServerList(ftpServers);
-                if (!server1Connection && !server2Connection) {
-                    FtpServersApi.getUserConnectedServers({ signal: controller.signal })
-                        .then((userConnectedServers) => {
-                            if (userConnectedServers[0]) {
-                                dispatch(setServer({
-                                    serverNumber: 1,
-                                    data: {
-                                        id: userConnectedServers[0].server.id,
-                                        status: CONNECTION_STATUS.CONNECTED,
-                                        workingDir: userConnectedServers[0].workingDir,
-                                        fileList: userConnectedServers[0].files,
-                                    },
-                                }));
-                            }
-                            if (userConnectedServers[1]) {
-                                dispatch(setServer({
-                                    serverNumber: 2,
-                                    data: {
-                                        id: userConnectedServers[1].server.id,
-                                        status: CONNECTION_STATUS.CONNECTED,
-                                        workingDir: userConnectedServers[1].workingDir,
-                                        fileList: userConnectedServers[1].files,
-                                    },
-                                }));
-                            }
-                            setLoading(false);
-                        }).catch(() => {
-                            setLoading(false);
-                        });
-                } else {
-                    setLoading(false);
-                }
-            }).catch(() => {
-                setLoading(false);
-            });
+        const fetchState = async (): Promise<void> => {
+            const [ftpServers, userConnectedServers, transferActivity] = await Promise.all([
+                FtpServersApi.getFtpServers({ signal: controller.signal }),
+                !server1Connection && !server2Connection ? FtpServersApi.getUserConnectedServers({ signal: controller.signal }) : Promise.resolve([]),
+                FtpServersApi.getTransferActivity(),
+            ]);
+
+            setServerList(ftpServers);
+            if (userConnectedServers[0]) {
+                dispatch(setServer({
+                    serverNumber: 1,
+                    data: {
+                        id: userConnectedServers[0].server.id,
+                        status: CONNECTION_STATUS.CONNECTED,
+                        workingDir: userConnectedServers[0].workingDir,
+                        fileList: userConnectedServers[0].files,
+                    },
+                }));
+            }
+            if (userConnectedServers[1]) {
+                dispatch(setServer({
+                    serverNumber: 2,
+                    data: {
+                        id: userConnectedServers[1].server.id,
+                        status: CONNECTION_STATUS.CONNECTED,
+                        workingDir: userConnectedServers[1].workingDir,
+                        fileList: userConnectedServers[1].files,
+                    },
+                }));
+            }
+            if (transferActivity && (!_.isEmpty(transferActivity.current) || !_.isEmpty(transferActivity.pending))) {
+                dispatch(setActivity({
+                    ...transferActivity,
+                    status: TRANSFER_STATUS.IN_PROGRESS,
+                    refreshNeeded: false,
+                }));
+            }
+
+            setLoading(false);
+        };
+        
+        fetchState().catch(() => {});
 
         return () => controller.abort();
     }, []);

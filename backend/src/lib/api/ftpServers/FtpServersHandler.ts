@@ -73,7 +73,23 @@ export class FtpServersHandler {
         res.send();
     }
 
-    async trackProgress(req: Request, res: Response): Promise<void> {
+    async getTransferActivity(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+
+        const transferActivity = await this.ftpServersService.getTransferActivity(requester);
+
+        res.send(transferActivity);
+    }
+
+    async clearTransferActivity(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+
+        await this.ftpServersService.clearTransferActivity(requester);
+
+        res.send();
+    }
+
+    async trackActivity(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
 
         res.setHeader('Cache-Control', 'no-cache');

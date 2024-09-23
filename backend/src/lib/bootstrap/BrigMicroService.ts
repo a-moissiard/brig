@@ -37,7 +37,7 @@ export class BrigMicroService {
     private readonly usersDao: UsersDao;
 
     constructor(deps: IBrigMicroServiceDependencies) {
-        const { config, mongoConnectionManager } = deps;
+        const { config, mongoConnectionManager, redisConnectionManager } = deps;
         this.config = config;
 
         this.userAuthTokensDao = new UserAuthTokensDao({ mongoConnectionManager });
@@ -49,7 +49,11 @@ export class BrigMicroService {
         const usersHandler = new UsersHandler({ usersService });
 
         const ftpServersAuthorizationsEnforcer = new FtpServersAuthorizationsEnforcer({ usersDao: this.usersDao, ftpServersDao: this.ftpServersDao });
-        const ftpServersService = new FtpServersService({ ftpServersAuthorizationsEnforcer, ftpServersDao: this.ftpServersDao });
+        const ftpServersService = new FtpServersService({
+            ftpServersAuthorizationsEnforcer,
+            ftpServersDao: this.ftpServersDao,
+            redisClient: redisConnectionManager.redisClient,
+        });
         const ftpServersHandler = new FtpServersHandler({ ftpServersService });
         const ftpServersActionsHandler = new FtpServersActionsHandler({ ftpServersService });
 

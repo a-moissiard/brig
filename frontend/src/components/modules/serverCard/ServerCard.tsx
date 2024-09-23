@@ -116,7 +116,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
         // If refresh needed flag is true, it means the transfer just got completed
         if (transferActivity?.refreshNeeded) {
-            if (transferActivity.originServerNumber === serverNumber) {
+            if (transferActivity.sourceServerId === serverConnection?.id) {
                 setOngoingAction(false);
             } else {
                 // Wait a bit before refreshing once transfer is completed to avoid

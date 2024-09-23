@@ -8,12 +8,14 @@ export interface IProgressEventData {
 
 export enum EVENT_TYPE {
     KEEP_ALIVE = 'keep_alive',
+    TRANSFER_STARTED = 'transfer_started',
     PROGRESS = 'progress',
     TRANSFER_COMPLETED = 'transfer_completed',
     TRANSFER_CANCELED = 'transfer_canceled',
 }
 
 export interface IEventHandlers {
+    [EVENT_TYPE.TRANSFER_STARTED]: (event: MessageEvent) => void;
     [EVENT_TYPE.PROGRESS]: (event: MessageEvent) => void;
     [EVENT_TYPE.TRANSFER_COMPLETED]: (event: MessageEvent) => void;
     [EVENT_TYPE.TRANSFER_CANCELED]: (event: MessageEvent) => void;

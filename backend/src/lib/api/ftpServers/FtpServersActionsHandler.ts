@@ -105,10 +105,11 @@ export class FtpServersActionsHandler {
         const { serverId, destinationServerId } = req.params;
         const { path } = extractValidatedData<ITransferBody>(req, { locations: ['body'] });
 
-        const transferMapping = await this.ftpServersService.prepareTransfer(requester, serverId, destinationServerId, path);
-        void this.ftpServersService.transfer(requester, serverId, destinationServerId, transferMapping);
+        await this.ftpServersService.clearTransferActivity(requester);
+        await this.ftpServersService.prepareTransfer(requester, serverId, destinationServerId, path);
+        void this.ftpServersService.transfer(requester, serverId, destinationServerId);
 
-        res.send(transferMapping);
+        res.sendStatus(200);
     }
 
     async cancelTransfer(req: Request, res: Response): Promise<void> {

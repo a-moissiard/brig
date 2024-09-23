@@ -1,3 +1,4 @@
+import { Redis } from 'ioredis';
 import _ from 'lodash';
 import path from 'path';
 import { PassThrough } from 'stream';
@@ -19,20 +20,42 @@ interface IUserConnectionsState {
     sendEventCallbacks: Record<string, SendEventCallback>;
 }
 
+enum REDIS_HASH_KEYS {
+    SOURCE_SERVER_ID = 'source_server_id',
+    TARGET = 'target',
+    PENDING = 'pending',
+    CURRENT = 'current',
+    SUCCESS = 'success',
+    FAILED = 'failed',
+}
+
+// TODO/ deduplicate from FtpServersTypes.ts
+export interface ITransferActivity {
+    sourceServerId: string;
+    target: string;
+    pending: Record<string, string>;
+    current: Record<string, string>;
+    success: Record<string, string>;
+    failed: Record<string, string>;
+}
+
 interface IFtpServersServiceDependencies {
     ftpServersDao: FtpServersDao;
     ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
+    redisClient: Redis;
 }
 
 export class FtpServersService {
     private readonly ftpServersDao: FtpServersDao;
     private readonly ftpServersAuthorizationsEnforcer: FtpServersAuthorizationsEnforcer;
+    private readonly redisClient: Redis;
 
     private readonly usersStates: Map<string, IUserConnectionsState>;
 
     constructor(deps: IFtpServersServiceDependencies) {
         this.ftpServersDao = deps.ftpServersDao;
         this.ftpServersAuthorizationsEnforcer = deps.ftpServersAuthorizationsEnforcer;
+        this.redisClient = deps.redisClient;
 
         this.usersStates = new Map();
     }
@@ -221,15 +244,15 @@ export class FtpServersService {
      * @param requester
      * @param sourceServerId
      * @param destinationServerId
-     * @param _path
+     * @param target
      */
 
     public async prepareTransfer(
         requester: IRequester,
         sourceServerId: string,
         destinationServerId: string,
-        _path: string,
-    ): Promise<Record<string, string>> {
+        target: string,
+    ): Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, sourceServerId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, destinationServerId);
 
@@ -239,19 +262,22 @@ export class FtpServersService {
         const sourceWorkingDir = await sourceClient.pwd();
         const destinationWorkingDir = await destinationClient.pwd();
 
-        const fileInfo = await this.findFileInfoInWorkingDir(sourceClient, _path);
+        const fileInfo = await this.findFileInfoInWorkingDir(sourceClient, target);
 
         const sourceAbsolutePath = path.join(sourceWorkingDir, fileInfo.name);
         const destinationAbsolutePath = path.join(destinationWorkingDir, fileInfo.name);
 
+        await this.redisClient.set(`${requester.id}:${REDIS_HASH_KEYS.SOURCE_SERVER_ID}`, sourceServerId);
+        await this.redisClient.set(`${requester.id}:${REDIS_HASH_KEYS.TARGET}`, target);
+
         if (fileInfo.type === FileType.File) {
-            return { [sourceAbsolutePath]: destinationAbsolutePath };
+            await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`, sourceAbsolutePath, destinationAbsolutePath);
         } else if (fileInfo.type === FileType.Directory) {
             const transferMapping = await this.buildRecursiveTransferMappingAndEnsureDirs(requester, sourceClient, destinationClient, sourceAbsolutePath, destinationAbsolutePath);
+            await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`, transferMapping);
             // reset the working dirs to the initial values
             await sourceClient.cd(sourceWorkingDir);
             await destinationClient.cd(destinationWorkingDir);
-            return transferMapping;
         } else {
             throw new BrigError(BRIG_ERROR_CODE.FTP_UNSUPPORTED_FILE_TYPE, `Transfer not supported for file type='${fileInfo.type}'`);
         }
@@ -261,7 +287,6 @@ export class FtpServersService {
         requester: IRequester,
         sourceServerId: string,
         destinationServerId: string,
-        transferMapping: Record<string, string>,
     ) : Promise<void> {
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, sourceServerId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServerById(requester, destinationServerId);
@@ -269,18 +294,33 @@ export class FtpServersService {
         const userState = this.usersStates.get(requester.id);
 
         if (userState) {
+            _.forEach(userState.sendEventCallbacks, (cb) => {
+                cb(EVENT_TYPE.TRANSFER_STARTED, { serverId: sourceServerId });
+            });
+
+            const pendingFiles = await this.redisClient.hgetall(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`);
+            
             const sourceClient = this.getClient(requester, sourceServerId);
             const destinationClient = this.getClient(requester, destinationServerId);
 
             userState.transferCanceled = false;
 
-            for (const sourceFilePath of Object.keys(transferMapping)) {
+            for (const sourceFilePath of Object.keys(pendingFiles)) {
                 try {
                     if (!userState.transferCanceled) {
-                        await this.transferFile(requester, userState, sourceClient, destinationClient, sourceFilePath, transferMapping[sourceFilePath]);
+                        await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.CURRENT}`, sourceFilePath, pendingFiles[sourceFilePath]);
+                        await this.redisClient.hdel(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`, sourceFilePath);
+                        await this.transferFile(requester, userState, sourceClient, destinationClient, sourceFilePath, pendingFiles[sourceFilePath]);
+                        await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.SUCCESS}`, sourceFilePath, pendingFiles[sourceFilePath]);
+                    } else {
+                        await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.FAILED}`, sourceFilePath, pendingFiles[sourceFilePath]);
+                        await this.redisClient.hdel(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`, sourceFilePath);
                     }
                 } catch (e) {
+                    await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.FAILED}`, sourceFilePath, pendingFiles[sourceFilePath]);
                     logger.warn(`Error caught on file transfer: ${(e as any)?.code}`);
+                } finally {
+                    await this.redisClient.hdel(`${requester.id}:${REDIS_HASH_KEYS.CURRENT}`, sourceFilePath);
                 }
             }
 
@@ -304,6 +344,29 @@ export class FtpServersService {
                 userState.stream.destroy();
             }
         }
+    }
+
+    public async getTransferActivity(requester: IRequester): Promise<ITransferActivity | null> {
+        const [sourceServerId, target, pending, current, success, failed] = await Promise.all([
+            this.redisClient.get(`${requester.id}:${REDIS_HASH_KEYS.SOURCE_SERVER_ID}`),
+            this.redisClient.get(`${requester.id}:${REDIS_HASH_KEYS.TARGET}`),
+            this.redisClient.hgetall(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`),
+            this.redisClient.hgetall(`${requester.id}:${REDIS_HASH_KEYS.CURRENT}`),
+            this.redisClient.hgetall(`${requester.id}:${REDIS_HASH_KEYS.SUCCESS}`),
+            this.redisClient.hgetall(`${requester.id}:${REDIS_HASH_KEYS.FAILED}`),
+        ]);
+        return sourceServerId === null || target === null ? null : {
+            sourceServerId,
+            target,
+            pending,
+            current,
+            success,
+            failed,
+        };
+    }
+
+    public async clearTransferActivity(requester: IRequester): Promise<void> {
+        await this.redisClient.del(Object.values(REDIS_HASH_KEYS).map(hashKey => `${requester.id}:${hashKey}`));
     }
 
     private async findFileInfoInWorkingDir(client: FtpClient, name: string): Promise<IFileInfo> {

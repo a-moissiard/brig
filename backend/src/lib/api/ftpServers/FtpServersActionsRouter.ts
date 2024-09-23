@@ -42,12 +42,12 @@ export class FtpServersActionsRouter {
             validate,
             asyncHandler(this.ftpServersActionsHandler.delete.bind(this.ftpServersActionsHandler)),
         );
-        this.router.post('/cancelTransfer', asyncHandler(this.ftpServersActionsHandler.cancelTransfer.bind(this.ftpServersActionsHandler)));
         this.router.post('/transfer/:destinationServerId',
             checkSchema(transferBodySchema),
             validate,
             asyncHandler(this.ftpServersActionsHandler.transfer.bind(this.ftpServersActionsHandler)),
         );
+        this.router.post('/cancelTransfer', asyncHandler(this.ftpServersActionsHandler.cancelTransfer.bind(this.ftpServersActionsHandler)));
         return this.router;
     }
 }
