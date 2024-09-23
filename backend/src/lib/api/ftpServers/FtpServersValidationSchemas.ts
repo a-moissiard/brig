@@ -1,6 +1,11 @@
 import { Schema } from 'express-validator';
 
 export const ftpServersCreateBodySchema: Schema = {
+    alias: {
+        in: 'body',
+        isString: true,
+        errorMessage: 'body is expected to contain `alias` parameter which must be a string',
+    },
     host: {
         in: 'body',
         isString: true,
@@ -24,6 +29,12 @@ export const ftpServersCreateBodySchema: Schema = {
 };
 
 export const ftpServersUpdateBodySchema: Schema = {
+    alias: {
+        in: 'body',
+        isString: true,
+        optional: true,
+        errorMessage: 'if body contains `alias` parameter, it must be a string',
+    },
     host: {
         in: 'body',
         isString: true,

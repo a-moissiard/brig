@@ -6,6 +6,7 @@ import { IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
 
 interface IFtpServerDb {
     id: string;
+    alias: string;
     host: string;
     port: number;
     username: string;
@@ -29,6 +30,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     private static mapDbToModel(db: IFtpServerDb): IFtpServerModel {
         return {
             id: db.id,
+            alias: db.alias,
             host: db.host,
             port: db.port,
             username: db.username,
@@ -41,6 +43,7 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     private static mapModelToDb(model: IFtpServerModel): IFtpServerDb {
         return {
             id: model.id,
+            alias: model.alias,
             host: model.host,
             port: model.port,
             username: model.username,
@@ -85,12 +88,13 @@ export class FtpServersDao extends BrigAbstractDao<IFtpServerDb>{
     }
 
     public async listAllServers(): Promise<IFtpServerModel[]> {
-        return (await this.list({})).map(FtpServersDao.mapDbToModel);
+        return (await this.list()).map(FtpServersDao.mapDbToModel);
     }
 
     public async updateServer(serverId: string, server: IFtpServerUpdateModel): Promise<IFtpServerModel> {
         return FtpServersDao.mapDbToModel(await this.update({ id: serverId }, {
             $set: _.omitBy({
+                alias: server.alias,
                 host: server.host,
                 port: server.port,
                 username: server.username,

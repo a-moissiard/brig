@@ -50,7 +50,7 @@ export abstract class BrigAbstractDao<T extends Document = Document> {
         return document;
     }
     
-    protected async list(filter: Filter<T>, findOptions?: FindOptions): Promise<WithId<T>[]> {
+    protected async list(filter: Filter<T> = {}, findOptions?: FindOptions): Promise<WithId<T>[]> {
         return this.getCollection().find(filter, findOptions).toArray();
     }
 

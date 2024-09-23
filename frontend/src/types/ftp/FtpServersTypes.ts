@@ -1,6 +1,7 @@
 import { IFileInfo } from './FileInfoTypes';
 
 interface IFtpServerBase {
+    alias: string;
     host: string;
     port: number;
     username: string;

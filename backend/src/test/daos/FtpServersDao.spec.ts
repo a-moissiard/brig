@@ -35,6 +35,7 @@ describe('FtpServersDao', () => {
         const ownerId2 = 'owner_2';
         const server1: IFtpServerModel = {
             id: 'id_1',
+            alias: 'host_1',
             host: 'host_1',
             port: 21,
             username: 'username_1',
@@ -44,6 +45,7 @@ describe('FtpServersDao', () => {
         };
         const server2: IFtpServerModel = {
             id: 'id_2',
+            alias: 'host_2',
             host: 'host_2',
             port: 21,
             username: 'username_2',
@@ -180,6 +182,7 @@ describe('FtpServersDao', () => {
             it('should throw when updating a server with properties that break index unicity', async () => {
                 const server3: IFtpServerModel = {
                     id: 'id_3',
+                    alias: 'host_3',
                     host: 'host_3',
                     port: 21,
                     username: 'username_3',

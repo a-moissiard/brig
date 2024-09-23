@@ -1,6 +1,7 @@
 import { IFileInfo } from '../ftpUtils';
 
 interface IFtpServerBaseModel {
+    alias: string;
     host: string;
     port: number;
     username: string;

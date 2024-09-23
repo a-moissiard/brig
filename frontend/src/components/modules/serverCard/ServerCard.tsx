@@ -328,7 +328,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         >
                             {ftpServerList.map(server => (
                                 <MenuItem key={server.id} value={server.id}>
-                                    {`${server.username}@${server.host}:${server.port}`}
+                                    {server.alias}
                                 </MenuItem>
                             ))}
                         </Select>
