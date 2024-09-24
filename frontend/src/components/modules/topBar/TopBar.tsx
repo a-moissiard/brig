@@ -1,5 +1,6 @@
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MenuIcon from '@mui/icons-material/Menu';
-import { AppBar, Badge, Box, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { AppBar, Badge, Box, Button, IconButton, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
 import { FunctionComponent, MouseEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { selectUser, unsetUser } from 'redux/features/user/userSlice';
@@ -53,19 +54,16 @@ const TopBar: FunctionComponent = () => {
             <>
                 <Box className='topBar__links'>
                     <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>
-                        <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
+                        <Button sx={{ color:'white' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
                     </Badge>
-                    <Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/servers')}>Servers</Button>
-                    {user.admin && (<Button sx={{ color:'primary.light' }} onClick={(): void => navigate('/admin')}>Admin</Button>)}
+                    <Button sx={{ color:'white' }} onClick={(): void => navigate('/servers')}>Servers</Button>
+                    {user.admin && (<Button sx={{ color:'white' }} onClick={(): void => navigate('/admin')}>Admin</Button>)}
                 </Box>
-                <Button
-                    variant="outlined"
-                    sx={{ color:'primary.light', borderColor: 'primary.light' }}
-                    onClick={onLogout}
-                    className="topBar__logoutButton"
-                >
-                    Logout
-                </Button>
+                <Tooltip title={ 'Logout' }>
+                    <IconButton sx={{ color:'white' }} onClick={onLogout} className="topBar__logoutButton">
+                        <LogoutRoundedIcon />
+                    </IconButton>
+                </Tooltip>
             </>
         ) : (
             <Button

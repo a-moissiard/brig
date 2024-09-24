@@ -11,6 +11,7 @@ import {
     CircularProgress,
     Divider,
     FormControl,
+    IconButton,
     InputLabel,
     List,
     ListItem,
@@ -381,27 +382,27 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                             fullWidth
                             disabled
                         />
-                        <Button
+                        <IconButton
                             className='navigation__button'
                             onClick={onParentDir}
                             disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
                             <ArrowUpwardIcon />
-                        </Button>
-                        <Button
+                        </IconButton>
+                        <IconButton
                             className='navigation__button'
                             onClick={onCreateDir}
                             disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
                             <CreateNewFolderIcon />
-                        </Button>
-                        <Button
+                        </IconButton>
+                        <IconButton
                             className='navigation__button'
                             onClick={onRefreshList}
                             disabled={ongoingAction}
                             sx={{ color: 'text.primary' }}>
                             <RefreshIcon />
-                        </Button>
+                        </IconButton>
                         {ongoingAction && (
                             <Box className='navigation__loader'>
                                 <CircularProgress size={20} sx={{ color: 'text.primary' }}/>
