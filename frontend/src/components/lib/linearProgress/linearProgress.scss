@@ -1,0 +1,15 @@
+.linearProgress {
+  display: flex;
+  align-items: center;
+
+  &__bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 10px;
+    margin: 10px;
+  }
+
+  &__value {
+    min-width: 35px;
+  }
+}

@@ -385,29 +385,22 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         <IconButton
                             className='navigation__button'
                             onClick={onParentDir}
-                            disabled={ongoingAction}
-                            sx={{ color: 'text.primary' }}>
+                            disabled={ongoingAction}>
                             <ArrowUpwardIcon />
                         </IconButton>
                         <IconButton
                             className='navigation__button'
                             onClick={onCreateDir}
-                            disabled={ongoingAction}
-                            sx={{ color: 'text.primary' }}>
+                            disabled={ongoingAction}>
                             <CreateNewFolderIcon />
                         </IconButton>
                         <IconButton
                             className='navigation__button'
                             onClick={onRefreshList}
-                            disabled={ongoingAction}
-                            sx={{ color: 'text.primary' }}>
+                            disabled={ongoingAction}>
                             <RefreshIcon />
                         </IconButton>
-                        {ongoingAction && (
-                            <Box className='navigation__loader'>
-                                <CircularProgress size={20} sx={{ color: 'text.primary' }}/>
-                            </Box>
-                        )}
+                        {ongoingAction && (<CircularProgress className='navigation__loader' size={20}/>)}
                     </Box>
                     <Dialog
                         open={dirCreationState.dialogOpen}

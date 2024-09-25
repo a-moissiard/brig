@@ -1,16 +1,14 @@
 import { Box, LinearProgress as MuiLinearProgress, LinearProgressProps, Typography } from '@mui/material';
 import { FunctionComponent } from 'react';
 
-const LinearProgress: FunctionComponent<LinearProgressProps & { value: number }> = (props) => (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Box sx={{ width: '100%', mr: 1 }}>
-            <MuiLinearProgress variant="determinate" {...props} />
-        </Box>
-        <Box sx={{ minWidth: 35 }}>
-            <Typography variant="body2" color="text.secondary">{`${Math.round(
-                props.value,
-            )}%`}</Typography>
-        </Box>
+import './linearProgress.scss';
+
+const LinearProgress: FunctionComponent<LinearProgressProps & { value: number }> = ({ color, value }) => (
+    <Box className="linearProgress">
+        <MuiLinearProgress color={color} value={value} variant="determinate" className="linearProgress__bar" />
+        <Typography variant="body2" color="text.secondary" className="linearProgress__value">
+            {`${Math.round(value)}%`}
+        </Typography>
     </Box>
 );
 

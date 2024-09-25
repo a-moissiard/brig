@@ -52,31 +52,31 @@ const ActivityCard: FunctionComponent = () => {
             </Box>
             {!_.isUndefined(transferActivity)
                 ? <Box>
-                    <Typography className='direction' variant="body1" align="left" sx={{ color: 'text.primary' }}>
-                        <Box component="span" sx={{ fontWeight: 'bold' }}>Source server</Box>
+                    <Typography variant="body1" align="left">
+                        <Box component="span" className="emphasizedText">Source server</Box>
                         {`: Server ${sourceServerNumber} `}
                     </Typography>
-                    <Typography variant="body1" align="left" sx={{ color: 'text.primary' }}>
-                        <Box component="span" sx={{ fontWeight: 'bold' }}>Transfer target</Box>
+                    <Typography variant="body1" align="left">
+                        <Box component="span" className="emphasizedText">Transfer target</Box>
                         {`: ${transferActivity.target}`}
                     </Typography>
                     {transferActivity.currentProgress && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                <Typography variant="h6" className="emphasizedText">
                                     Transferring
                                 </Typography>
                                 <Typography variant="body1">
                                     {`${Object.keys(transferActivity.current)[0]} --> ${Object.values(transferActivity.current)[0]}`}
                                 </Typography>
-                                <LinearProgress className='transferProgressBar' color='primary' value={transferActivity.currentProgress.fileProgress || 0}/>
+                                <LinearProgress color='secondary' value={transferActivity.currentProgress.fileProgress || 0}/>
                             </CardContent>
                         </Card>
                     )}
                     {Object.keys(transferActivity.pending).length > 0 && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                <Typography variant="h6" className="emphasizedText">
                                     Pending
                                 </Typography>
                                 <TransferMapping transferMapping={transferActivity.pending}/>
@@ -86,7 +86,7 @@ const ActivityCard: FunctionComponent = () => {
                     {Object.keys(transferActivity.success).length > 0 && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                <Typography variant="h6" className="emphasizedText">
                                     Successful
                                 </Typography>
                                 <TransferMapping transferMapping={transferActivity.success}/>
@@ -96,7 +96,7 @@ const ActivityCard: FunctionComponent = () => {
                     {Object.keys(transferActivity.failed).length > 0 && (
                         <Card className='activitySubCard' raised>
                             <CardContent>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                <Typography variant="h6" className="emphasizedText">
                                     Failed
                                 </Typography>
                                 <TransferMapping transferMapping={transferActivity.failed}/>
@@ -119,11 +119,8 @@ const ActivityCard: FunctionComponent = () => {
                         }
                     </Box>
                 </Box>
-                : <Typography variant="body2" align="center" sx={{
-                    color: 'text.secondary',
-                    fontStyle: 'italic',
-                }}>
-                    No download in progress
+                : <Typography variant="body2" align="center" sx={{ color: 'text.secondary' }}>
+                    Nothing to display
                 </Typography>}
         </CardContent>
     </Card>;

@@ -38,10 +38,25 @@
     }
   }
 
+  .MuiBadge-dot {
+    animation: blinker 1s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+
   &__links {
     flex-grow: 1;
     display: flex;
     align-items: center;
+
+    button {
+      color: white;
+      margin-left: 5px;
+    }
 
     @media screen and (max-width: 600px) {
       display: none;

@@ -38,7 +38,7 @@ const TopBar: FunctionComponent = () => {
 
     return <AppBar position='sticky' className='topBar'>
         {user && (<Box className='topBar__menuContainer'>
-            <IconButton sx={{ color:'primary.light' }} className='topBar__menuButton' onClick={openMenu}>
+            <IconButton className='topBar__menuButton' onClick={openMenu}>
                 <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>
                     <MenuIcon />
                 </Badge>
@@ -54,13 +54,13 @@ const TopBar: FunctionComponent = () => {
             <>
                 <Box className='topBar__links'>
                     <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>
-                        <Button sx={{ color:'white' }} onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
+                        <Button onClick={(): void => navigate('/dashboard')}>Dashboard</Button>
                     </Badge>
-                    <Button sx={{ color:'white' }} onClick={(): void => navigate('/servers')}>Servers</Button>
-                    {user.admin && (<Button sx={{ color:'white' }} onClick={(): void => navigate('/admin')}>Admin</Button>)}
+                    <Button onClick={(): void => navigate('/servers')}>Servers</Button>
+                    {user.admin && (<Button onClick={(): void => navigate('/admin')}>Admin</Button>)}
                 </Box>
                 <Tooltip title={ 'Logout' }>
-                    <IconButton sx={{ color:'white' }} onClick={onLogout} className="topBar__logoutButton">
+                    <IconButton onClick={onLogout} className="topBar__logoutButton">
                         <LogoutRoundedIcon />
                     </IconButton>
                 </Tooltip>

@@ -1,34 +1,24 @@
-import { Box, Typography } from '@mui/material';
-import { FunctionComponent, useEffect, useState } from 'react';
+import { SxProps, Typography } from '@mui/material';
+import { FunctionComponent } from 'react';
 
 import { TRANSFER_STATUS } from '../../../types/status';
+
+import './activityStatus.scss';
 
 interface IActivityStatusProps {
     status?: TRANSFER_STATUS;
 }
 
-const ActivityStatus: FunctionComponent<IActivityStatusProps> = ({ status }) => {
-    const [color, setColor] = useState('error.light');
-
-    useEffect(() => {
-        switch (status) {
-            case TRANSFER_STATUS.COMPLETED:
-                setColor('success.light');
-                break;
-            case TRANSFER_STATUS.IN_PROGRESS:
-                setColor('warning.light');
-                break;
-            default:
-                setColor('error.light');
-                break;
-        }
-    }, [status]);
-
-    return status ? <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography variant="subtitle1" sx={{ fontStyle: 'italic', color }}>
-            {status}
-        </Typography>
-    </Box> : null;
+const STATUS_TO_COLOR: { [K in TRANSFER_STATUS]: SxProps } = {
+    [TRANSFER_STATUS.COMPLETED]: { color: 'success.light' },
+    [TRANSFER_STATUS.IN_PROGRESS]: { color: 'warning.light' },
+    [TRANSFER_STATUS.CANCELED]: { color: 'error.light' },
 };
+
+const ActivityStatus: FunctionComponent<IActivityStatusProps> = ({ status }) => status
+    ? <Typography variant="subtitle1" className="activityStatus" sx={STATUS_TO_COLOR[status]}>
+        {status}
+    </Typography>
+    : null;
 
 export default ActivityStatus;
