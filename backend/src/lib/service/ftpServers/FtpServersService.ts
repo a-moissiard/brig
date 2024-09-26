@@ -106,6 +106,7 @@ export class FtpServersService {
         const client = new FtpClient({ ftpServer: server, password });
 
         await client.connect();
+        await client.cd(server.lastPath);
 
         const userState = this.usersStates.get(requester.id);
         if (userState) {
@@ -121,7 +122,6 @@ export class FtpServersService {
             _.forEach(userState.sendEventCallbacks, (cb, id) => {
                 client.registerSendEventCallback(id, cb);
             });
-            await client.trackProgress();
         } else {
             this.usersStates.set(requester.id, {
                 clients: {
@@ -310,7 +310,7 @@ export class FtpServersService {
                     if (!userState.transferCanceled) {
                         await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.CURRENT}`, sourceFilePath, pendingFiles[sourceFilePath]);
                         await this.redisClient.hdel(`${requester.id}:${REDIS_HASH_KEYS.PENDING}`, sourceFilePath);
-                        await this.transferFile(requester, userState, sourceClient, destinationClient, sourceFilePath, pendingFiles[sourceFilePath]);
+                        await this.transferFile(userState, sourceClient, destinationClient, sourceFilePath, pendingFiles[sourceFilePath]);
                         await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.SUCCESS}`, sourceFilePath, pendingFiles[sourceFilePath]);
                     } else {
                         await this.redisClient.hset(`${requester.id}:${REDIS_HASH_KEYS.FAILED}`, sourceFilePath, pendingFiles[sourceFilePath]);
@@ -420,7 +420,6 @@ export class FtpServersService {
     }
 
     private async transferFile(
-        requester: IRequester,
         userState: IUserConnectionsState,
         sourceClient: FtpClient,
         destinationClient: FtpClient,

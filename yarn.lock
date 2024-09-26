@@ -5018,6 +5018,7 @@ __metadata:
     express: ^4.18.1
     express-async-handler: ^1.2.0
     express-validator: ^7.0.1
+    f-promise-async: ^3.2.3
     ioredis: ^5.4.1
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
@@ -7438,6 +7439,13 @@ __metadata:
     utils-merge: 1.0.1
     vary: ~1.1.2
   checksum: 3c4b9b076879442f6b968fe53d85d9f1eeacbb4f4c41e5f16cc36d77ce39a2b0d81b3f250514982110d815b2f7173f5561367f9110fcc541f9371948e8c8b037
+  languageName: node
+  linkType: hard
+
+"f-promise-async@npm:^3.2.3":
+  version: 3.2.3
+  resolution: "f-promise-async@npm:3.2.3"
+  checksum: 5ef6569e0ea1b2ebcb3b0ad7e9b7ddb9a486b04045bb5eeee9c21bbc6ec45e41eb9be8f81436c7da63010d8e5ff7a5efc44c8831b46aaf2503aefc8fab5ca570
   languageName: node
   linkType: hard
 
