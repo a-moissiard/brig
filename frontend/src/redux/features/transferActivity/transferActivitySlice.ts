@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { ITransferActivity, ITransferCurrentFileProgress, TRANSFER_STATUS } from '../../../types/status';
 import { RootState } from '../../store';
+import { revertAll } from '../actions';
 
 interface ITransferActivityState {
     value?: ITransferActivity;
@@ -14,6 +15,7 @@ const initialState: ITransferActivityState = {
 export const transferActivitySlice = createSlice({
     name: 'transferActivity',
     initialState,
+    extraReducers: (builder) => builder.addCase(revertAll, () => initialState),
     reducers: {
         setActivity: (state, action: PayloadAction<ITransferActivity>) => {
             state.value = action.payload;

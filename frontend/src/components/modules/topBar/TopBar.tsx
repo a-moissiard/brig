@@ -3,10 +3,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { AppBar, Badge, Box, Button, IconButton, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
 import { FunctionComponent, MouseEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { selectUser, unsetUser } from 'redux/features/user/userSlice';
 
 import { AuthApi } from '../../../api/auth';
+import { revertAll } from '../../../redux/features/actions';
 import { selectTransferActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
+import { selectUser } from '../../../redux/features/user/userSlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { TRANSFER_STATUS } from '../../../types/status';
 
@@ -31,7 +32,7 @@ const TopBar: FunctionComponent = () => {
     };
 
     const onLogout = async (): Promise<void> => {
-        dispatch(unsetUser());
+        dispatch(revertAll());
         await AuthApi.logout();
         navigate('/auth');
     };

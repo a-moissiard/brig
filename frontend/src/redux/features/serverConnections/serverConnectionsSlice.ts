@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { IServerConnection } from '../../../types/status';
 import { RootState } from '../../store';
+import { revertAll } from '../actions';
 
 interface IServerConnectionsState {
     1?: IServerConnection;
@@ -16,6 +17,7 @@ const initialState: IServerConnectionsState = {
 export const serverConnectionsSlice = createSlice({
     name: 'serverConnections',
     initialState,
+    extraReducers: (builder) => builder.addCase(revertAll, () => initialState),
     reducers: {
         setServer: (state, action: PayloadAction<{
             serverNumber: 1 | 2;
