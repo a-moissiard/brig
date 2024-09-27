@@ -1,0 +1,52 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Backend Tests CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+        mongodb-version: [7.0]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.11.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+        mongodb-username: ci-username
+        mongodb-password: ci-password
+        mongodb-db: ci-db
+        
+    - name: Install dependencies
+      run: yarn install
+      working-directory: ./backend
+
+    - name: Run tests
+      env:
+        MONGO_USERNAME: ci-username
+        MONGO_PASSWORD: ci-password
+        MONGO_AUTH_SOURCE: admin
+        MONGO_HOST: localhost  # MongoDB tourne sur localhost dans cette CI
+        MONGO_PORT: 27017
+        MONGO_DB_NAME: ci-db
+        ACCESS_TOKEN_SIGNING_SECRET: ci-access-token-secret
+        REFRESH_TOKEN_SIGNING_SECRET: ci-refresh-token-secret
+      run: yarn test
+      working-directory: ./backend
