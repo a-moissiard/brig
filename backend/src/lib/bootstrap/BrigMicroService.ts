@@ -58,7 +58,7 @@ export class BrigMicroService {
         const ftpServersActionsHandler = new FtpServersActionsHandler({ ftpServersService });
 
         this.authService = new AuthService({ authConfig: config.auth, usersService, userAuthTokensDao: this.userAuthTokensDao });
-        const authHandler = new AuthHandler({ authService: this.authService, usersService });
+        const authHandler = new AuthHandler({ authService: this.authService, usersService, ftpServersService });
 
         this.authMiddleware = new AuthMiddleware({ authConfig: config.auth, authService: this.authService });
 

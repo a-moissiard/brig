@@ -369,6 +369,17 @@ export class FtpServersService {
         await this.redisClient.del(Object.values(REDIS_HASH_KEYS).map(hashKey => `${requester.id}:${hashKey}`));
     }
 
+    public async cleanUser(requester: IRequester): Promise<void> {
+        const userState = this.usersStates.get(requester.id);
+        if (userState) {
+            for (let client of Object.values(userState.clients)) {
+                await client.disconnect();
+            }
+            this.usersStates.delete(requester.id);
+        }
+        await this.clearTransferActivity(requester);
+    }
+
     private async findFileInfoInWorkingDir(client: FtpClient, name: string): Promise<IFileInfo> {
         const list = await client.list();
         const fileInfo = list.find(f => f.name === name);
