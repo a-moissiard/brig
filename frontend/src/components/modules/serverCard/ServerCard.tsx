@@ -119,15 +119,11 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
             if (transferActivity.sourceServerId === serverConnection?.server.id) {
                 setOngoingAction(false);
             } else {
-                // Wait a bit before refreshing once transfer is completed to avoid
-                // triggering a new request while ftp transfer request is not completely over
-                setTimeout(async () => {
-                    dispatch(setRefreshment(false));
-                    await requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, undefined, {
-                        signal: controller.signal,
-                    }));
-                    setOngoingAction(false);
-                }, 2000);
+                dispatch(setRefreshment(false));
+                requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, undefined, {
+                    signal: controller.signal,
+                })).catch((e) => setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000));
+                setOngoingAction(false);
             }
         }
     }, [transferActivity, ongoingAction]);
@@ -461,7 +457,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
                         dialogTitle={'Definitely delete file ?'}
                         dialogContentText={`Are you sure you want to delete ${
                             fileDeletionState.file
-                                ? `the file \'${fileDeletionState.file.name}\'`
+                                ? `the ${fileDeletionState.file.type === FileType.Directory ? 'directory' : 'file'} \'${fileDeletionState.file.name}\'`
                                 : 'this file'
                         }? This action is irreversible.`}
                         validateButtonLabel={'Delete'}
