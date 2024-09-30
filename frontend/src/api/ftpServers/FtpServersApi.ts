@@ -1,4 +1,4 @@
-import { IFtpServer, IFtpServerConnectionStateModel, ITransferActivity } from '../../types/ftp/FtpServersTypes';
+import { IFtpServer, IFtpServerSlotsModel, IServerSlot, ITransferActivity } from '../../types/ftp';
 import { IEventHandlers } from '../../types/sse/EventTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
@@ -12,9 +12,9 @@ export class FtpServersApi {
         return AuthenticatedApiClient.get<IFtpServer[]>(this.serversApiUrl, options);
     }
 
-    public static async getUserConnectedServers(options?: IRequestOptions): Promise<IFtpServerConnectionStateModel[]> {
+    public static async getUserConnectedServers(options?: IRequestOptions): Promise<IFtpServerSlotsModel> {
         const url = `${this.serversApiUrl}/connected`;
-        return AuthenticatedApiClient.get<IFtpServerConnectionStateModel[]>(url, options);
+        return AuthenticatedApiClient.get<IFtpServerSlotsModel>(url, options);
     }
 
     public static async getTransferActivity(options?: IRequestOptions): Promise<ITransferActivity | null> {
@@ -33,9 +33,9 @@ export class FtpServersApi {
     }
     
     // Actions
-    public static async connect(serverId: string, password: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
+    public static async connect(serverId: string, slot: IServerSlot, password: string, options?: IRequestOptions): Promise<IFilesListingResponse> {
         const url = `${this.serversApiUrl}/${serverId}/actions/connect`;
-        return AuthenticatedApiClient.post<IFilesListingResponse, { password: string }>(url, { password }, options);
+        return AuthenticatedApiClient.post<IFilesListingResponse, { slot: IServerSlot; password: string }>(url, { slot, password }, options);
     }
 
     public static async disconnect(serverId: string, options?: IRequestOptions): Promise<void> {

@@ -1,4 +1,4 @@
-import { IFileInfo } from '../ftp/FileInfoTypes';
+import { IFtpConnectedServerModel } from '../ftp';
 
 export enum CONNECTION_STATUS {
     CONNECTED = 'Connected',
@@ -6,9 +6,6 @@ export enum CONNECTION_STATUS {
     DISCONNECTED = 'Disconnected',
 }
 
-export interface IServerConnection {
-    id: string;
+export interface IFtpServerConnectionState extends IFtpConnectedServerModel {
     status: CONNECTION_STATUS.CONNECTED | CONNECTION_STATUS.CONNECTING;
-    workingDir?: string;
-    fileList: IFileInfo[];
 }

@@ -17,8 +17,15 @@ export interface IFtpServerModel extends IFtpServerBaseModel {
     lastPath: string;
 }
 
-export interface IFtpServerConnectionStateModel {
+interface IFtpServerConnectionStateModel {
     server: IFtpServerModel;
     workingDir: string;
     files: IFileInfo[];
 }
+
+export interface IFtpConnectedServersModel {
+    slotOne?: IFtpServerConnectionStateModel;
+    slotTwo?: IFtpServerConnectionStateModel;
+}
+
+export type IServerSlot = 'slotOne' | 'slotTwo';

@@ -18,7 +18,7 @@ const ActivityCard: FunctionComponent = () => {
     const transferActivity = useAppSelector(selectTransferActivity);
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
-    const [sourceServerNumber, setSourceServerNumber] = useState(0);
+    const [sourceServerName, setSourceServerName] = useState<string>();
 
     const onClear = async (): Promise<void> => {
         await FtpServersApi.clearTransferActivity();
@@ -33,11 +33,12 @@ const ActivityCard: FunctionComponent = () => {
 
     useEffect(() => {
         if (transferActivity && server1Connection && server2Connection) {
-            setSourceServerNumber(transferActivity.sourceServerId === server1Connection.id
-                ? 1
-                : transferActivity.sourceServerId === server2Connection.id
-                    ? 2
-                    : 0, // should not happen
+            const { sourceServerId } = transferActivity;
+            setSourceServerName(sourceServerId === server1Connection.server.id
+                ? server1Connection.server.alias
+                : sourceServerId === server2Connection.server.id
+                    ? server2Connection.server.alias
+                    : '', // should not happen
             );
         }
     }, [transferActivity, server1Connection, server2Connection]);
@@ -53,12 +54,12 @@ const ActivityCard: FunctionComponent = () => {
             {!_.isUndefined(transferActivity)
                 ? <Box>
                     <Typography variant="body1" align="left">
-                        <Box component="span" className="emphasizedText">Source server</Box>
-                        {`: Server ${sourceServerNumber} `}
+                        <Box component="span" className="emphasizedText">Source server: </Box>
+                        {sourceServerName}
                     </Typography>
                     <Typography variant="body1" align="left">
-                        <Box component="span" className="emphasizedText">Transfer target</Box>
-                        {`: ${transferActivity.target}`}
+                        <Box component="span" className="emphasizedText">Transfer target: </Box>
+                        {transferActivity.target}
                     </Typography>
                     {transferActivity.currentProgress && (
                         <Card className='activitySubCard' raised>

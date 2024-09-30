@@ -19,9 +19,9 @@ export class FtpServersActionsHandler {
     async connect(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { serverId } = req.params;
-        const { password } = extractValidatedData<IConnectBody>(req, { locations: ['body'] });
+        const { slot, password } = extractValidatedData<IConnectBody>(req, { locations: ['body'] });
 
-        await this.ftpServersService.connect(requester, serverId, password);
+        await this.ftpServersService.connect(requester, serverId, slot, password);
         const workingDir = await this.ftpServersService.pwd(requester, serverId);
         const list = await this.ftpServersService.list(requester, serverId);
 

@@ -11,10 +11,13 @@ import { IRequester } from '../authorizations';
 import { FileType, FtpClient, IFileInfo } from '../ftpUtils';
 import { FtpServersAuthorizationsEnforcer } from './FtpServersAuthorizationsEnforcer';
 import { FtpServersDao } from './FtpServersDao';
-import { IFtpServerConnectionStateModel, IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel } from './FtpServersTypes';
+import { IFtpConnectedServersModel, IFtpServerCreateModel, IFtpServerModel, IFtpServerUpdateModel, IServerSlot } from './FtpServersTypes';
 
 interface IUserConnectionsState {
-    clients: Record<string, FtpClient>;
+    clients: {
+        slotOne?: FtpClient;
+        slotTwo?: FtpClient;
+    };
     transferCanceled: boolean;
     stream?: PassThrough;
     sendEventCallbacks: Record<string, SendEventCallback>;
@@ -99,7 +102,7 @@ export class FtpServersService {
 
     // Actions
 
-    public async connect(requester: IRequester, serverId: string, password: string): Promise<void> {
+    public async connect(requester: IRequester, serverId: string, slot: IServerSlot, password: string): Promise<void> {
         const server = await this.ftpServersDao.getServer(serverId);
         await this.ftpServersAuthorizationsEnforcer.assertCanManageServer(requester, server);
 
@@ -110,14 +113,11 @@ export class FtpServersService {
 
         const userState = this.usersStates.get(requester.id);
         if (userState) {
-            const clients = userState.clients;
-            const serverIds = Object.keys(clients);
-            if (serverIds.length < 2 || serverIds.includes(serverId)) {
-                clients[serverId] = client;
+            if (!userState.clients[slot]) {
+                userState.clients[slot] = client;
             } else {
-                throw new BrigError(BRIG_ERROR_CODE.FTP_MAX_CLIENT_NUMBER_REACHED, 'Connection to more than two FTP servers at a time not permitted');
+                throw new BrigError(BRIG_ERROR_CODE.FTP_CLIENT_SLOT_ALREADY_BUSY, 'A server is already connected, please disconnect first.');
             }
-            userState.clients = clients;
 
             _.forEach(userState.sendEventCallbacks, (cb, id) => {
                 client.registerSendEventCallback(id, cb);
@@ -125,7 +125,7 @@ export class FtpServersService {
         } else {
             this.usersStates.set(requester.id, {
                 clients: {
-                    [serverId]: client,
+                    [slot]: client,
                 },
                 transferCanceled: false,
                 sendEventCallbacks: {},
@@ -133,24 +133,36 @@ export class FtpServersService {
         }
     }
 
-    public async getUserConnectedServers(requester: IRequester): Promise<IFtpServerConnectionStateModel[]> {
+    public async getUserConnectedServers(requester: IRequester): Promise<IFtpConnectedServersModel> {
         const userState = this.usersStates.get(requester.id);
         if (userState) {
-            const connectedServers = [];
-            for (let client of Object.values(userState.clients)) {
+            const { slotOne, slotTwo } = userState.clients;
+            const connectedServers: IFtpConnectedServersModel = {};
+            if (slotOne) {
                 try {
-                    connectedServers.push({
-                        server: client.ftpServer,
-                        workingDir: await client.pwd(),
-                        files: await client.list(),
-                    });
+                    connectedServers.slotOne = {
+                        server: slotOne.ftpServer,
+                        workingDir: await slotOne.pwd(),
+                        files: await slotOne.list(),
+                    };
                 } catch (e) {
-                    this.unsetClient(requester, client.ftpServer.id);
+                    this.unsetClient(requester, slotOne.ftpServer.id);
+                }
+            }
+            if (slotTwo) {
+                try {
+                    connectedServers.slotTwo = {
+                        server: slotTwo.ftpServer,
+                        workingDir: await slotTwo.pwd(),
+                        files: await slotTwo.list(),
+                    };
+                } catch (e) {
+                    this.unsetClient(requester, slotTwo.ftpServer.id);
                 }
             }
             return connectedServers;
         }
-        return [];
+        return {};
     }
 
     public async disconnect(requester: IRequester, serverId: string): Promise<void> {
@@ -203,16 +215,18 @@ export class FtpServersService {
     }
 
     public async registerSendEventCallback(requester: IRequester, callback: SendEventCallback): Promise<string> {
-        // Register the callback so all future clients will be able to track progress immediately
         const callbackId = uuid.v4();
 
         const userState = this.usersStates.get(requester.id);
         if (userState) {
             userState.sendEventCallbacks[callbackId] = callback;
 
-            // Track progress for all already existing clients
-            for (let client of Object.values(userState.clients)) {
-                client.registerSendEventCallback(callbackId, callback);
+            const { slotOne, slotTwo } = userState.clients;
+            if (slotOne) {
+                slotOne.registerSendEventCallback(callbackId, callback);
+            }
+            if (slotTwo) {
+                slotTwo.registerSendEventCallback(callbackId, callback);
             }
         } else {
             this.usersStates.set(requester.id, {
@@ -228,10 +242,15 @@ export class FtpServersService {
     public async unregisterSendEventCallback(requester: IRequester, callbackId: string): Promise<void> {
         const userState = this.usersStates.get(requester.id);
         if (userState) {
-            for (let client of Object.values(userState.clients)) {
-                client.unregisterSendEventCallback(callbackId);
-            }
             delete userState.sendEventCallbacks[callbackId];
+
+            const { slotOne, slotTwo } = userState.clients;
+            if (slotOne) {
+                slotOne.unregisterSendEventCallback(callbackId);
+            }
+            if (slotTwo) {
+                slotTwo.unregisterSendEventCallback(callbackId);
+            }
         }
     }
 
@@ -372,8 +391,12 @@ export class FtpServersService {
     public async cleanUser(requester: IRequester): Promise<void> {
         const userState = this.usersStates.get(requester.id);
         if (userState) {
-            for (let client of Object.values(userState.clients)) {
-                await client.disconnect();
+            const { slotOne, slotTwo } = userState.clients;
+            if (slotOne) {
+                await slotOne.disconnect();
+            }
+            if (slotTwo) {
+                await slotTwo.disconnect();
             }
             this.usersStates.delete(requester.id);
         }
@@ -464,14 +487,26 @@ export class FtpServersService {
     private unsetClient(requester: IRequester, serverId: string): void {
         const userState = this.usersStates.get(requester.id);
         if (userState) {
-            delete userState.clients[serverId];
+            const { slotOne, slotTwo } = userState.clients;
+            if (slotOne?.ftpServer.id === serverId) {
+                delete userState.clients.slotOne;
+            }
+            if (slotTwo?.ftpServer.id === serverId) {
+                delete userState.clients.slotTwo;
+            }
         }
     }
 
     private getClient(requester: IRequester, serverId: string): FtpClient {
         const userState = this.usersStates.get(requester.id);
-        if (userState && userState.clients[serverId]) {
-            return userState.clients[serverId];
+        if (userState) {
+            const { slotOne, slotTwo } = userState.clients;
+            if (slotOne?.ftpServer.id === serverId) {
+                return slotOne;
+            }
+            if (slotTwo?.ftpServer.id === serverId) {
+                return slotTwo;
+            }
         }
         throw new BrigError(BRIG_ERROR_CODE.FTP_NOT_LOGGED_IN, `Client not registered for user=${requester.id}`, {
             publicMessage: 'You are not connected to this FTP server, please connect first',

@@ -34,8 +34,7 @@ import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer, unsetServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { selectTransferActivity, setRefreshment } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import { FileType, IFileInfo } from '../../../types/ftp/FileInfoTypes';
-import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
+import { FileType, IFileInfo, IFtpServer, IServerSlot } from '../../../types/ftp';
 import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
 import Dialog from '../../lib/dialog/Dialog';
@@ -44,10 +43,10 @@ import ServerStatus from '../../lib/serverStatus/ServerStatus';
 import './serverCard.scss';
 
 interface IServerCardProps {
-    serverNumber: 1 | 2;
+    slot: IServerSlot;
     ftpServerList: IFtpServer[];
     canTransfer: boolean;
-    onTransfer: (serverNumber: 1 | 2, file: IFileInfo) => Promise<void>;
+    onTransfer: (slot: IServerSlot, file: IFileInfo) => Promise<void>;
 }
 
 interface IDirCreationState {
@@ -69,13 +68,13 @@ const initialFileDeletionState: IFileDeletionState = {
     dialogOpen: false,
 };
 
-const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServerList, canTransfer, onTransfer }) => {
+const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, canTransfer, onTransfer }) => {
     const dispatch = useAppDispatch();
 
-    const serverConnection = useAppSelector(serverNumber === 1 ? selectServer1 : selectServer2);
+    const serverConnection = useAppSelector(slot === 'slotOne' ? selectServer1 : selectServer2);
     const transferActivity = useAppSelector(selectTransferActivity);
 
-    const [selectedServerId, setSelectedServerId] = useState(serverConnection?.id || '');
+    const [selectedServerId, setSelectedServerId] = useState(serverConnection?.server.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
     const [error, setError] = useState<string>();
     const [errorTimer, setErrorTimer] = useState<ReturnType<typeof setTimeout>>();
@@ -104,7 +103,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
     useEffect(() => {
         if (serverConnection && selectedServerId === '') {
-            setSelectedServerId(serverConnection.id);
+            setSelectedServerId(serverConnection.server.id);
         }
     }, [serverConnection]);
 
@@ -117,7 +116,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
 
         // If refresh needed flag is true, it means the transfer just got completed
         if (transferActivity?.refreshNeeded) {
-            if (transferActivity.sourceServerId === serverConnection?.id) {
+            if (transferActivity.sourceServerId === serverConnection?.server.id) {
                 setOngoingAction(false);
             } else {
                 // Wait a bit before refreshing once transfer is completed to avoid
@@ -141,28 +140,29 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             setError(undefined);
         }
         dispatch(setServer({
-            serverNumber,
+            slot,
             data: {
-                id: selectedServerId,
+                server: ftpServerList.find((server) => server.id === selectedServerId)!,
                 status: CONNECTION_STATUS.CONNECTING,
-                fileList: [],
+                workingDir: '/',
+                files: [],
             },
         }));
         try {
-            const { workingDir, list } = await FtpServersApi.connect(selectedServerId, password, {
+            const { workingDir, list } = await FtpServersApi.connect(selectedServerId, slot, password, {
                 signal: controller.signal,
             });
             dispatch(setServer({
-                serverNumber,
+                slot,
                 data: {
-                    id: selectedServerId,
+                    server: ftpServerList.find((server) => server.id === selectedServerId)!,
                     status: CONNECTION_STATUS.CONNECTED,
                     workingDir,
-                    fileList: list,
+                    files: list,
                 },
             }));
         } catch (e) {
-            dispatch(unsetServer(serverNumber));
+            dispatch(unsetServer(slot));
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
                     setErrorWithTimeout(e.message);
@@ -177,7 +177,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         event.preventDefault();
         controller.abort();
         setController(new AbortController());
-        dispatch(unsetServer(serverNumber));
+        dispatch(unsetServer(slot));
     };
 
     const onDisconnect = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -185,7 +185,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         controller.abort();
         setController(new AbortController());
         await FtpServersApi.disconnect(selectedServerId);
-        dispatch(unsetServer(serverNumber));
+        dispatch(unsetServer(slot));
     };
 
     const onParentDir = async (): Promise<void> => {
@@ -281,19 +281,19 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
             setErrorWithTimeout('Both servers must be connected for transfer');
             return;
         }
-        await onTransfer(serverNumber, file);
+        await onTransfer(slot, file);
     };
 
     const requestInducingListRefresh = async (fn: () =>  Promise<IFilesListingResponse>): Promise<void> => {
         try {
             const { workingDir, list } = await fn();
             dispatch(setServer({
-                serverNumber,
+                slot,
                 data: {
-                    id: selectedServerId,
+                    server: ftpServerList.find((server) => server.id === selectedServerId)!,
                     status: CONNECTION_STATUS.CONNECTED,
                     workingDir,
-                    fileList: list,
+                    files: list,
                 },
             }));
         } catch (e) {
@@ -311,7 +311,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
         <CardContent className="serverCard">
             <Box className="header">
                 <Typography variant="h5">
-                    Server {serverNumber}
+                    Server {slot === 'slotOne' ? '1' : '2'}
                 </Typography>
                 <ServerStatus status={serverConnection?.status}/>
             </Box>
@@ -421,7 +421,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ serverNumber, ftpServ
                         <ListSubheader className="listSubHeader">
                             Files
                         </ListSubheader>
-                        {serverConnection.fileList.map((file) => (
+                        {serverConnection.files.map((file) => (
                             <ListItemButton
                                 key={file.name + '_' + file.size}
                                 disabled={ongoingAction}

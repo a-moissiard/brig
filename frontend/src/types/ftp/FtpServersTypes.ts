@@ -15,11 +15,18 @@ export interface IFtpServer extends IFtpServerBase {
     ownerId: string;
 }
 
-export interface IFtpServerConnectionStateModel {
+export interface IFtpConnectedServerModel {
     server: IFtpServer;
     workingDir: string;
     files: IFileInfo[];
 }
+
+export interface IFtpServerSlotsModel {
+    slotOne?: IFtpConnectedServerModel;
+    slotTwo?: IFtpConnectedServerModel;
+}
+
+export type IServerSlot = 'slotOne' | 'slotTwo';
 
 export interface ITransferActivity {
     sourceServerId: string;

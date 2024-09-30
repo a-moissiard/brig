@@ -7,8 +7,7 @@ import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
 import { selectServer1, selectServer2, setServer } from '../../../redux/features/serverConnections/serverConnectionsSlice';
 import { setActivity } from '../../../redux/features/transferActivity/transferActivitySlice';
 import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
-import { IFileInfo } from '../../../types/ftp/FileInfoTypes';
-import { IFtpServer } from '../../../types/ftp/FtpServersTypes';
+import { IFileInfo, IFtpServer, IFtpServerSlotsModel, IServerSlot } from '../../../types/ftp';
 import { CONNECTION_STATUS, TRANSFER_STATUS } from '../../../types/status';
 import LoadingBox from '../../lib/loadingBox/LoadingBox';
 import ActivityCard from '../../modules/activityCard/ActivityCard';
@@ -25,11 +24,11 @@ const DashboardPage: FunctionComponent = () => {
     const server1Connection = useAppSelector(selectServer1);
     const server2Connection = useAppSelector(selectServer2);
 
-    const onTransfer = async (sourceServerNumber: 1 | 2, file: IFileInfo): Promise<void> => {
+    const onTransfer = async (slot: IServerSlot, file: IFileInfo): Promise<void> => {
         if (server1Connection && server2Connection) {
-            const [sourceServerId, destinationServerId] = sourceServerNumber === 1
-                ? [server1Connection.id, server2Connection.id]
-                : [server2Connection.id, server1Connection.id];
+            const [sourceServerId, destinationServerId] = slot === 'slotOne'
+                ? [server1Connection.server.id, server2Connection.server.id]
+                : [server2Connection.server.id, server1Connection.server.id];
             await FtpServersApi.transfer(sourceServerId, file.name, destinationServerId);
         }
     };
@@ -40,30 +39,27 @@ const DashboardPage: FunctionComponent = () => {
         const fetchState = async (): Promise<void> => {
             const [ftpServers, userConnectedServers, transferActivity] = await Promise.all([
                 FtpServersApi.getFtpServers({ signal: controller.signal }),
-                !server1Connection && !server2Connection ? FtpServersApi.getUserConnectedServers({ signal: controller.signal }) : Promise.resolve([]),
+                !server1Connection && !server2Connection ? FtpServersApi.getUserConnectedServers({ signal: controller.signal }) : Promise.resolve({} as IFtpServerSlotsModel),
                 FtpServersApi.getTransferActivity(),
             ]);
 
             setServerList(ftpServers);
-            if (userConnectedServers[0]) {
+            const { slotOne, slotTwo } = userConnectedServers;
+            if (slotOne) {
                 dispatch(setServer({
-                    serverNumber: 1,
+                    slot: 'slotOne',
                     data: {
-                        id: userConnectedServers[0].server.id,
+                        ...slotOne,
                         status: CONNECTION_STATUS.CONNECTED,
-                        workingDir: userConnectedServers[0].workingDir,
-                        fileList: userConnectedServers[0].files,
                     },
                 }));
             }
-            if (userConnectedServers[1]) {
+            if (slotTwo) {
                 dispatch(setServer({
-                    serverNumber: 2,
+                    slot: 'slotTwo',
                     data: {
-                        id: userConnectedServers[1].server.id,
+                        ...slotTwo,
                         status: CONNECTION_STATUS.CONNECTED,
-                        workingDir: userConnectedServers[1].workingDir,
-                        fileList: userConnectedServers[1].files,
                     },
                 }));
             }
@@ -92,7 +88,7 @@ const DashboardPage: FunctionComponent = () => {
                 </Grid>
                 <Grid xs={12} lg={6}>
                     <ServerCard
-                        serverNumber={1}
+                        slot={'slotOne'}
                         ftpServerList={serverList}
                         canTransfer={server2Connection?.status === CONNECTION_STATUS.CONNECTED}
                         onTransfer={onTransfer}
@@ -100,7 +96,7 @@ const DashboardPage: FunctionComponent = () => {
                 </Grid>
                 <Grid xs={12} lg={6}>
                     <ServerCard
-                        serverNumber={2}
+                        slot={'slotTwo'}
                         ftpServerList={serverList}
                         canTransfer={server1Connection?.status === CONNECTION_STATUS.CONNECTED}
                         onTransfer={onTransfer}

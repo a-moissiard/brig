@@ -1,8 +1,10 @@
 import { Schema } from 'express-validator';
 
+import { IServerSlot } from '../../service/ftpServers';
 import { BRIG_ERROR_CODE, BrigError } from '../../utils/error';
 
 export interface IConnectBody {
+    slot: IServerSlot;
     password: string;
 }
 
@@ -17,6 +19,13 @@ export type IDeleteBody = ICreateDirBody;
 export type ITransferBody = ICreateDirBody;
 
 export const connectBodySchema: Schema = {
+    slot: {
+        in: 'body',
+        isIn: {
+            options: [['slotOne', 'slotTwo']],
+            errorMessage: 'body is expected to contain `slot` parameter which must be equal to \'slotOne\' or \'slotTwo\'',
+        },
+    },
     password: {
         in: 'body',
         isString: true,
