@@ -1,6 +1,5 @@
 import * as ftp from 'basic-ftp';
 import { FileInfo, FTPError } from 'basic-ftp';
-import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
 import * as fpa from 'f-promise-async';
 import _ from 'lodash';
 import { LRUCache } from 'lru-cache';
@@ -128,7 +127,7 @@ export class FtpClient {
     }
 
     public async trackProgress(client: ftp.Client): Promise<void> {
-        client.trackProgress((info: ProgressInfo) => {
+        client.trackProgress((info) => {
             if (info.type === 'download') {
                 let progress: number | undefined;
                 const file = this.fileInfoCache.get(info.name);
