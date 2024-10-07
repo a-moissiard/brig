@@ -1,12 +1,27 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": ["es2022"],
     "outDir": "./build",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
+    "sourceMap": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/test"
   ],
   "ts-node": {
     "files": true
