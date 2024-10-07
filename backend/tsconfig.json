@@ -13,9 +13,6 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "sourceMap": true,
-    "types": [
-      "node"
-    ]
   },
   "include": [
     "src/**/*"

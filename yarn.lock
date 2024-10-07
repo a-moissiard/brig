@@ -3204,13 +3204,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tsconfig/node18@npm:^1.0.1":
-  version: 1.0.3
-  resolution: "@tsconfig/node18@npm:1.0.3"
-  checksum: 101b12f59fde8693269fc22fe22ed93ce5006a6fdd550ff25f39c9324acea48a0e83fd93d302b719e75467c89a963bf79cdd2017aeb6db5d0cfb805a86ab7f23
-  languageName: node
-  linkType: hard
-
 "@types/aria-query@npm:^5.0.1":
   version: 5.0.1
   resolution: "@types/aria-query@npm:5.0.1"
@@ -3556,17 +3549,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.18.34":
-  version: 16.18.34
-  resolution: "@types/node@npm:16.18.34"
-  checksum: 35c0ffe09687578d002ceb7e706d0ba450546aeb3d2716f28691f2af0063bd274dbde0f741d087ea217f2a8db413eb700d22dfb4f08a67986ff801423bd7be8d
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.8.3":
-  version: 18.16.16
-  resolution: "@types/node@npm:18.16.16"
-  checksum: 0efad726dd1e0bef71c392c708fc5d78c5b39c46b0ac5186fee74de4ccb1b2e847b3fa468da67d62812f56569da721b15bf31bdc795e6c69b56c73a45079ed2d
+"@types/node@npm:^20.6.0":
+  version: 20.16.10
+  resolution: "@types/node@npm:20.16.10"
+  dependencies:
+    undici-types: ~6.19.2
+  checksum: 8b4d5a0af828871627e80da095df50ef8ae7ca458f39ccde1d060e3bf97b0bc76af9547bd5d75ce4ccb1dd80466804b2fe4f12553c11cb8691c6667effd9a9d7
   languageName: node
   linkType: hard
 
@@ -4992,7 +4980,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:backend"
   dependencies:
-    "@tsconfig/node18": ^1.0.1
     "@types/bcrypt": ^5.0.0
     "@types/chai": ^4.3.5
     "@types/cors": ^2.8.13
@@ -5003,7 +4990,7 @@ __metadata:
     "@types/lru-cache": ^7.10.10
     "@types/mocha": ^10.0.1
     "@types/ms": ^0.7.31
-    "@types/node": ^18.8.3
+    "@types/node": ^20.6.0
     "@types/node-schedule": ^2.1.0
     "@types/passport": ^1.0.12
     "@types/passport-jwt": ^3.0.8
@@ -5018,7 +5005,7 @@ __metadata:
     express: ^4.18.1
     express-async-handler: ^1.2.0
     express-validator: ^7.0.1
-    f-promise-async: ^3.2.3
+    f-promise-async: ^3.2.4
     ioredis: ^5.4.1
     jsonwebtoken: ^9.0.0
     lodash: ^4.17.21
@@ -5032,7 +5019,7 @@ __metadata:
     passport-jwt: ^4.0.1
     passport-local: ^1.0.0
     ts-node: ^10.9.1
-    typescript: ^4.8.4
+    typescript: ^5.6.2
     uuid: ^9.0.0
     winston: ^3.9.0
   languageName: unknown
@@ -7442,10 +7429,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"f-promise-async@npm:^3.2.3":
-  version: 3.2.3
-  resolution: "f-promise-async@npm:3.2.3"
-  checksum: 5ef6569e0ea1b2ebcb3b0ad7e9b7ddb9a486b04045bb5eeee9c21bbc6ec45e41eb9be8f81436c7da63010d8e5ff7a5efc44c8831b46aaf2503aefc8fab5ca570
+"f-promise-async@npm:^3.2.4":
+  version: 3.2.4
+  resolution: "f-promise-async@npm:3.2.4"
+  checksum: e4f0acc1eee3b50a2d5f6905f11880b4c38b5c0216057d23a0ecaf0acd7f77ad7ed89fe2477b7e95f9b904529a7316288abf76aba70d6c9e227848f1f4426f22
   languageName: node
   linkType: hard
 
@@ -7767,7 +7754,7 @@ __metadata:
     "@testing-library/react": ^13.4.0
     "@testing-library/user-event": ^13.5.0
     "@types/jest": ^27.5.2
-    "@types/node": ^16.18.34
+    "@types/node": ^20.6.0
     "@types/react": ^18.2.7
     "@types/react-dom": ^18.2.4
     axios: ^1.4.0
@@ -7781,7 +7768,7 @@ __metadata:
     react-spinners: ^0.13.8
     redux: ^4.2.1
     sass: ^1.64.2
-    typescript: ^4.9.5
+    typescript: ^5.6.2
     web-vitals: ^2.1.4
   languageName: unknown
   linkType: soft
@@ -14508,23 +14495,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.8.4, typescript@npm:^4.9.5":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
+"typescript@npm:^5.6.2":
+  version: 5.6.2
+  resolution: "typescript@npm:5.6.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  checksum: 48777e1dabd9044519f56cd012b0296e3b72bafe12b7e8e34222751d45c67e0eba5387ecdaa6c14a53871a29361127798df6dc8d1d35643a0a47cb0b1c65a33a
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.8.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=701156"
+"typescript@patch:typescript@^5.6.2#~builtin<compat/typescript>":
+  version: 5.6.2
+  resolution: "typescript@patch:typescript@npm%3A5.6.2#~builtin<compat/typescript>::version=5.6.2&hash=701156"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
+  checksum: c084ee1ab865f108c787e6233a5f63c126c482c0c8e87ec998ac5288a2ad54b603e1ea8b8b272355823b833eb31b9fabb99e8c6152283e1cb47e3a76bd6faf6c
   languageName: node
   linkType: hard
 
@@ -14544,6 +14531,13 @@ __metadata:
   version: 2.0.5
   resolution: "undefsafe@npm:2.0.5"
   checksum: f42ab3b5770fedd4ada175fc1b2eb775b78f609156f7c389106aafd231bfc210813ee49f54483d7191d7b76e483bc7f537b5d92d19ded27156baf57592eb02cc
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.19.2":
+  version: 6.19.8
+  resolution: "undici-types@npm:6.19.8"
+  checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
   languageName: node
   linkType: hard
 
