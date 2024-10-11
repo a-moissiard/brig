@@ -9,7 +9,7 @@
     "dev": "yarn workspaces foreach -p run dev",
     "dev:backend": "yarn workspace backend run dev",
     "dev:frontend": "yarn workspace frontend run dev",
-    "start": "yarn build && mkdir -p backend/build && cp -r frontend/build backend/build/frontend && yarn start:backend",
+    "start": "yarn clean && yarn build && mkdir -p backend/build && cp -r frontend/build backend/build/frontend && yarn start:backend",
     "start:backend": "yarn workspace backend run start",
     "start:frontend": "yarn workspace frontend run start"
   },
