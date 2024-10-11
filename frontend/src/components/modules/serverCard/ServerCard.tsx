@@ -303,8 +303,8 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
         }
     };
 
-    return <Card>
-        <CardContent className="serverCard">
+    return <Card className="serverCard">
+        <CardContent className="serverCardContent">
             <Box className="header">
                 <Typography variant="h5">
                     Server {slot === 'slotOne' ? '1' : '2'}
@@ -424,7 +424,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
                                 onDoubleClick={(): Promise<void> => onFileDoubleClick(file)}
                                 onContextMenu={(event): void => onFileRightClick(event, file)}
                             >
-                                <ListItem>
+                                <ListItem disableGutters>
                                     <ListItemIcon>
                                         {file.type === FileType.Directory ? (<FolderIcon />) : (<DescriptionIcon />)}
                                     </ListItemIcon>

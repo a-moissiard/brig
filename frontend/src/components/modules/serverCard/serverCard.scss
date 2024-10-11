@@ -1,95 +1,95 @@
+
 .serverCard {
   container: serverCard / inline-size;
-  display: flex;
-  flex-direction: column;
-  border-radius: 20px;
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-  }
-
-  .connection {
+  .serverCardContent {
     display: flex;
     flex-direction: column;
+    border-radius: 20px;
 
-    .connectionParams {
+    .header {
       display: flex;
+      justify-content: space-between;
       margin-bottom: 15px;
+    }
 
-      &__select {
-        margin-right: 15px;
-        min-width: 250px;
+    .connection {
+      display: flex;
+      flex-direction: column;
+
+      .connectionParams {
+        display: flex;
+        margin-bottom: 15px;
+
+        &__select {
+          margin-right: 15px;
+          min-width: 200px;
+        }
+
+        &__form {
+          display: flex;
+          flex-grow: 1;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        &__formButton {
+          border-radius: 20px;
+        }
       }
 
-      &__form {
+      .connectionError {
+        margin-bottom: 15px;
+      }
+    }
+
+    .listing {
+      .divider {
+        margin-bottom: 15px;
+      }
+
+      .navigation {
         display: flex;
-        flex-grow: 1;
-        justify-content: space-between;
         align-items: center;
+
+        &__workingDir {
+          max-width: 500px;
+        }
+
+        &__button {
+          margin-left: 10px;
+        }
+
+        &__loader  {
+          margin-left: 20px;
+          display: flex;
+          color: white;
+        }
       }
 
-      &__formButton {
-        border-radius: 20px;
+      .listSubHeader {
+        background-color: transparent;
       }
-    }
-
-    .connectionError {
-      margin-bottom: 15px;
-    }
-  }
-
-  .listing {
-    .divider {
-      margin-bottom: 15px;
-    }
-
-    .navigation {
-      display: flex;
-      align-items: center;
-
-      &__workingDir {
-        max-width: 500px;
-      }
-
-      &__button {
-        margin-left: 10px;
-      }
-
-      &__loader  {
-        margin-left: 20px;
-        display: flex;
-        color: white;
-      }
-    }
-
-    .listSubHeader {
-      background-color: transparent;
     }
   }
 }
 
-@container serverCard (max-width: 625px) {
-  .serverCard {
-    .connection {
-      .connectionParams {
-        flex-direction: column;
-        margin-bottom: unset;
+@container serverCard (max-width: 610px) {
+  .serverCard .serverCardContent .connection .connectionParams {
+    flex-direction: column;
+    margin-bottom: unset;
 
-        &__select {
-          margin-right: unset;
-          margin-bottom: 15px;
-        }
+    &__select {
+      margin-right: unset;
+      margin-bottom: 15px;
+    }
 
-        &__form {
-          flex-direction: column;
-          align-items: unset;
+    &__form {
+      flex-direction: column;
+      align-items: unset;
 
-          > * {
-            margin-bottom: 15px;
-          }
-        }
+      > * {
+        margin-bottom: 15px;
       }
     }
   }

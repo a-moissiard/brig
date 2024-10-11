@@ -41,7 +41,7 @@ const App: FunctionComponent = () => {
 
     return <ThemeProvider theme={createTheme(themeOptions)}>
         <CssBaseline />
-        <LoadingBox loading={loading} withMargin={false}>
+        <LoadingBox loading={loading}>
             <Routes>
                 <Route path="/" element={<Navigate to="/dashboard"/>} />
                 <Route path="/dashboard" element={

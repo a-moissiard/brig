@@ -37,7 +37,7 @@ const TopBar: FunctionComponent = () => {
         navigate('/auth');
     };
 
-    return <AppBar position='sticky' className='topBar'>
+    return <AppBar position='sticky' elevation={1} className='topBar'>
         {user && (<Box className='topBar__menuContainer'>
             <IconButton className='topBar__menuButton' onClick={openMenu}>
                 <Badge color="secondary" variant="dot" invisible={!transferActivity || transferActivity.status !== TRANSFER_STATUS.IN_PROGRESS}>

@@ -8,7 +8,7 @@ import './loadingBox.scss';
 interface MainAreaProps {
     loading: boolean;
     children: ReactElement;
-    withMargin: boolean;
+    withMargin?: boolean;
 }
 
 const LoadingBox: FunctionComponent<MainAreaProps> = ({

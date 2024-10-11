@@ -86,7 +86,7 @@ const DashboardPage: FunctionComponent = () => {
                 <Grid size={{ xs: 12 }}>
                     <ActivityCard />
                 </Grid>
-                <Grid size={{ xs: 12, lg: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <ServerCard
                         slot={'slotOne'}
                         ftpServerList={serverList}
@@ -94,7 +94,7 @@ const DashboardPage: FunctionComponent = () => {
                         onTransfer={onTransfer}
                     />
                 </Grid>
-                <Grid size={{ xs: 12, lg: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                     <ServerCard
                         slot={'slotTwo'}
                         ftpServerList={serverList}
