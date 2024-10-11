@@ -2,6 +2,7 @@
   container: serverCard / inline-size;
   display: flex;
   flex-direction: column;
+  border-radius: 20px;
 
   .header {
     display: flex;
@@ -27,6 +28,10 @@
         flex-grow: 1;
         justify-content: space-between;
         align-items: center;
+      }
+
+      &__formButton {
+        border-radius: 20px;
       }
     }
 
@@ -65,7 +70,7 @@
   }
 }
 
-@container serverCard (max-width: 600px) {
+@container serverCard (max-width: 625px) {
   .serverCard {
     .connection {
       .connectionParams {
