@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import _ from 'lodash';
 import { FunctionComponent, useEffect, useState } from 'react';
 
@@ -83,10 +83,10 @@ const DashboardPage: FunctionComponent = () => {
         <TopBar/>
         <LoadingBox loading={loading} withMargin>
             <Grid container spacing={4}>
-                <Grid xs={12}>
+                <Grid size={{ xs: 12 }}>
                     <ActivityCard />
                 </Grid>
-                <Grid xs={12} lg={6}>
+                <Grid size={{ xs: 12, lg: 6 }}>
                     <ServerCard
                         slot={'slotOne'}
                         ftpServerList={serverList}
@@ -94,7 +94,7 @@ const DashboardPage: FunctionComponent = () => {
                         onTransfer={onTransfer}
                     />
                 </Grid>
-                <Grid xs={12} lg={6}>
+                <Grid size={{ xs: 12, lg: 6 }}>
                     <ServerCard
                         slot={'slotTwo'}
                         ftpServerList={serverList}
