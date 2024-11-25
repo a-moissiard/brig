@@ -66,15 +66,17 @@ export class BrigMicroService {
 
         this.expressApp = express();
     }
-    
+
     public async startMicroService(): Promise<void> {
         await this.initDAOs();
 
         this.authMiddleware.init();
         this.authService.init();
 
+        const { port, authorizedOrigin } = this.config.express;
+
         this.expressApp.use(cors({
-            origin: 'http://localhost:3000',
+            origin: [`http://localhost:${authorizedOrigin.port}`, `http://${authorizedOrigin.host}:${authorizedOrigin.port}`],
             allowedHeaders: ['Content-Type', 'Cache-Control', 'Connection', 'Authorization', 'Last-Event-Id'],
             credentials: true,
         }));
@@ -88,9 +90,8 @@ export class BrigMicroService {
             res.sendFile(path.join(__dirname, '../../../build/frontend', 'index.html'));
         });
 
-        const { host, port } = this.config.express;
         this.server = this.expressApp.listen(port, () => {
-            logger.info(`Server started at http://${host}:${port}`);
+            logger.info(`Server started on port ${port}`);
         });
     }
 

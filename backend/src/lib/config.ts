@@ -4,8 +4,11 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 export interface IBrigConfig {
     express: {
-        host: string;
         port: string;
+        authorizedOrigin: {
+            host: string;
+            port: string;
+        };
     };
     mongo: IBrigMongoConfig;
     redis: IBrigRedisConfig;
@@ -48,8 +51,11 @@ export interface IBrigAuthConfig {
 
 export const config: IBrigConfig = {
     express: {
-        host: process.env.SERVER_HOST || '',
         port: process.env.SERVER_PORT || '8080',
+        authorizedOrigin: {
+            host: process.env.AUTHORIZED_ORIGIN_HOST || '',
+            port: process.env.AUTHORIZED_ORIGIN_PORT || '3000',
+        },
     },
     mongo: {
         connection:{
