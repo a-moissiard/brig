@@ -1,0 +1,27 @@
+.serverListContent {
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+
+    .addButton {
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+    }
+  }
+
+  .accordionContainer {
+    .serverDetails {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .MuiButton-root {
+    border-radius: 20px;
+  }
+}

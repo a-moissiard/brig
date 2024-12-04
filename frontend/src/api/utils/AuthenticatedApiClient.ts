@@ -30,6 +30,16 @@ export abstract class AuthenticatedApiClient {
         return response.data;
     }
 
+    public static async put<T, B>(url: string, body: B, options?: IAxiosRequestOptions): Promise<T> {
+        const response = await this.tryAuthenticatedRequest(() => axios.put<T, AxiosResponse<T>, B>(url, body, getAxiosConfig(options)));
+        return response.data;
+    }
+
+    public static async delete<T>(url: string, options?: IAxiosRequestOptions): Promise<T> {
+        const response = await this.tryAuthenticatedRequest(() => axios.delete<T, AxiosResponse<T>>(url, getAxiosConfig(options)));
+        return response.data;
+    }
+
     public static async openSSE(url: string, handlers: IEventHandlers): Promise<void> {
         const sse = new EventSourcePolyfill(url, {
             headers: getAuthorizationHeader(),

@@ -1,4 +1,4 @@
-import { IFtpServer, IFtpServerSlotsModel, IServerSlot, ITransferActivity } from '../../types/ftp';
+import { IFtpServer, IFtpServerBase, IFtpServerSlotsModel, IServerSlot, ITransferActivity } from '../../types/ftp';
 import { IEventHandlers } from '../../types/sse/EventTypes';
 import { config } from '../config';
 import { IRequestOptions } from '../utils/ApiClientTypes';
@@ -10,6 +10,20 @@ export class FtpServersApi {
 
     public static async getFtpServers(options?: IRequestOptions): Promise<IFtpServer[]> {
         return AuthenticatedApiClient.get<IFtpServer[]>(this.serversApiUrl, options);
+    }
+
+    public static async createFtpServer(server: IFtpServerBase, options?: IRequestOptions): Promise<IFtpServer> {
+        return AuthenticatedApiClient.post<IFtpServer, IFtpServerBase>(this.serversApiUrl, server, options);
+    }
+
+    public static async updateFtpServer(serverId: string, server: IFtpServerBase, options?: IRequestOptions): Promise<IFtpServer> {
+        const url = `${this.serversApiUrl}/${serverId}`;
+        return AuthenticatedApiClient.put<IFtpServer, IFtpServerBase>(url, server, options);
+    }
+
+    public static async deleteFtpServer(serverId: string, options?: IRequestOptions): Promise<void> {
+        const url = `${this.serversApiUrl}/${serverId}`;
+        return AuthenticatedApiClient.delete(url, options);
     }
 
     public static async getUserConnectedServers(options?: IRequestOptions): Promise<IFtpServerSlotsModel> {

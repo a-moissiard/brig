@@ -70,11 +70,9 @@ const DashboardPage: FunctionComponent = () => {
                     refreshNeeded: false,
                 }));
             }
-
-            setLoading(false);
         };
         
-        fetchState().catch(() => {});
+        fetchState().catch(() => {}).finally(() => setLoading(false));
 
         return () => controller.abort();
     }, []);

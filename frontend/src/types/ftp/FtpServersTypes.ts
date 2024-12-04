@@ -1,14 +1,12 @@
 import { IFileInfo } from './FileInfoTypes';
 
-interface IFtpServerBase {
+export interface IFtpServerBase {
     alias: string;
     host: string;
     port: number;
     username: string;
+    secure: boolean;
 }
-
-export type IFtpServerCreate = IFtpServerBase;
-export type IFtpServerUpdate = Partial<IFtpServerBase>;
 
 export interface IFtpServer extends IFtpServerBase {
     id: string;

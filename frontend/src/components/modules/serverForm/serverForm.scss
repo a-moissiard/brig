@@ -1,0 +1,16 @@
+.serverProp {
+  margin: 0;
+
+  &:not(:last-of-type) {
+    margin-bottom: 15px;
+  }
+}
+
+.serverButtons {
+  display: flex;
+  justify-content: flex-end;
+
+  > .MuiButton-root{
+    margin-left: 15px;
+  }
+}
