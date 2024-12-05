@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import prettyBytes from 'pretty-bytes';
 import { FormEvent, FunctionComponent, MouseEvent, useEffect, useState } from 'react';
+import { setError } from 'redux/features/error/errorSlice';
 
 import { IFilesListingResponse } from '../../../api/ftpServers/FtpServersActionsTypes';
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
@@ -76,8 +77,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
 
     const [selectedServerId, setSelectedServerId] = useState(serverConnection?.server.id || '');
     const [selectedServerPassword, setSelectedServerPassword] = useState('');
-    const [error, setError] = useState<string>();
-    const [errorTimer, setErrorTimer] = useState<ReturnType<typeof setTimeout>>();
     const [controller, setController] = useState(() => new AbortController());
 
     const [ongoingAction, setOngoingAction] = useState(false);
@@ -90,16 +89,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
         mouseY: number;
     } | null>(null);
     const [fileDeletionState, setFileDeletionState] = useState<IFileDeletionState>(initialFileDeletionState);
-
-    const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
-        clearTimeout(errorTimer);
-        setError(error);
-        setErrorTimer(setTimeout(() => {
-            setError(undefined);
-        }, timeout));
-    };
-
-    useEffect(() => () => clearTimeout(errorTimer), []);
 
     useEffect(() => {
         if (serverConnection && selectedServerId === '') {
@@ -122,7 +111,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
                 dispatch(setRefreshment(false));
                 requestInducingListRefresh(() => FtpServersApi.list(selectedServerId, undefined, {
                     signal: controller.signal,
-                })).catch((e) => setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000));
+                })).catch((e) => dispatch(setError(`Unknown error: ${JSON.stringify(e, null, 2)}`)));
                 setOngoingAction(false);
             }
         }
@@ -132,9 +121,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
         event.preventDefault();
         const password = selectedServerPassword;
         setSelectedServerPassword('');
-        if (error) {
-            setError(undefined);
-        }
         dispatch(setServer({
             slot,
             data: {
@@ -161,10 +147,10 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
             dispatch(unsetServer(slot));
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
-                    setErrorWithTimeout(e.message);
+                    dispatch(setError(e.message));
                 }
             } else {
-                setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
+                dispatch(setError(`Unknown error: ${JSON.stringify(e, null, 2)}`));
             }
         }
     };
@@ -194,7 +180,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
             }));
             setOngoingAction(false);
         } else {
-            setErrorWithTimeout('Cannot change directory if current directory is top directory or undefined');
+            dispatch(setError('Cannot change directory if current directory is top directory or undefined'));
         }
     };
 
@@ -233,7 +219,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
                 }));
                 setOngoingAction(false);
             } else {
-                setErrorWithTimeout('Cannot change directory if current directory is undefined'); // Should never happen
+                dispatch(setError('Cannot change directory if current directory is undefined')); // Should never happen
             }
         } else {
             await transfer(file);
@@ -274,7 +260,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
 
     const transfer = async (file: IFileInfo): Promise<void> => {
         if (!canTransfer) {
-            setErrorWithTimeout('Both servers must be connected for transfer');
+            dispatch(setError('Both servers must be connected for transfer'));
             return;
         }
         await onTransfer(slot, file);
@@ -295,10 +281,10 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
         } catch (e) {
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
-                    setErrorWithTimeout(e.message);
+                    dispatch(setError(e.message));
                 }
             } else {
-                setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
+                dispatch(setError(`Unknown error: ${JSON.stringify(e, null, 2)}`));
             }
         }
     };
@@ -357,14 +343,6 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
                         </Button>
                     </Box>
                 </Box>
-                {error && (
-                    <Typography
-                        className="connectionError"
-                        component='h6'
-                        color='error'>
-                        {error}
-                    </Typography>
-                )}
             </Box>
             {serverConnection && serverConnection.status === CONNECTION_STATUS.CONNECTED && (
                 <Box className="listing">

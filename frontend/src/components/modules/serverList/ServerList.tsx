@@ -6,8 +6,10 @@ import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import MuiAccordionSummary, { AccordionSummaryProps } from '@mui/material/AccordionSummary';
 import { styled } from '@mui/material/styles';
 import { FunctionComponent, SyntheticEvent, useState } from 'react';
+import { setError } from 'redux/features/error/errorSlice';
 
 import { FtpServersApi } from '../../../api/ftpServers/FtpServersApi';
+import { useAppDispatch } from '../../../redux/hooks';
 import { IFtpServer, IFtpServerBase } from '../../../types/ftp';
 import { BRIG_FRONT_ERROR_CODE, BrigFrontError } from '../../../utils/error/BrigFrontError';
 import Dialog from '../../lib/dialog/Dialog';
@@ -67,22 +69,12 @@ const initialServerDeletionState: IServerDeletionState = {
 };
 
 const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
+    const dispatch = useAppDispatch();
     const [serverList, setServerList] = useState<IFtpServer[]>(() => (ftpServerList));
     const [expanded, setExpanded] = useState<string | false>(false);
     const [editing, setEditing] = useState<string | false>(false);
     const [newServer, setNewServer] = useState<IFtpServer | null>(null);
     const [serverDeletionState, setServerDeletionState] = useState<IServerDeletionState>(initialServerDeletionState);
-
-    const [error, setError] = useState<string>();
-    const [errorTimer, setErrorTimer] = useState<ReturnType<typeof setTimeout>>();
-
-    const setErrorWithTimeout = (error: string, timeout: number = 10 * 1000): void => {
-        clearTimeout(errorTimer);
-        setError(error);
-        setErrorTimer(setTimeout(() => {
-            setError(undefined);
-        }, timeout));
-    };
 
     const onServerClick = (serverId: string) => (event: SyntheticEvent, newExpanded: boolean) => {
         setExpanded(newExpanded ? serverId : false);
@@ -99,10 +91,20 @@ const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
     };
 
     const validateAddServer = async (server: IFtpServerBase): Promise<void> => {
-        setNewServer(null);
-        await FtpServersApi.createFtpServer(server);
-        const list = await FtpServersApi.getFtpServers();
-        setServerList(list);
+        try {
+            await FtpServersApi.createFtpServer(server);
+            setNewServer(null);
+            const list = await FtpServersApi.getFtpServers();
+            setServerList(list);
+        } catch (e: unknown) {
+            if (e instanceof BrigFrontError) {
+                if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
+                    dispatch(setError(e.message));
+                }
+            } else {
+                dispatch(setError(`Unknown error: ${JSON.stringify(e, null, 2)}`));
+            }
+        }
     };
 
     const onDeleteServer = (server: IFtpServer): void => {
@@ -140,10 +142,10 @@ const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
         } catch (e: unknown) {
             if (e instanceof BrigFrontError) {
                 if (e.code !== BRIG_FRONT_ERROR_CODE.REQUEST_CANCELLED) {
-                    setErrorWithTimeout(e.message);
+                    dispatch(setError(e.message));
                 }
             } else {
-                setErrorWithTimeout(`Unknown error: ${JSON.stringify(e, null, 2)}`, 60 * 1000);
+                dispatch(setError(`Unknown error: ${JSON.stringify(e, null, 2)}`));
             }
         }
     };
@@ -213,14 +215,6 @@ const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
                             />
                         </AccordionDetails>
                     </Accordion>
-                )}
-                {error && (
-                    <Typography
-                        className="connectionError"
-                        component='h6'
-                        color='error'>
-                        {error}
-                    </Typography>
                 )}
             </Box>
         </CardContent>
