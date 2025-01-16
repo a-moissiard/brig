@@ -43,7 +43,7 @@ const ActivityCard: FunctionComponent = () => {
         }
     }, [transferActivity, server1Connection, server2Connection]);
 
-    return <Card>
+    return <Card variant="outlined">
         <CardContent className="activityCard">
             <Box className="header">
                 <Typography variant="h5">
@@ -62,7 +62,7 @@ const ActivityCard: FunctionComponent = () => {
                         {transferActivity.target}
                     </Typography>
                     {transferActivity.currentProgress && (
-                        <Card className='activitySubCard' raised>
+                        <Card elevation={1} className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" className="emphasizedText">
                                     Transferring
@@ -75,7 +75,7 @@ const ActivityCard: FunctionComponent = () => {
                         </Card>
                     )}
                     {Object.keys(transferActivity.pending).length > 0 && (
-                        <Card className='activitySubCard' raised>
+                        <Card elevation={1} className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" className="emphasizedText">
                                     Pending
@@ -85,7 +85,7 @@ const ActivityCard: FunctionComponent = () => {
                         </Card>
                     )}
                     {Object.keys(transferActivity.success).length > 0 && (
-                        <Card className='activitySubCard' raised>
+                        <Card elevation={1} className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" className="emphasizedText">
                                     Successful
@@ -95,7 +95,7 @@ const ActivityCard: FunctionComponent = () => {
                         </Card>
                     )}
                     {Object.keys(transferActivity.failed).length > 0 && (
-                        <Card className='activitySubCard' raised>
+                        <Card elevation={1} className='activitySubCard' raised>
                             <CardContent>
                                 <Typography variant="h6" className="emphasizedText">
                                     Failed

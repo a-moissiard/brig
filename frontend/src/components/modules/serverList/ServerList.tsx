@@ -47,16 +47,10 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
     '& .MuiAccordionSummary-content': {
         marginLeft: theme.spacing(2),
     },
-    ...theme.applyStyles('dark', {
-        backgroundColor: 'rgba(255, 255, 255, .05)',
-    }),
 }));
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
     padding: theme.spacing(2),
-    ...theme.applyStyles('dark', {
-        backgroundColor: 'rgba(255, 255, 255, .05)',
-    }),
 }));
 
 interface IServerDeletionState {
@@ -150,7 +144,7 @@ const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
         }
     };
 
-    return <Card className="serverList">
+    return <Card variant="outlined" className="serverList">
         <CardContent className="serverListContent">
             <Box className="header">
                 <Typography variant="h5">

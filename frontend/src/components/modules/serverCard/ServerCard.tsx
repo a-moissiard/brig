@@ -289,7 +289,7 @@ const ServerCard: FunctionComponent<IServerCardProps> = ({ slot, ftpServerList, 
         }
     };
 
-    return <Card className="serverCard">
+    return <Card variant="outlined" className="serverCard">
         <CardContent className="serverCardContent">
             <Box className="header">
                 <Typography variant="h5">
