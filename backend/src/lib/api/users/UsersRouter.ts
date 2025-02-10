@@ -17,6 +17,7 @@ export class UsersRouter {
     }
 
     public init(): Router {
+        this.router.get('/', asyncHandler(this.usersHandler.listUsers.bind(this.usersHandler)));
         this.router.delete('/:userId', asyncHandler(this.usersHandler.deleteUser.bind(this.usersHandler)));
         return this.router;
     }

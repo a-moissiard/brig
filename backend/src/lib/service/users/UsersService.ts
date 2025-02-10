@@ -27,6 +27,11 @@ export class UsersService {
         });
     }
 
+    public async listUsers(requester: IRequester): Promise<IUserModel[]> {
+        await this.usersAuthorizationsEnforcer.assertIsAdmin(requester);
+        return this.usersDao.listUser();
+    }
+
     public async getUser(userId: string): Promise<IUserModel> {
         return this.usersDao.getUser(userId);
     }

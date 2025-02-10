@@ -1,0 +1,24 @@
+.userListContent {
+  display: flex;
+  flex-direction: column;
+
+  &__subList {
+    margin: 15px;
+  }
+
+  //.header {
+  //  display: flex;
+  //  justify-content: space-between;
+  //  margin-bottom: 15px;
+  //
+  //  .addButton {
+  //    min-width: 32px;
+  //    height: 32px;
+  //    padding: 0;
+  //  }
+  //}
+
+  .MuiButton-root {
+    border-radius: 20px;
+  }
+}

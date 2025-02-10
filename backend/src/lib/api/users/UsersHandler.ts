@@ -14,6 +14,14 @@ export class UsersHandler {
         this.usersService = deps.usersService;
     }
 
+    async listUsers(req: Request, res: Response): Promise<void> {
+        const requester = buildRequester(req);
+
+        const userList = await this.usersService.listUsers(requester);
+
+        res.send(userList);
+    }
+
     async deleteUser(req: Request, res: Response): Promise<void> {
         const requester = buildRequester(req);
         const { userId } = req.params;

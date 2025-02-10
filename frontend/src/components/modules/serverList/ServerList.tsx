@@ -39,7 +39,6 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
         {...props}
     />
 ))(({ theme }) => ({
-    backgroundColor: 'rgba(0, 0, 0, .03)',
     flexDirection: 'row-reverse',
     '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
         transform: 'rotate(90deg)',
@@ -144,7 +143,7 @@ const ServerList: FunctionComponent<IServerListProps> = ({ ftpServerList }) => {
         }
     };
 
-    return <Card variant="outlined" className="serverList">
+    return <Card variant="outlined">
         <CardContent className="serverListContent">
             <Box className="header">
                 <Typography variant="h5">
