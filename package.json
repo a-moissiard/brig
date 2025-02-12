@@ -1,6 +1,7 @@
 {
   "name": "brig",
   "packageManager": "yarn@3.2.4",
+  "version": "0.1.0",
   "scripts": {
     "build": "yarn workspaces foreach run build",
     "build:backend": "yarn workspace backend run build",

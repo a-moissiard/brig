@@ -43,7 +43,7 @@ jobs:
         MONGO_USERNAME: ci-username
         MONGO_PASSWORD: ci-password
         MONGO_AUTH_SOURCE: admin
-        MONGO_HOST: localhost  # MongoDB tourne sur localhost dans cette CI
+        MONGO_HOST: localhost  # MongoDB is running on localhost in this CI workflow
         MONGO_PORT: 27017
         MONGO_DB_NAME: ci-db
         ACCESS_TOKEN_SIGNING_SECRET: ci-access-token-secret
