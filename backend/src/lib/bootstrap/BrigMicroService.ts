@@ -76,7 +76,7 @@ export class BrigMicroService {
         const { port, authorizedOrigin } = this.config.express;
 
         this.expressApp.use(cors({
-            origin: [`http://localhost:${authorizedOrigin.port}`, `http://${authorizedOrigin.host}:${authorizedOrigin.port}`],
+            origin: authorizedOrigin.hosts ? JSON.parse(authorizedOrigin.hosts) : ['http://localhost:3000'],
             allowedHeaders: ['Content-Type', 'Cache-Control', 'Connection', 'Authorization', 'Last-Event-Id'],
             credentials: true,
         }));

@@ -6,8 +6,7 @@ export interface IBrigConfig {
     express: {
         port: string;
         authorizedOrigin: {
-            host: string;
-            port: string;
+            hosts?: string;
         };
     };
     mongo: IBrigMongoConfig;
@@ -53,8 +52,7 @@ export const config: IBrigConfig = {
     express: {
         port: process.env.SERVER_PORT || '8080',
         authorizedOrigin: {
-            host: process.env.AUTHORIZED_ORIGIN_HOST || '',
-            port: process.env.AUTHORIZED_ORIGIN_PORT || '3000',
+            hosts: process.env.AUTHORIZED_ORIGIN_HOSTS,
         },
     },
     mongo: {
