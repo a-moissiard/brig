@@ -1,27 +1,27 @@
 services:
-  mongodb:
+  brig-mongo-dev:
     image: mongo:7.0
-    container_name: mongo-dev
+    container_name: brig-mongo-dev
     ports:
-      - "27017:27017"
+      - "28017:27017"
     volumes:
-      - mongo_data_dev:/data/db
+      - brig_mongo_data_dev:/data/db
     env_file:
-      - .env.mongo
+      - .env.mongo.development
 
-  redis:
+  brig-redis-dev:
     image: redis:7
-    container_name: redis-dev
+    container_name: brig-redis-dev
     ports:
-      - "6379:6379"
+      - "7379:6379"
     volumes:
-      - redis_data_dev:/data
+      - brig_redis_data_dev:/data
     env_file:
-      - .env.redis
+      - .env.redis.development
     command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
 
 volumes:
-  mongo_data_dev:
+  brig_mongo_data_dev:
     driver: local
-  redis_data_dev:
+  brig_redis_data_dev:
     driver: local

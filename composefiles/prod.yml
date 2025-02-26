@@ -1,0 +1,27 @@
+services:
+  brig-mongo-prod:
+    image: mongo:7.0
+    container_name: brig-mongo-prod
+    ports:
+      - "27017:27017"
+    volumes:
+      - brig_mongo_data_prod:/data/db
+    env_file:
+      - .env.mongo.production
+
+  brig-redis-prod:
+    image: redis:7
+    container_name: brig-redis-prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - brig_redis_data_prod:/data
+    env_file:
+      - .env.redis.production
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+
+volumes:
+  brig_mongo_data_prod:
+    driver: local
+  brig_redis_data_prod:
+    driver: local
